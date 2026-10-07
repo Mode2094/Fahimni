@@ -1,0 +1,33 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+import React,{act} from 'react';
+import {createRoot} from 'react-dom/client';
+import {usePlayback} from '../lib/whiteboard/usePlayback';
+import {Lesson,emptyBoard,Action} from '../schemas/lesson';
+import {renderToStaticMarkup} from 'react-dom/server';
+import Whiteboard from '../components/Whiteboard';
+const a=(id:string,content:string):Action=>({type:'write_latex',id,content,region:'working-area',targets:[],points:[],color:'ink',geometry:null,delayMs:0});
+const source={chunkId:'math10-2ad3b12dc497-p8',sourceId:'math10-2ad3b12dc497',pdfPage:8,printedPage:8,lesson:'حل معادلات خاصة',image:'/book/8.jpg'};
+const lesson:Lesson={id:'test',title:'المعادلات',question:'سؤال',mode:'new',sufficientContext:true,message:'',sources:[source],segments:[{id:'s1',goal:'نبدأ',narration:'المعادلة الأولى',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq1','x^3+4x^2=5x')]},{id:'s2',goal:'نحلل',narration:'المعادلة الثانية',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq2','x(x+5)(x-1)=0')]}]};
+test('playback: progressive actions, pause/resume, previous/next/replay, stop, clear; DOM simulation, not a browser QA',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'https://local'});
+ Object.assign(globalThis,{window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true});
+ let playback:ReturnType<typeof usePlayback>;
+ function Harness(){playback=usePlayback();return React.createElement('div',null,playback.status);}
+ const root=createRoot(document.getElementById('root')!);
+ await act(async()=>root.render(React.createElement(Harness)));
+ await act(async()=>playback!.setVoice(false));
+ await act(async()=>playback!.load(lesson,emptyBoard()));
+ await act(async()=>{await new Promise(r=>setTimeout(r,100));});
+ assert.equal(playback!.status,'playing');assert.equal(playback!.board.objects.length,1);assert.equal(playback!.index,0);
+ await act(async()=>playback!.halt());assert.equal(playback!.status,'paused');
+ await act(async()=>playback!.toggle());assert.equal(playback!.status,'playing');
+ await act(async()=>playback!.jump(1));await act(async()=>{await new Promise(r=>setTimeout(r,100));});assert.equal(playback!.board.objects.length,2);
+ await act(async()=>playback!.jump(0));await act(async()=>{await new Promise(r=>setTimeout(r,100));});assert.equal(playback!.board.objects.length,1);
+ await act(async()=>playback!.jump(0));await act(async()=>{await new Promise(r=>setTimeout(r,100));});assert.equal(playback!.board.objects.length,1);
+ await act(async()=>playback!.stop());assert.equal(playback!.status,'ready');
+ await act(async()=>playback!.clear());assert.equal(playback!.status,'idle');assert.equal(playback!.board.objects.length,0);assert.equal(playback!.lesson,null);
+ await act(async()=>root.unmount());dom.window.close();
+});
+test('math isolation renders KaTeX and escapes non-math object content',()=>{const html=renderToStaticMarkup(React.createElement(Whiteboard,{board:{objects:[{id:'eq',type:'write_latex',content:'\\frac{x^2}{2}=5',region:'working-area',points:[],geometry:null,color:'ink',highlighted:false,focused:false,group:null},{id:'text',type:'write_text',content:'<script>alert(1)</script>',region:'explanation-area',points:[],geometry:null,color:'ink',highlighted:false,focused:false,group:null}]},onSelect:()=>{}}));assert(html.includes('katex'));assert(html.includes('dir="ltr"'));assert(!html.includes('<script>'));assert(html.includes('&lt;script&gt;'));});
