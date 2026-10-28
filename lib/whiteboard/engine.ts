@@ -1,5 +1,5 @@
 import { Action, BoardState, emptyBoard } from '../../schemas/lesson';
-const draws=new Set(['write_text','write_latex','draw_line','draw_arrow','draw_circle','draw_rectangle','draw_axes','plot_point','plot_points','plot_graph','show_label','show_image','show_book_reference']);
+export const draws=new Set<Action['type']>(['write_text','write_latex','draw_line','draw_arrow','draw_circle','draw_rectangle','draw_axes','plot_point','plot_points','plot_graph','show_label','show_image','show_book_reference']);
 export function applyAction(board:BoardState,a:Action):BoardState {
  if(a.type==='clear_board')return emptyBoard();
  let objects=board.objects.map(o=>({...o}));

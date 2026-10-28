@@ -1,4 +1,4 @@
-import type {Action,BoardObject,BoardState,Lesson} from '../../schemas/lesson';
+import type {Action,BoardObject,Lesson} from '../../schemas/lesson';
 
 // A board object can be in one presentation state at a time. The board derives
 // this from stable object IDs and the active segment, never from DOM position.

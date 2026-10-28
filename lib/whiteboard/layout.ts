@@ -37,8 +37,12 @@ const activeCount=(objects:BoardObject[],states:Map<string,TeachingVisualState>)
  * `work` wins when it is live; otherwise the board keeps the answer in view.
  */
 export function planLayout({board,states,index,total}:LayoutInput){
+ // One row per object id: a re-used id (a re-written equation, a stale ghost)
+ // must never produce two children with the same React key.
+ const unique=new Map<string,BoardObject>();
+ for(const o of board.objects)unique.set(o.id,o);
  const byZone:Record<Zone,BoardObject[]>={header:[],work:[],history:[],result:[]};
- for(const o of board.objects)(byZone[zoneOf(o)]??byZone.work).push(o);
+ for(const o of unique.values())(byZone[zoneOf(o)]??byZone.work).push(o);
  const workLive=activeCount(byZone.work,states)>0;
  // The concluded answer takes the room once the lesson reaches it, so the
  // closing moment is never competing with the working line.
