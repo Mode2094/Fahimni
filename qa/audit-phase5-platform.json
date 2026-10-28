@@ -1,0 +1,130 @@
+{
+ "startedAt": "2026-10-09T20:46:32.202Z",
+ "admin": {
+  "students1440": {
+   "title": "الطلاب | فهمني",
+   "h1": "الطلاب",
+   "overflow": false,
+   "scrollWidth": 1440,
+   "rows": 9,
+   "listsAuditStudent": true
+  },
+  "studentsSearch1440": {
+   "rows": 1,
+   "showsMatch": true
+  },
+  "settings1440": {
+   "title": "الإعدادات | فهمني",
+   "h1": "الإعدادات",
+   "overflow": false,
+   "scrollWidth": 1440,
+   "budgetCard": "استهلاك الذكاء اليومعداد يومي بتوقيت الأردن (يُصفَّر منتصف ليل عمّان)، يشمل الطلبات المدفوعة والتجريبية.الإنفاق العام اليوم$0.00الحد اليومي: $2إنفاق التجربة المجانية اليوم$0.00حد التجربة: $5إعادة الضبط: ١٠‏/١٠‏/٢٠٢٦، ١٢:٠٠:٠٠ ص · المصدر: ذاكرة التطوير (تُصفَّر مع إعادة تشغيل الخادم — للإنتاج يُشترط Redis)الأرقام تقديرات محافظة تُحجز قبل كل طلب؛ قد تختلف قليلًا عن فاتورة المزوّد الفعلية."
+  },
+  "students390": {
+   "title": "الطلاب | فهمني",
+   "h1": "الطلاب",
+   "overflow": false,
+   "scrollWidth": 390,
+   "rows": 9
+  },
+  "settings390": {
+   "title": "الإعدادات | فهمني",
+   "h1": "الإعدادات",
+   "overflow": false,
+   "scrollWidth": 391
+  }
+ },
+ "student": {
+  "app1440": {
+   "title": "الرئيسية | فهمني",
+   "h1": "مرحبًا، طالب 👋",
+   "overflow": false,
+   "scrollWidth": 1440
+  },
+  "review1440": {
+   "title": "راجع نقاط ضعفي | فهمني",
+   "h1": "راجع نقاط ضعفي",
+   "overflow": false,
+   "scrollWidth": 1440,
+   "hasEmptyState": true
+  },
+  "app390": {
+   "title": "الرئيسية | فهمني",
+   "h1": "مرحبًا، طالب 👋",
+   "overflow": false,
+   "scrollWidth": 390
+  }
+ },
+ "classroom": {
+  "before": {
+   "creditChip": "رصيدك2",
+   "demoBadge": false
+  },
+  "afterQuestion": {
+   "lessonLoaded": true,
+   "stepLabel": "1 / 1",
+   "boardText": "قانون مساحة مثلث = نصف × طول الضلع الأول × طول الضلع الثاني × جيب الزاوية بينهما 1/1يشرح الآنفهمني / مساحة للفهممعلّمك الذكيأجهّز صوت الخطوة… صوت مولّد بالذكاء الاصطناعينعرف من قوانين المثلثات أن مساحة المثلث تساوي نصف ح",
+   "creditChip": "رصيدك1",
+   "hasInterruptBar": true
+  },
+  "afterInterrupt": {
+   "followupDone": true,
+   "stepLabel": "1 / 1",
+   "boardText": "قانون مساحة مثلث = نصف × طول الضلع الأول × طول الضلع الثاني × جيب الزاوية بينهما 1/1متوقف مؤقتاًفهمني / مساحة للفهممعلّمك الذكيمتوقف مؤقتاً صوت مولّد بالذكاء الاصطناعينعرف من قوانين المثلثات أن مساحة المثلث تساوي نصف حاص",
+   "creditChip": "رصيدك1",
+   "hasResume": true
+  }
+ },
+ "public": {
+  "landing390": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "h1": "مدرّسك الذكي من كتابك",
+   "overflow": false,
+   "scrollWidth": 390,
+   "hasPrivacyLink": true,
+   "hasTermsLink": true
+  },
+  "privacy390": {
+   "title": "سياسة الخصوصية (مسودة) | فهمني",
+   "h1": "سياسة الخصوصية (مسودة)",
+   "overflow": false,
+   "scrollWidth": 390
+  },
+  "terms390": {
+   "title": "الشروط والأحكام (مسودة) | فهمني",
+   "h1": "الشروط والأحكام (مسودة)",
+   "overflow": false,
+   "scrollWidth": 390
+  },
+  "landing768": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "h1": "مدرّسك الذكي من كتابك",
+   "overflow": false,
+   "scrollWidth": 768,
+   "hasPrivacyLink": true,
+   "hasTermsLink": true
+  },
+  "landing1440": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "h1": "مدرّسك الذكي من كتابك",
+   "overflow": false,
+   "scrollWidth": 1440,
+   "hasPrivacyLink": true,
+   "hasTermsLink": true
+  },
+  "privacy1440": {
+   "title": "سياسة الخصوصية (مسودة) | فهمني",
+   "h1": "سياسة الخصوصية (مسودة)",
+   "overflow": false,
+   "scrollWidth": 1440
+  },
+  "terms1440": {
+   "title": "الشروط والأحكام (مسودة) | فهمني",
+   "h1": "الشروط والأحكام (مسودة)",
+   "overflow": false,
+   "scrollWidth": 1440
+  }
+ },
+ "consoleErrors": [],
+ "finishedAt": "2026-10-09T20:47:02.822Z"
+}

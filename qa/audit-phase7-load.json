@@ -1,0 +1,132 @@
+{
+ "startedAt": "2026-10-10T11:43:03.543Z",
+ "baseline": {
+  "rssMb": 859,
+  "cpuPercent": 0
+ },
+ "scenarios": [
+  {
+   "concurrency": 10,
+   "durationMs": 10000,
+   "requests": 1035,
+   "errors": 0,
+   "errorRate": 0,
+   "rps": 103.5,
+   "p50": 64,
+   "p95": 106.1,
+   "p99": 189.5,
+   "perRoute": {
+    "health": {
+     "count": 148,
+     "p50": 12.9,
+     "p95": 26.9
+    },
+    "login": {
+     "count": 148,
+     "p50": 25.9,
+     "p95": 43.1
+    },
+    "landing": {
+     "count": 146,
+     "p50": 52.3,
+     "p95": 67.3
+    },
+    "book-page": {
+     "count": 148,
+     "p50": 67.9,
+     "p95": 93.7
+    },
+    "app-dashboard": {
+     "count": 149,
+     "p50": 70.9,
+     "p95": 115.4
+    },
+    "subscription": {
+     "count": 148,
+     "p50": 73.3,
+     "p95": 105.3
+    },
+    "classroom-shell": {
+     "count": 148,
+     "p50": 90.2,
+     "p95": 133.3
+    }
+   },
+   "statuses": {
+    "app-dashboard:200": 149,
+    "book-page:200": 148,
+    "classroom-shell:200": 148,
+    "health:200": 148,
+    "landing:200": 146,
+    "login:200": 148,
+    "subscription:200": 148
+   },
+   "serverAfter": {
+    "rssMb": 859,
+    "cpuPercent": 0
+   }
+  },
+  {
+   "concurrency": 25,
+   "durationMs": 10000,
+   "requests": 1213,
+   "errors": 0,
+   "errorRate": 0,
+   "rps": 121.3,
+   "p50": 117.2,
+   "p95": 287,
+   "p99": 320.9,
+   "perRoute": {
+    "health": {
+     "count": 172,
+     "p50": 14.3,
+     "p95": 27.5
+    },
+    "login": {
+     "count": 171,
+     "p50": 29,
+     "p95": 50
+    },
+    "landing": {
+     "count": 171,
+     "p50": 112.5,
+     "p95": 142.8
+    },
+    "book-page": {
+     "count": 174,
+     "p50": 77.1,
+     "p95": 120.9
+    },
+    "app-dashboard": {
+     "count": 176,
+     "p50": 198,
+     "p95": 242.7
+    },
+    "subscription": {
+     "count": 176,
+     "p50": 199.9,
+     "p95": 251.2
+    },
+    "classroom-shell": {
+     "count": 173,
+     "p50": 273.9,
+     "p95": 323
+    }
+   },
+   "statuses": {
+    "app-dashboard:200": 176,
+    "book-page:200": 174,
+    "classroom-shell:200": 173,
+    "health:200": 172,
+    "landing:200": 171,
+    "login:200": 171,
+    "subscription:200": 176
+   },
+   "serverAfter": {
+    "rssMb": 859,
+    "cpuPercent": 0
+   }
+  }
+ ],
+ "finishedAt": "2026-10-10T11:43:23.989Z"
+}

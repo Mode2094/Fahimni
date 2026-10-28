@@ -1,0 +1,20 @@
+{
+  "verifiedAt": "2026-10-08",
+  "fixtureRefresh": "fixtures re-minted before run; results below are UI/API evidence",
+  "settingsApi": {
+    "validMaxDevices3": { "status": 303, "location": "/admin/settings?status=updated" },
+    "invalidMaxDevicesAbc": { "status": 303, "location": "/admin/settings?error=invalid" },
+    "asStudent": { "status": 403 }
+  },
+  "settingsRestore": { "maxDevicesPerUser": 2, "apiResult": "303 /admin/settings?status=updated", "dbVerified": true },
+  "gradesList": { "path": "/admin/grades", "rows": 2 },
+  "newGradeForm": { "fields": ["name", "slug", "sortOrder", "isActive"], "submitText": "حفظ" },
+  "gradeCreate": { "path": "/admin/grades", "rowFound": true, "errors": [], "consoleErrors": [] },
+  "gradeDelete": { "confirmDialog": "سيتم حذف الصف \"صف تدقيق\" نهائيًا. هل أنت متأكد؟", "rowGone": true, "dbCount": 0 },
+  "harnessNote": "A naive `form button[type=submit]` selector matched the admin sidebar logout form (text: خروج) and logged the session out; this explains the earlier 'vanishing admin session' anomaly. Application behavior is correct.",
+  "deviceRevoke": {
+    "ownDevice": { "status": 303, "location": "/app/account?status=device_removed", "dbRevoked": true },
+    "crossUser": { "status": 303, "location": "/app/account?error=device" },
+    "unknownDevice": { "status": 303, "location": "/app/account?error=device" }
+  }
+}

@@ -1,0 +1,44 @@
+{
+ "trialBrowser": {
+  "first": {
+   "status": 200,
+   "created": true
+  },
+  "sameAccountAgain": {
+   "status": 200,
+   "created": false
+  },
+  "freshAccountSameBrowser": {
+   "status": 409,
+   "code": "browser_used"
+  }
+ },
+ "bookPages": {
+  "anonymous": 401,
+  "entitledStudent": 404,
+  "trialActive": 404,
+  "noAccessGrade11": 404,
+  "unknownBook": 404
+ },
+ "uploadRejection": {
+  "status": 303,
+  "redirect": "http://localhost:3000/admin/subjects/b0285393-fc49-4573-833f-07b87b1cb628?error=invalid_file"
+ },
+ "returnToSanitization": {
+  "googleHrefPresent": true,
+  "returnToParam": "/app"
+ },
+ "expiredSession": {
+  "pageApp": 307,
+  "apiTutor": 400
+ },
+ "onboarding": {
+  "missingFieldRedirect": "http://localhost:3000/onboarding?error=field_required",
+  "invalidFieldRedirect": "http://localhost:3000/onboarding?error=invalid_field"
+ },
+ "checkout": {
+  "status": 404,
+  "body": "{\"error\":\"العرض غير متاح لصفك أو تخصصك.\",\"code\":\"offer_unavailable\"}",
+  "forgedPriceStatus": 400
+ }
+}

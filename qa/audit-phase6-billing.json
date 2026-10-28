@@ -1,0 +1,30 @@
+{
+ "startedAt": "2026-10-09T22:03:37.078Z",
+ "admin": {
+  "freemius1440": {
+   "title": "إدارة الاشتراكات | فهمني",
+   "overflow": false,
+   "hasEventsCard": true,
+   "showsSimulatedEvent": true,
+   "hasOperationalRules": true,
+   "hasCurrencyList": true,
+   "noConflictWarning": true
+  },
+  "subscribers1440": {
+   "title": "إدارة الاشتراكات | فهمني",
+   "overflow": false,
+   "hasResyncColumn": true,
+   "rows": 2
+  },
+  "freemius390": {
+   "title": "إدارة الاشتراكات | فهمني",
+   "overflow": false
+  },
+  "subscribers390": {
+   "title": "إدارة الاشتراكات | فهمني",
+   "overflow": false
+  }
+ },
+ "consoleErrors": [],
+ "finishedAt": "2026-10-09T22:03:41.323Z"
+}

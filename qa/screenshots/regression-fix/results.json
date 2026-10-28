@@ -1,0 +1,105 @@
+{
+ "exact": {
+  "label": "exact-system",
+  "loaded": true,
+  "errorShown": false,
+  "timeToLessonMs": 7353,
+  "distinctFrames": 364,
+  "totalFrames": 370,
+  "state": {
+   "step": "1/1",
+   "errorVisible": null,
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "objects": 4,
+   "narration": "أول شيء، نعيد كتابة المعادلة بحيث نجمع كل حدودها في طرف واحد لنصل إلى صفر في الطرف الآخر. ",
+   "speaking": true,
+   "overflow": false,
+   "creditBefore": "رصيدك36",
+   "creditAfter": "رصيدك35"
+  }
+ },
+ "simple": {
+  "label": "simple",
+  "loaded": true,
+  "errorShown": false,
+  "timeToLessonMs": 4949,
+  "distinctFrames": 271,
+  "totalFrames": 289,
+  "state": {
+   "step": "1/3",
+   "errorVisible": null,
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "objects": 1,
+   "narration": "لإيجاد قيمة س، نطرح 3 من طرفي المعادلة لأننا نريد عزل س بمفرده. هذه العملية صحيحة لأننا نح",
+   "speaking": true,
+   "overflow": false,
+   "creditBefore": "رصيدك34",
+   "creditAfter": "رصيدك33"
+  }
+ },
+ "multi": {
+  "label": "multi",
+  "loaded": false,
+  "errorShown": false,
+  "timeToLessonMs": 90133,
+  "distinctFrames": 38,
+  "totalFrames": 38,
+  "state": {
+   "step": null,
+   "errorVisible": "لم أجد معلومات كافية في الكتاب لهذا السؤال. حدّد الدرس أو أع",
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "objects": 0,
+   "narration": "خذ وقتك. أنا هنا لأساعدك على فهم الفكرة.",
+   "speaking": false,
+   "overflow": false,
+   "creditBefore": "رصيدك31",
+   "creditAfter": "رصيدك31"
+  }
+ },
+ "triangle": {
+  "label": "triangle",
+  "loaded": true,
+  "errorShown": false,
+  "timeToLessonMs": 14165,
+  "distinctFrames": 403,
+  "totalFrames": 507,
+  "state": {
+   "step": "1/2",
+   "errorVisible": null,
+   "graphSvgs": 1,
+   "graphStrokes": 3,
+   "objects": 4,
+   "narration": "أولاً، نرسم مثلثًا بسيطًا في المستوى وأسمّي الرؤوس أ وB وC. هذا يساعدنا على تحديد نقاط الم",
+   "speaking": true,
+   "overflow": false,
+   "creditBefore": "رصيدك31",
+   "creditAfter": "رصيدك30"
+  }
+ },
+ "mobile": {
+  "label": "mobile-exact",
+  "loaded": true,
+  "errorShown": false,
+  "timeToLessonMs": 6926,
+  "distinctFrames": 738,
+  "totalFrames": 819,
+  "state": {
+   "step": "1/1",
+   "errorVisible": null,
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "objects": 1,
+   "narration": "أول شيء، نعيد كتابة المعادلة واي ناقص إكس تربيع يساوي 7 ناقص 5 إكس بشكل مباشر حتى نوضح الم",
+   "speaking": true,
+   "overflow": false,
+   "creditBefore": "رصيدك28",
+   "creditAfter": "رصيدك27"
+  }
+ },
+ "consoleIssues": [
+  "warning: No character metrics for 'س' in style 'Main-Regular' and mode 'text'"
+ ]
+}

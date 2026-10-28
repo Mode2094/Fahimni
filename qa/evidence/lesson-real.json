@@ -1,0 +1,216 @@
+{
+ "title": "حل معادلة خاصة بالتحليل إلى عوامل",
+ "mode": "new",
+ "sufficientContext": true,
+ "message": "سأشرح لك خطوة بخطوة كيف تحل معادلة خاصة باستخدام التحليل إلى عوامل.",
+ "segments": [
+  {
+   "id": "step1",
+   "narration": "نبدأ بمعادلة لونها خاصة تعتمد على التحليل إلى عوامل. الفكرة الرئيسية هي تحويل المعادلة إلى جداء عوامل مساوي للصفر.",
+   "goal": "فهم أن المعادلة يمكن تبسيطها إلى حاصل ضرب عوامل.",
+   "sourceChunkIds": [
+    "22222222-2222-4222-8222-222222222222"
+   ],
+   "actions": [
+    {
+     "type": "write_text",
+     "id": "t1",
+     "content": "المعادلة الخاصة تحل بالتحليل إلى عوامل: نجعل طرفين المعادلة حاصل ضرب عوامل يساوي صفر.",
+     "region": "explanation-area",
+     "targets": [],
+     "points": [],
+     "color": "ink",
+     "geometry": null,
+     "delayMs": 500
+    }
+   ],
+   "sources": [
+    {
+     "chunkId": "22222222-2222-4222-8222-222222222222",
+     "sourceId": "local-src",
+     "pdfPage": 1,
+     "printedPage": 1,
+     "lesson": "حل معادلات خاصة",
+     "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+     "bookId": "11111111-1111-4111-8111-111111111111"
+    }
+   ]
+  },
+  {
+   "id": "step2",
+   "narration": "إذا كان حاصل ضرب عاملين يساوي صفر، فهذا يعني أن أحد هذه العوامل يساوي صفر. هذا قانون أساسي في الجبر يسمى خاصية الصفر.",
+   "goal": "فهم لماذا يمكننا تعيين كل عامل مساويًا للصفر.",
+   "sourceChunkIds": [
+    "22222222-2222-4222-8222-222222222222"
+   ],
+   "actions": [
+    {
+     "type": "write_text",
+     "id": "t2",
+     "content": "إذا كان أ * ب = 0، إذن أ = 0 أو ب = 0.",
+     "region": "explanation-area",
+     "targets": [],
+     "points": [],
+     "color": "ink",
+     "geometry": null,
+     "delayMs": 800
+    }
+   ],
+   "sources": [
+    {
+     "chunkId": "22222222-2222-4222-8222-222222222222",
+     "sourceId": "local-src",
+     "pdfPage": 1,
+     "printedPage": 1,
+     "lesson": "حل معادلات خاصة",
+     "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+     "bookId": "11111111-1111-4111-8111-111111111111"
+    }
+   ]
+  },
+  {
+   "id": "step3",
+   "narration": "على سبيل المثال، لنفترض أن لدينا المعادلة (س - 3)(س + 5) = 0. نستخدم الخاصية السابقة لنوجد حلول للمعادلة.",
+   "goal": "تطبيق خاصية الصفر لإيجاد الحلول.",
+   "sourceChunkIds": [
+    "22222222-2222-4222-8222-222222222222"
+   ],
+   "actions": [
+    {
+     "type": "write_latex",
+     "id": "l1",
+     "content": "(x - 3)(x + 5) = 0",
+     "region": "working-area",
+     "targets": [],
+     "points": [],
+     "color": "blue",
+     "geometry": null,
+     "delayMs": 600
+    }
+   ],
+   "sources": [
+    {
+     "chunkId": "22222222-2222-4222-8222-222222222222",
+     "sourceId": "local-src",
+     "pdfPage": 1,
+     "printedPage": 1,
+     "lesson": "حل معادلات خاصة",
+     "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+     "bookId": "11111111-1111-4111-8111-111111111111"
+    }
+   ]
+  },
+  {
+   "id": "step4",
+   "narration": "نستعمل خاصية الصفر ونساوي كل عامل في المعادلة بالصفر. إذن س - 3 = 0 أو س + 5 = 0.",
+   "goal": "تحويل المعادلة إلى معادلتين بسيطتين.",
+   "sourceChunkIds": [
+    "22222222-2222-4222-8222-222222222222"
+   ],
+   "actions": [
+    {
+     "type": "write_latex",
+     "id": "l2",
+     "content": "x - 3 = 0 \\quad \\text{or} \\quad x + 5 = 0",
+     "region": "working-area",
+     "targets": [],
+     "points": [],
+     "color": "blue",
+     "geometry": null,
+     "delayMs": 700
+    }
+   ],
+   "sources": [
+    {
+     "chunkId": "22222222-2222-4222-8222-222222222222",
+     "sourceId": "local-src",
+     "pdfPage": 1,
+     "printedPage": 1,
+     "lesson": "حل معادلات خاصة",
+     "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+     "bookId": "11111111-1111-4111-8111-111111111111"
+    }
+   ]
+  },
+  {
+   "id": "step5",
+   "narration": "نحل المعادلتين البسيطتين الآن. نضيف 3 إلى الطرفين في الأولى ونطرح 5 في الثانية. نحصل على س = 3 أو س = -5.",
+   "goal": "الحصول على الحلول العددية لمتغير س.",
+   "sourceChunkIds": [
+    "22222222-2222-4222-8222-222222222222"
+   ],
+   "actions": [
+    {
+     "type": "write_latex",
+     "id": "l3",
+     "content": "x = 3 \\quad \\text{or} \\quad x = -5",
+     "region": "result-area",
+     "targets": [],
+     "points": [],
+     "color": "teal",
+     "geometry": null,
+     "delayMs": 700
+    },
+    {
+     "type": "write_text",
+     "id": "t3",
+     "content": "الحلول هي س = 3 أو س = -5.",
+     "region": "explanation-area",
+     "targets": [],
+     "points": [],
+     "color": "ink",
+     "geometry": null,
+     "delayMs": 1000
+    }
+   ],
+   "sources": [
+    {
+     "chunkId": "22222222-2222-4222-8222-222222222222",
+     "sourceId": "local-src",
+     "pdfPage": 1,
+     "printedPage": 1,
+     "lesson": "حل معادلات خاصة",
+     "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+     "bookId": "11111111-1111-4111-8111-111111111111"
+    }
+   ]
+  }
+ ],
+ "id": "8924b071-9f48-47e2-8445-735cca6ef6c1",
+ "question": "حل معادلة خاصة بالتحليل إلى عوامل",
+ "sources": [
+  {
+   "chunkId": "22222222-2222-4222-8222-222222222222",
+   "sourceId": "local-src",
+   "pdfPage": 1,
+   "printedPage": 1,
+   "lesson": "حل معادلات خاصة",
+   "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+   "bookId": "11111111-1111-4111-8111-111111111111"
+  }
+ ],
+ "diagnostics": {
+  "normalizedQuestion": "حل معادلات التحليل إلى عوامل في الرياضيات للصف العاشر",
+  "retrieved": [
+   {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "sourceId": "local-src",
+    "pdfPage": 1,
+    "printedPage": 1,
+    "unit": "المعادلات",
+    "lesson": "حل معادلات خاصة",
+    "heading": null,
+    "text": "حل معادلة خاصة بالتحليل إلى عوامل",
+    "equations": [],
+    "image": "/api/books/11111111-1111-4111-8111-111111111111/pages/1",
+    "bookId": "11111111-1111-4111-8111-111111111111",
+    "score": 6.287682072451781,
+    "matched": 2
+   }
+  ]
+ },
+ "credits": {
+  "balance": 47,
+  "resetAt": "2026-11-07T09:59:22.903Z"
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "fixtures": {
+  "physics": {
+   "badge": true,
+   "graphSvgs": 1,
+   "graphStrokes": 5,
+   "arrowHeads": 3,
+   "dots": 0,
+   "objects": 2,
+   "overflow": false
+  },
+  "arabic": {
+   "badge": true,
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "arrowHeads": 0,
+   "dots": 0,
+   "objects": 5,
+   "overflow": false
+  },
+  "chemistry": {
+   "badge": true,
+   "graphSvgs": 1,
+   "graphStrokes": 2,
+   "arrowHeads": 0,
+   "dots": 3,
+   "objects": 0,
+   "overflow": false
+  }
+ },
+ "mobile": {
+  "badge": false,
+  "overflow": false,
+  "objects": 4
+ },
+ "consoleErrors": []
+}

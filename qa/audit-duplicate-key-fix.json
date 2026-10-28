@@ -1,0 +1,79 @@
+{
+ "startedAt": "2026-10-10T17:42:07.265Z",
+ "duplicateKeyErrors": [],
+ "consoleErrors": [],
+ "samples": [
+  {
+   "step": null,
+   "objects": 0,
+   "duplicates": []
+  },
+  {
+   "step": null,
+   "objects": 0,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 2,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 4,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 4,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  },
+  {
+   "step": "1 / 1",
+   "objects": 6,
+   "duplicates": []
+  }
+ ],
+ "lessonReached": true,
+ "finishedAt": "2026-10-10T17:42:36.956Z"
+}

@@ -1,0 +1,229 @@
+{
+ "geometry": {
+  "timeToLessonMs": 12932,
+  "distinctFrames": 451,
+  "totalFrames": 550,
+  "savedFrames": [
+   {
+    "name": "geometry-1.jpg",
+    "t": 1791496129.247094
+   },
+   {
+    "name": "geometry-2.jpg",
+    "t": 1791496129.362486
+   },
+   {
+    "name": "geometry-3.jpg",
+    "t": 1791496129.43735
+   },
+   {
+    "name": "geometry-4.jpg",
+    "t": 1791496129.51465
+   },
+   {
+    "name": "geometry-5.jpg",
+    "t": 1791496129.58972
+   },
+   {
+    "name": "geometry-6.jpg",
+    "t": 1791496129.665077
+   }
+  ],
+  "state": {
+   "step": "1/3",
+   "segments": "1/3",
+   "graphSvgs": 1,
+   "graphStrokes": 3,
+   "graphDots": 3,
+   "annotations": 0,
+   "objects": 0,
+   "overflow": false,
+   "credit": "رصيدك299"
+  },
+  "lesson": {
+   "title": "رسم مثلث مع تحديد رؤوسه ورسم ارتفاعه",
+   "segments": 3,
+   "actionTypes": [
+    "plot_point",
+    "draw_line",
+    "show_label"
+   ],
+   "graphActions": [
+    "plot_point",
+    "plot_point",
+    "plot_point",
+    "draw_line",
+    "draw_line",
+    "draw_line",
+    "draw_line",
+    "plot_point",
+    "show_label"
+   ],
+   "labels": [
+    "D",
+    "الارتفاع من ج إلى أب"
+   ],
+   "latexInNarration": 0,
+   "finalNarration": "رسم الارتفاع بهذا الشكل يحافظ على توازن المثلث ويظهر الخط العمودي من الرأس ج إلى الضلع أب. هذا يعطينا ارتفاع المثلث من هذا الرأس وهو مهم في حساب المساحات والخصائص الهندسية."
+  }
+ },
+ "graph": {
+  "timeToLessonMs": 120294,
+  "distinctFrames": 63,
+  "totalFrames": 63,
+  "savedFrames": [
+   {
+    "name": "graph-1.jpg",
+    "t": 1791496157.49866
+   },
+   {
+    "name": "graph-2.jpg",
+    "t": 1791496157.601406
+   },
+   {
+    "name": "graph-3.jpg",
+    "t": 1791496157.681546
+   },
+   {
+    "name": "graph-4.jpg",
+    "t": 1791496157.759328
+   },
+   {
+    "name": "graph-5.jpg",
+    "t": 1791496157.837226
+   },
+   {
+    "name": "graph-6.jpg",
+    "t": 1791496157.914768
+   }
+  ],
+  "state": {
+   "step": null,
+   "segments": null,
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "graphDots": 0,
+   "annotations": 0,
+   "objects": 0,
+   "overflow": false,
+   "credit": "رصيدك297"
+  },
+  "lesson": {
+   "segments": null,
+   "actionTypes": [],
+   "graphActions": [],
+   "labels": [],
+   "latexInNarration": 0,
+   "finalNarration": ""
+  }
+ },
+ "algebra": {
+  "timeToLessonMs": 7310,
+  "distinctFrames": 406,
+  "totalFrames": 441,
+  "savedFrames": [
+   {
+    "name": "algebra-1.jpg",
+    "t": 1791496293.242206
+   },
+   {
+    "name": "algebra-2.jpg",
+    "t": 1791496293.364828
+   },
+   {
+    "name": "algebra-3.jpg",
+    "t": 1791496293.45027
+   },
+   {
+    "name": "algebra-4.jpg",
+    "t": 1791496293.53735
+   },
+   {
+    "name": "algebra-5.jpg",
+    "t": 1791496293.618918
+   },
+   {
+    "name": "algebra-6.jpg",
+    "t": 1791496293.701707
+   }
+  ],
+  "state": {
+   "step": "2/5",
+   "segments": "2/5",
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "graphDots": 0,
+   "annotations": 0,
+   "objects": 2,
+   "overflow": false,
+   "credit": "رصيدك296"
+  },
+  "lesson": {
+   "title": "حل المعادلة التربيعية س تربيع ناقص 5 س زائد 6 يساوي صفر",
+   "segments": 5,
+   "actionTypes": [
+    "write_text",
+    "write_latex"
+   ],
+   "graphActions": [],
+   "labels": [],
+   "latexInNarration": 0,
+   "finalNarration": "بحل كل معادلة نجد أن س يساوي 2 أو س يساوي 3. إذن الحلول هي 2 و 3 لأن تعويض أي منها في المعادلة يجعلها تساوي صفر."
+  }
+ },
+ "mobile": {
+  "timeToLessonMs": 11774,
+  "distinctFrames": 1224,
+  "totalFrames": 1349,
+  "savedFrames": [
+   {
+    "name": "mobile-algebra-1.jpg",
+    "t": 1791496315.999635
+   },
+   {
+    "name": "mobile-algebra-2.jpg",
+    "t": 1791496316.007078
+   },
+   {
+    "name": "mobile-algebra-3.jpg",
+    "t": 1791496316.021865
+   },
+   {
+    "name": "mobile-algebra-4.jpg",
+    "t": 1791496316.042211
+   },
+   {
+    "name": "mobile-algebra-5.jpg",
+    "t": 1791496316.071672
+   },
+   {
+    "name": "mobile-algebra-6.jpg",
+    "t": 1791496316.093881
+   }
+  ],
+  "state": {
+   "step": "2/8",
+   "segments": "2/8",
+   "graphSvgs": 0,
+   "graphStrokes": 0,
+   "graphDots": 0,
+   "annotations": 0,
+   "objects": 3,
+   "overflow": false,
+   "credit": "رصيدك292"
+  },
+  "lesson": {
+   "title": "حل المعادلة س تربيع ناقص 5 س زائد 6 يساوي صفر",
+   "segments": 8,
+   "actionTypes": [
+    "write_latex",
+    "write_text"
+   ],
+   "graphActions": [],
+   "labels": [],
+   "latexInNarration": 0,
+   "finalNarration": "بحل كل معادلة بسيطة، نجد أن س يساوي 2 أو س يساوي 3، وهذه هي حلول المعادلة الأصلية."
+  }
+ },
+ "consoleIssues": []
+}

@@ -1,0 +1,68 @@
+{
+  "task": "Improve real AI teacher experience",
+  "date": "2026-10-08",
+  "before": {
+    "measured": "real API on the recorded equation (x^4 - 3x^2 + 2 = 0)",
+    "tutorMs": 11724,
+    "segments": 6,
+    "sequentialTtsMs": 18100,
+    "perSegmentTtsMs": [2293, 3531, 2941, 3849, 2080, 3406],
+    "gapsBetweenSteps": "2-4s of TTS fetch time per step (sequential, no prefetch)",
+    "firstBoardWrite": "after step-1 TTS resolved (~2-4s after lesson)",
+    "note": "bare equation returned 422 no_context; enriched phrasing with the book's lesson keywords retrieved correctly"
+  },
+  "after": {
+    "measured": "real browser run with performance marks (1440x900)",
+    "timeToLessonMs": 11930,
+    "firstBoardActionAfterLessonMs": 802,
+    "firstAudioReadyAfterLessonMs": 7498,
+    "gapsBetweenStepsMs": [44, 35, 36, 35, 35],
+    "audioPrefetchedForSteps2to6": true,
+    "lessonTotalMs": 128000,
+    "consoleErrors": 0
+  },
+  "arabicPronunciation": {
+    "sanitizer": "lib/ai/spoken-math.ts (deterministic LaTeX -> spoken Arabic) applied server-side to narration, goals and title; board keeps real KaTeX",
+    "latexInNarration": 0,
+    "roundTrip": "TTS of the final narration -> STT heard: «جذور المعادلة هي واحد، ناقص واحد، جذر اثنان وناقص جذر اثنان» with no LaTeX commands",
+    "honestNote": "verified via transcription and audio properties, not by listening"
+  },
+  "interaction": {
+    "pauseChip": "وقف، عندي سؤال -> paused, composer focused, resume chip appears",
+    "quickActions": ["اشرحها أبسط", "ليش عملنا هيك؟", "أعطيني مثال مشابه"],
+    "followup": "1 new grounded tutor response while suspended; resume chip stays",
+    "resume": "كمل الشرح -> resumed at the remembered step with the original lesson",
+    "mobile": "4 chips visible at 390x844, no overflow"
+  },
+  "mathCorrectness": {
+    "equation": "x^4 - 3x^2 + 2 = 0",
+    "independentRoots": [1, -1, 1.4142135623730951, -1.4142135623730951],
+    "aiFinalNarration": "جذور المعادلة هي واحد، ناقص واحد، جذر 2، وناقص جذر 2",
+    "result": "correct"
+  },
+  "adaptiveLength": {
+    "desktopRun": 6,
+    "mobileRun": 5,
+    "note": "prompt now asks for 3-5 segments (1-3 followups), only as many as needed"
+  },
+  "cost": {
+    "budgetSetting": "aiDailyBudgetUsd = 2",
+    "blockedByCreditsNotBudget": "student fixture balance reached 0 (402 credit_required) — real charges only, no bypass",
+    "testAccountCreditsUsed": "student 45 -> 0, bundle 300 -> 298 during this task's real calls"
+  },
+  "files": [
+    "lib/ai/spoken-math.ts (new)",
+    "lib/ai/tutor.ts (prompt + sanitization)",
+    "lib/whiteboard/usePlayback.ts (prefetch, parallel board pacing, instrumentation, resume)",
+    "components/classroom/Classroom.tsx (interrupt chips + resume)",
+    "app/globals.css (teacher-actions styles)",
+    "tests/spoken-math.test.ts (new)",
+    "tests/teaching.test.ts (sanitization regression)"
+  ],
+  "gates": { "typecheck": true, "tests": "175/175", "buildNext": true },
+  "remaining": [
+    "Tutor LLM time (~11s) is now the dominant pre-content wait — streaming would be the next architectural step",
+    "Single-token retrieval queries below the design score threshold",
+    "Grade-10 book mapping still awaits the owner decision"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task": "Phase 3 — Intelligent pedagogical engine & personalized learning",
+  "date": "2026-10-09",
+  "modes": {
+    "explain": "فهمني الدرس — concept-first explanation with worked examples (verified: 200, 5–8 segments)",
+    "coach": "ساعدني أحل — no spoilers, verification of attempts on the board, targeted hints (verified: start 200; wrong attempt 200 with board verification)",
+    "quiz": "اختبرني — one grounded question (no answer leak, verified), evaluation turn with assessment (verified)",
+    "selector": "3-button segmented control in the classroom course-bar; deep link /tutor?mode=quiz&topic=… prefills the composer (verified in browser)"
+  },
+  "pedagogy": {
+    "file": "lib/ai/pedagogy.ts",
+    "policies": "COMMON evidence-informed policy (worked examples, scaffolding, one check question max, student can always say كمل الشرح) + per-mode policy + subject strategies (math/physics/chemistry/biology/arabic/english/history/geography) + personalization from weak/due topics",
+    "determinism": "quiz turns are deterministic: present (fresh board, no solution) vs evaluate (keeps board, requires assessment)"
+  },
+  "robustnessFixes": [
+    "mode label is derived server-side (the model mislabels follow-ups; a valid lesson is never rejected for it)",
+    "drawing actions missing an id get a deterministic id (mechanical repair) — fixed the 502 class",
+    "quiz evaluation assessment: prompt nudge + bounded extraction fallback (one small call) + deterministic symbolic check",
+    "thin new lesson: single repair nudge on attempt 0 only; a valid short lesson is accepted"
+  ],
+  "deterministicVerification": {
+    "file": "lib/ai/math-check.ts",
+    "case": "the regression attempt (س-1)(س-6) for س²−5س+6 is computed as wrong by expansion (b=-7≠-5)",
+    "verifiedRealCall": "coach wrong attempt now returns assessment.correct=false + misconception + review due; progress row NEEDS_PRACTICE (1 correct, 1 incorrect)"
+  },
+  "personalizedLearning": {
+    "table": "learning_progress (migration 0009): user+subject+topic unique, state, correct/incorrect counts, last misconception, review due",
+    "scheduler": "incorrect → 1 day; first correct → DEVELOPING; second correct → DEMONSTRATED; intervals clamped 2–30 days; a later mistake resets to 1 day",
+    "isolation": "verified: only the student's rows exist for their account; other fixture accounts have none",
+    "reviewPage": "/app/review — real cards (3 topics from real sessions), state badges, due dates, تدرب الآن links with quiz deep links; HTTP 200 verified + browser screenshots"
+  },
+  "realConversation": {
+    "turns": 6,
+    "results": "explain 200 (8 segments, correct factorization (x+2)(4x²−5) with roots), مش فاهم 200 (alternative explanation), coach start 200, wrong attempt 200 (board shows (س-1)(س-6)=س²−7س+6), quiz present 200 (question without answer), quiz evaluate 200 (assessment correct:false + misconception)",
+    "credits": "1 per tutor turn; failed turns refunded (balance unchanged on 502s observed earlier)",
+    "latency": "3.3–38.8s per turn (median ≈6s); extraction fallback adds one small call on evaluation turns only"
+  },
+  "browser": {
+    "desktop1440": "mode selector 3 buttons + switching, review page 3 cards + 3 practice links, deep link prefills quiz, no overflow",
+    "mobile390": "mode selector 3 buttons, review page, no overflow",
+    "consoleErrors": 0
+  },
+  "tests": {
+    "new": ["pedagogy (3)", "learning-progress (3)", "math-check (4)", "auto-id repair (1)"],
+    "totals": "192/192 pass",
+    "gates": { "typecheck": true, "buildNext": true }
+  },
+  "files": [
+    "db/schema.ts + drizzle/0009 (learning_progress)",
+    "lib/learning/progress.ts (store + scheduler)",
+    "lib/ai/pedagogy.ts (modes, strategies, policies)",
+    "lib/ai/math-check.ts (deterministic factor verification)",
+    "lib/ai/tutor.ts (mode policy, server-derived mode, auto-id repair, assessment fallback)",
+    "app/api/tutor/route.ts (mode param, review topics, progress upsert)",
+    "app/(student)/app/review/page.tsx (راجع نقاط ضعفي)",
+    "components/classroom/Classroom.tsx (mode selector, chips, deep link)",
+    "app/globals.css, schemas/lesson.ts (assessment field), tests",
+    "qa/tools/phase3-learning-verify.mjs, qa/tools/regression-fix-verify.mjs"
+  ],
+  "remaining": [
+    "Assessment topic strings are model-generated and can vary in wording between sessions (dedupe by topic text is exact-match)",
+    "The LLM judge alone still misjudges coefficient mistakes; deterministic verification currently covers factorable quadratics only",
+    "No spaced-review notifications (intentionally out of scope)",
+    "Fixtures for bookless subjects remain dev-only",
+    "Dev server wedged twice under long sessions (restarted; operational)"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task": "Phase 2 visual quality fix",
+  "date": "2026-10-09",
+  "rootCauses": {
+    "emptyBoard": "The AI returned a 1-segment lesson with a single write_latex action (the screenshot's 1/1). The board had nothing else to draw and the work zone hugged the top corner.",
+    "floatingBox": ".board-object.state-highlighted painted a rounded background + inset border (a UI card look).",
+    "tinyMath": "Board base font was 1rem with .math at 1.16em — small on a 1440px board.",
+    "cornerContent": ".zone-work did not grow or centre; rows sat at the top of a tall empty board.",
+    "consoleBadge": "The '5 Issues' badge came from the earlier broken dev bundle (ReferenceError during an intermediate edit); fresh sessions now report 0 console issues."
+  },
+  "fixes": {
+    "lessonQuality": "Server: a mode='new' lesson with fewer than 2 segments is rejected into the repair pass (prompt still targets 3–5). Prompt: start with a short heading in top region, build across zones, and for any x–y relation add draw_axes + plot_graph (5–12 points) + intercept plot_points + explanation labels.",
+    "chalkEmphasis": "state-highlighted is now a soft amber chalk glow (drop-shadow) — no background box, no inset border.",
+    "typography": "board font clamp(1.08rem,1.3vw,1.5rem) × board-scale; .math 1.35em; labels 1em; bigger row gaps and padding.",
+    "composition": ".zone-work flexes and centres its content in the reading band; graph layer max width 440px; larger board padding.",
+    "tests": "core/routes/teaching fakes updated to realistic 3-segment lessons for the new validation."
+  },
+  "acceptance": {
+    "frames": "Page.startScreencast paint-driven frames (not repeated captureScreenshot): geometry 451 distinct/550, algebra 406/441, mobile algebra 1224/1349, graph 296/522",
+    "geometry": {
+      "question": "ارسم مثلثًا وحدد رؤوسه ثم ارسم ارتفاعه.",
+      "result": "3 segments, plot_point x4 + draw_line x4 (triangle + altitude), labels including «الارتفاع من ج إلى أب», 0 LaTeX in narration",
+      "note": "one vertex label came out as a Latin letter 'D'"
+    },
+    "graph": {
+      "question": "ارسم القطع المكافئ ص = س² - 4 واشرح جذوره من محور السينات.",
+      "result": "7 segments, draw_axes + plot_graph (9 points) + 2 intercept plot_points; roots 2 and −2 (verified independently: x²−4=0), 0 LaTeX in narration, no overflow"
+    },
+    "algebra": {
+      "question": "حل المعادلة س² - 5س + 6 = 0 خطوة بخطوة.",
+      "result": "5 segments, progressive write_latex steps, roots 2 and 3 (verified independently), 0 LaTeX in narration"
+    },
+    "mobile": {
+      "result": "8 segments at 390x844, 1224 distinct frames, no horizontal overflow"
+    },
+    "consoleIssues": []
+  },
+  "files": [
+    "app/globals.css (typography, zone composition, chalk emphasis, graph size)",
+    "lib/ai/tutor.ts (≥2 segment rule + visual composition prompt)",
+    "tests/core.test.ts, tests/routes.test.ts, tests/teaching.test.ts (realistic lesson fakes)"
+  ],
+  "gates": { "typecheck": true, "tests": "180/180", "buildNext": true },
+  "screenshots": "qa/screenshots/visual-quality/ (4 board PNGs + 24 screencast frames + results.json + graph-retry-results.json)",
+  "remaining": [
+    "Geometry vertex labels can arrive in Latin letters (prompt-level polish)",
+    "Lesson length varies (5–8 segments); very long lessons take minutes at 1× speech",
+    "First-visible content still ~10–13s (LLM-bound, streaming deferred)"
+  ]
+}

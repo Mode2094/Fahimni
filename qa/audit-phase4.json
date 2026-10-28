@@ -1,0 +1,85 @@
+{
+  "phase": "PHASE 4 — QA fixes, security & production hardening",
+  "date": "2026-10-08",
+  "confirmedIssues": [
+    {
+      "id": "P0-1",
+      "issue": "Textbook page images were authorized by subject visibility only — a student with no paid entitlement and no active trial could fetch READY book pages (P2 in the original audit, raised to P0/P1 by Phase 4 requirements).",
+      "fix": "lib/books/pages.ts now requires hasSubjectAccess (paid entitlement incl. bundle scope) OR an active/claimed, unexpired, non-exhausted trial for non-admin users.",
+      "files": ["lib/books/pages.ts", "lib/trial/access.ts", "app/api/books/[bookId]/pages/[page]/route.ts", "tests/books.test.ts"],
+      "verification": {
+        "unit": "new regression test: visible subject + no access => 404; ACTIVE/CLAIMED trial => 200; EXPIRED/EXHAUSTED => 404; entitlement => 200",
+        "browserApi": {
+          "anonymous": 401,
+          "entitledStudent": 200,
+          "expiredTrialStudent": 404,
+          "activeTrialStudent": 200,
+          "bundleStudent": 200,
+          "admin": 200,
+          "traversal": 404
+        }
+      }
+    },
+    {
+      "id": "P1-1",
+      "issue": "The Phase 3 platform-name setting did not surface on the landing page: app/page.tsx exported a hardcoded <title> that overrode the root layout template.",
+      "fix": "Removed the hardcoded landing title so the root layout's admin-managed default applies.",
+      "files": ["app/page.tsx"],
+      "verification": "live check: setting platformName changed <title> to 'منصة الاختبار | معلّمك الذكي من كتابك' immediately; meta application-name updated too"
+    },
+    {
+      "id": "P1-2",
+      "issue": "Production persistence gaps: scripts/backup.sh backed up only DATA_DIR/books (not admin-uploaded subject images), and deploy/env.production.example lacked SETTINGS_ENCRYPTION_KEY.",
+      "fix": "backup.sh now archives DATA_DIR/uploads and prints the encryption-key backup warning; env example documents SETTINGS_ENCRYPTION_KEY; deploy/README documents uploads restore, key custody and the forward-only migration rollback strategy (restore DB backup + previous image).",
+      "files": ["scripts/backup.sh", "deploy/env.production.example", "deploy/README.md"],
+      "verifiedExisting": "deploy/docker-compose.production.yml already bind-mounts /data/fahimni (host) into both fahimni-web and fahimni-worker with DATA_DIR=/data/fahimni, so uploads/books survive rebuild, restart and update."
+    }
+  ],
+  "securityVerification": {
+    "adminApis": "every app/api/admin/**/route.ts uses authorizeAdminRequest (grep: zero exceptions); new settings routes covered by 403 student test",
+    "secretLeakage": "encrypted settings never rendered (Phase 3 browser check); status endpoints expose booleans only",
+    "maliciousInput": "page traversal/encoding rejected (404), upload magic-byte validation, whatsapp/offer/term form validation, same-origin CSRF on all writes",
+    "crossUser": "entitlements resolved by session userId + subject scope; no route accepts an entitlement/plan id from the client",
+    "noCacheSettings": "settings read from PostgreSQL per resolution — no stale secrets or values across processes"
+  },
+  "studentFlows": {
+    "viewports": ["390x844", "768x1024", "1280x720", "1440x900"],
+    "overflow": "0 pages with horizontal overflow across all four viewports",
+    "rtl": true,
+    "consoleErrors": 0,
+    "pages": ["landing", "dashboard", "catalog", "account", "subscription", "tutor (22 controls)", "admin dashboard/subscriptions/settings"],
+    "realAiCall": "POST /api/tutor with real OpenAI key after the Phase 3 provider refactor -> 200 with real lesson (7.4s); retrieval no_context case refunds as designed",
+    "spaNavigation": "client-side admin navigation keeps stylesheets (2) and sidebar styling; no stale CSS",
+    "serviceWorker": "dev: no controller/registrations (disabled by design); production SW v2 verified in the original audit"
+  },
+  "billingSafety": {
+    "multipleOffersPerUser": "checkout duplicate guard blocks only the SAME offer; separate licenses/entitlements per purchase are supported (unique license id)",
+    "singleSubscriptionSetting": "provider-side Freemius product setting; code does not restrict additional purchases — owner must allow multiple licenses in the Freemius dashboard (external)",
+    "bundleSharedWallet": "unchanged, covered by existing wallet-policy tests",
+    "trialSeparate": "unchanged, trial wallet never mixes with paid",
+    "forgedEntitlements": "browser sends offerId only; plan/price/scope resolved server-side; webhook signature + idempotency unchanged",
+    "unverifiedPlanNeverReady": "checkout + student picker + admin statuses require a verified provider link (Phase 3)"
+  },
+  "aiBudget": {
+    "design": "trial daily budget (per trial claims) + optional global daily budget (default 0 = unlimited, opt-in by the admin)",
+    "paidStudents": "never blocked when the global budget is unset (regression assertion added)",
+    "failure": "config errors fail closed with Arabic messages; provider failures refund credits (existing behavior)"
+  },
+  "tests": {
+    "result": "168/168 pass",
+    "new": ["textbook page access regression (entitlement/trial required)", "global budget null (disabled) never blocks paid users"],
+    "gates": { "typecheck": true, "test": true, "build": true, "buildNext": true }
+  },
+  "screenshots": "qa/screenshots/phase4-regression/ (4: desktop dashboard/admin subjects, mobile dashboard/admin subscriptions)",
+  "remainingP2": [
+    "Retrieval brittleness for paraphrased questions (422 no_context) — unchanged, documented",
+    "Legacy subject_plans fallback remains transitional",
+    "No automated Lighthouse/perf budget"
+  ],
+  "externalBlockers": [
+    "Freemius developer-scope credentials for live plan creation",
+    "Real Google OAuth consent round-trip requires production domain",
+    "Real payment transaction test requires staging with live keys"
+  ],
+  "cleanup": "fixtures removed, dummy page image removed, no settings left behind (only pre-existing maxDevicesPerUser)"
+}

@@ -22,7 +22,7 @@ test('visual dev mode is opt-in and off by default',()=>{
 test('fixture lesson satisfies the real server schema and board validation',()=>{
  // Strip presentation-only fields: the generated schema is strict, exactly as
  // a real /api/tutor response would be, so the fixture must match it.
-  const payloadFor=(lesson:Lesson)=>({title:lesson.title,mode:lesson.mode,sufficientContext:lesson.sufficientContext,message:lesson.message,segments:lesson.segments.map((s:Segment)=>({id:s.id,narration:s.narration,goal:s.goal,sourceChunkIds:s.sourceChunkIds,actions:s.actions}))});
+  const payloadFor=(lesson:Lesson)=>({title:lesson.title,mode:lesson.mode,sufficientContext:lesson.sufficientContext,assessment:lesson.assessment,message:lesson.message,segments:lesson.segments.map((s:Segment)=>({id:s.id,narration:s.narration,goal:s.goal,sourceChunkIds:s.sourceChunkIds,actions:s.actions}))});
  const images=fixtureLesson.sources.map(s=>s.image);
  const parsed=generatedLessonSchema.parse(payloadFor(fixtureLesson));
  assert(parsed.segments.length>0);
@@ -176,4 +176,153 @@ test('a glyph shares a row, and so a region, with the object it frames',()=>{
  assert.equal(atStep5.get('cross-negative'),'active','strike-through belongs to the step that drew it');
  const atStep6=deriveTeachingStates(ctxFor(6,at(6)));
  assert.equal(atStep6.get('cross-negative'),'completed','and recedes on the next step');
+});
+
+test('teach normalizes narration and titles to spoken Arabic while keeping board KaTeX', async () => {
+ const { teach } = await import('../lib/ai/tutor');
+ const intent = { searchQuery: 'معادلة', followup: false };
+ const raw = {
+  title: 'حل المعادلة x^4 - 3x^2 + 2 = 0',
+  mode: 'new',
+  sufficientContext: true,
+  assessment: null,
+  message: '',
+  segments: [
+   {
+    id: 's1',
+    narration: 'نكتب المعادلة \\frac{x^4}{1} ونأخذ \\sqrt{2}.',
+    goal: 'x^2 + 1',
+    sourceChunkIds: ['c-1'],
+    actions: [
+     { type: 'write_latex', id: 'eq1', content: 'x^4 - 3x^2 + 2 = 0', region: 'working-area', targets: [], points: [], color: 'ink', geometry: null, delayMs: 0 },
+     { type: 'write_latex', id: 'eq2', content: 'س = 2', region: 'working-area', targets: [], points: [], color: 'ink', geometry: null, delayMs: 0 },
+    ],
+   },
+   {
+    id: 's2',
+    narration: 'نستبدل x^2 بمتغير جديد واي.',
+    goal: 'نستبدل',
+    sourceChunkIds: ['c-1'],
+    actions: [
+     { type: 'write_latex', id: 'eq2', content: 'u^2 - 3u + 2 = 0', region: 'working-area', targets: [], points: [], color: 'ink', geometry: null, delayMs: 0 },
+    ],
+   },
+   {
+    id: 's3',
+    narration: 'إذن الجذور هي واحد وناقص واحد وجذر اثنين وناقص جذر اثنين.',
+    goal: 'نستنتج الجذور',
+    sourceChunkIds: ['c-1'],
+    actions: [
+     { type: 'write_latex', id: 'eq3', content: 'x = \\pm 1\\ \\text{أو}\\ x = \\pm\\sqrt{2}', region: 'result-area', targets: [], points: [], color: 'amber', geometry: null, delayMs: 0 },
+    ],
+   },
+  ],
+ };
+ let call = 0;
+ const ai = {
+  json: async () => (call++ === 0 ? intent : raw),
+  vision: async () => ({}),
+  transcribe: async () => '',
+  speak: async () => new ArrayBuffer(0),
+ };
+ const chunk = { id: 'c-1', sourceId: 'u1', pdfPage: 5, printedPage: 5, unit: null, lesson: null, heading: null, text: 'تحليل إلى عوامل', equations: [], image: '/api/books/x/pages/5', bookId: 'x' };
+ const retrieveFn = () => [chunk];
+ const lesson = await teach(
+  { question: 'حل المعادلة', board: { objects: [] }, history: [], currentStep: 0, currentLesson: null },
+  undefined,
+  ai as never,
+  retrieveFn as never,
+ );
+ const narration = lesson.segments[0].narration;
+ assert.equal(/[\\^_{}$]/.test(narration), false, narration);
+ assert.ok(narration.includes('إكس'), narration);
+ assert.ok(narration.includes('جذر 2'), narration);
+ assert.equal(/[\\^_{}$]/.test(lesson.title), false, lesson.title);
+ assert.equal(/[\\^_{}$]/.test(lesson.segments[0].goal), false, lesson.segments[0].goal);
+ // The whiteboard keeps the real equation untouched for KaTeX rendering.
+ assert.equal(lesson.segments[0].actions[0].content, 'x^4 - 3x^2 + 2 = 0');
+ // Pure-Arabic notation is prose: it becomes text instead of warning KaTeX.
+ assert.equal(lesson.segments[0].actions[1].type, 'write_text');
+ assert.equal(lesson.segments[0].actions[1].content, 'س = 2');
+});
+
+test('teach accepts a valid one-segment lesson when the model insists (regression)', async () => {
+ const { teach } = await import('../lib/ai/tutor');
+ const intent = { searchQuery: 'معادلة', followup: false };
+ const oneSegment = {
+  title: 'حل معادلة بسيطة',
+  mode: 'new',
+  sufficientContext: true,
+  assessment: null,
+  message: '',
+  segments: [
+   {
+    id: 's1',
+    narration: 'ننقل الحدود إلى جهة واحدة فنجد أن س يساوي اثنين.',
+    goal: 'خطوة واحدة',
+    sourceChunkIds: ['c-1'],
+    actions: [
+     { type: 'write_latex', id: 'eq1', content: 'x = 2', region: 'result-area', targets: [], points: [], color: 'ink', geometry: null, delayMs: 0 },
+    ],
+   },
+  ],
+ };
+ let calls = 0;
+ const ai = {
+  json: async () => (calls++ === 0 ? intent : oneSegment),
+  vision: async () => ({}),
+  transcribe: async () => '',
+  speak: async () => new ArrayBuffer(0),
+ };
+ const chunk = { id: 'c-1', sourceId: 'u1', pdfPage: 5, printedPage: 5, unit: null, lesson: null, heading: null, text: 'معادلات', equations: [], image: '/api/books/x/pages/5', bookId: 'x' };
+ const lesson = await teach(
+  { question: 'ما حل المعادلة؟', board: { objects: [] }, history: [], currentStep: 0, currentLesson: null },
+  undefined,
+  ai as never,
+  (() => [chunk]) as never,
+ );
+ // A short but valid lesson is accepted immediately: no regeneration nudge.
+ assert.equal(calls, 2);
+ assert.equal(lesson.segments.length, 1);
+ assert.equal(lesson.segments[0].actions[0].content, 'x = 2');
+});
+
+test('teach assigns ids to drawing actions the model forgot (regression)', async () => {
+ const { teach } = await import('../lib/ai/tutor');
+ const intent = { searchQuery: 'معادلة', followup: true };
+ const lesson = {
+  title: 'توضيح',
+  mode: 'followup',
+  sufficientContext: true,
+  message: '',
+  assessment: null,
+  segments: [
+   {
+    id: 's1',
+    narration: 'نعيد كتابة المعادلة على السبورة.',
+    goal: 'توضيح',
+    sourceChunkIds: ['c-1'],
+    actions: [
+     { type: 'write_latex', id: null, content: 'x = 2', region: 'working-area', targets: [], points: [], color: 'ink', geometry: null, delayMs: 0 },
+    ],
+   },
+  ],
+ };
+ const ai = {
+  json: async (system: string) => (system.startsWith('Normalize') ? intent : lesson),
+  vision: async () => ({}),
+  transcribe: async () => '',
+  speak: async () => new ArrayBuffer(0),
+ };
+ const chunk = { id: 'c-1', sourceId: 'u1', pdfPage: 5, printedPage: 5, unit: null, lesson: null, heading: null, text: 'معادلات', equations: [], image: '/api/books/x/pages/5', bookId: 'x' };
+ const result = await teach(
+  { question: 'أعد التوضيح', board: { objects: [] }, history: [{ question: 'س', title: 'ت' }], currentStep: 0, currentLesson: { title: 'ت', goals: ['g'], narrations: ['n'] } },
+  undefined,
+  ai as never,
+  (() => [chunk]) as never,
+ );
+ const action = result.segments[0].actions[0];
+ assert.equal(typeof action.id, 'string');
+ assert.ok((action.id as string).length > 0);
+ assert.equal(action.content, 'x = 2');
 });

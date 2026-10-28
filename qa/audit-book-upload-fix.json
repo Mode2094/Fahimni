@@ -1,0 +1,41 @@
+{
+  "task": "Fix PDF book upload HTTP 500",
+  "date": "2026-10-08",
+  "rootCause": {
+    "finding": "Next.js 16 buffers the request body when proxy.ts (middleware) runs, with a default limit of 10MB (experimental.proxyClientMaxBodySize). Any textbook PDF over ~10MB was truncated at the proxy boundary, so request.formData() threw 'Failed to parse body as FormData / expected boundary after body' inside POST /api/admin/subjects/[id]/book. The route had no try/catch around the parse, so Next returned a generic HTTP 500.",
+    "evidence": "Server log: 'Request body exceeded 10MB for /api/admin/subjects/.../book. Only the first 10MB will be available unless configured.' followed by '⨯ TypeError: Failed to parse body as FormData.'",
+    "reproduced": "597-byte PDF -> 303 success; 30MB PDF -> HTTP 500 (before fix)"
+  },
+  "fix": {
+    "config": "next.config.ts: experimental.proxyClientMaxBodySize = '110mb' (covers MAX_PDF_BYTES=100MB + multipart overhead)",
+    "route": "app/api/admin/subjects/[id]/book/route.ts: formData() parse wrapped -> Arabic error redirect (too_large when declared length exceeds MAX+1MB, otherwise invalid_file); uploadBook wrapped -> upload_failed; never a 500, admin stays on the book screen",
+    "workerDx": "package.json worker:index now loads .env.local (--env-file-if-exists) so local indexing works out of the box",
+    "messages": "lib/books/messages.ts: added upload_failed Arabic message"
+  },
+  "verified": {
+    "api": {
+      "smallPdf": "303 book_uploaded",
+      "30mbPdf": "303 (exists/uploaded) — no 500",
+      "101mb": "303 error=too_large (size validation)",
+      "115mb": "303 error=too_large (truncated-body catch)"
+    },
+    "indexing": {
+      "generatedRealPdf": "10-page PDF with a clean embedded Arabic text layer (PyMuPDF installed locally, matching the Docker worker)",
+      "worker": "pnpm worker:index -- --once -> READY, 10/10 pages, 10 chunks, 10 page images",
+      "retrieval": "multi-token queries hit the correct pages (إكمال المربع -> page 2, القانون العام -> page 3); single-token queries are below the design score threshold",
+      "realAiLesson": "POST /api/tutor on the indexed book -> 200, sufficientContext true, 4 segments, source citation page 2 (real OpenAI call)",
+      "pageAccess": "admin 200, bundle student 200, math-only student 404, expired trial 404, anonymous 401"
+    },
+    "browser": {
+      "screenshots": "qa/screenshots/book-upload-fix/ (4)",
+      "workflow": "baseline READY 10/10 -> UI upload real PDF -> 'تم الرفع' + success message -> worker -> READY 10/10 -> invalid .txt -> 'الملف ليس ملف PDF صالحًا.' with the book still READY 10/10",
+      "consoleErrors": 0
+    }
+  },
+  "regressionTests": [
+    "next.config proxyClientMaxBodySize must cover MAX_PDF_BYTES + 1MB",
+    "book upload route returns 303 Arabic errors (too_large / invalid_file) for truncated and invalid uploads, never a 500"
+  ],
+  "cleanup": "test book removed (row + files, FK cascade verified), math book restored to its pre-test state (UPLOADED, no file), fixtures removed",
+  "remaining": "The user's real textbook was not available on this machine; the user can upload it now through the admin UI. Local indexing requires PyMuPDF (installed) or the Docker worker. Real OpenAI lesson generation was performed once on the indexed test book."
+}

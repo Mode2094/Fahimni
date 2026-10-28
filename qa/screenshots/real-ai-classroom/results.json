@@ -1,0 +1,39 @@
+{
+ "viewports": {
+  "390x844": {
+   "initial": {
+    "demoBadge": false,
+    "composer": true,
+    "creditChip": "رصيدك28",
+    "overflow": false
+   },
+   "afterQuestion": {
+    "demoBadge": false,
+    "lessonLoaded": true,
+    "boardText": " 1/5يشرح الآنفهمني / مساحة للفهممعلّمك الذكيأجهّز صوت الخطوة… صوت مولّد بالذكاء الاصطناعيفي الدرس تعلمنا أن مساحة المثلث يمكن حسابها باستخدام قانون يعتمد على طول ضلعين والزاوية المحصورة بينهما. القانو",
+    "svgShapes": 50,
+    "creditChip": "رصيدك27",
+    "stepLabel": "1/5",
+    "overflow": false
+   }
+  },
+  "1440x900": {
+   "initial": {
+    "demoBadge": false,
+    "composer": true,
+    "creditChip": "رصيدك25",
+    "overflow": false
+   },
+   "afterQuestion": {
+    "demoBadge": false,
+    "lessonLoaded": true,
+    "boardText": "K=12×a×b×sin⁡CK = \\frac{1}{2} \\times a \\times b \\times \\sin CK=21​×a×b×sinC 1/5يشرح الآنفهمني / مساحة للفهممعلّمك الذكييشرح الآن صوت مولّد بالذكاء الاصطناعيالقانون الذي نستخدمه لإيجاد مساحة المثلث عند",
+    "svgShapes": 48,
+    "creditChip": "رصيدك25",
+    "stepLabel": "1 / 5",
+    "overflow": false
+   }
+  }
+ },
+ "consoleErrors": []
+}

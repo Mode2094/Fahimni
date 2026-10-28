@@ -1,0 +1,94 @@
+{
+  "task": "Phase 2 — Live chalkboard + multi-subject visual teaching engine",
+  "date": "2026-10-09",
+  "liveChalkboard": {
+    "textReveal": "CSS clip-path chalk wipe per object, LTR for maths/KaTeX and RTL for Arabic (data-write-dir), 800ms cubic-bezier",
+    "strokeDrawing": "SVG stroke-dashoffset drawing for lines, boxes, arrows and graph strokes (pathLength=1)",
+    "erase": "removed objects stay for a 280ms chalk-fade before the layout collapses",
+    "reducedMotion": "media query + html[data-reduced-motion=true] overrides; no rasterisation, KaTeX stays selectable",
+    "proof": "DOM evidence: chalkWriteRtl running (800ms) on Arabic objects; chalkStrokeDraw on geometry strokes"
+  },
+  "graphLayer": {
+    "new": "components/whiteboard/GraphLayer.tsx + lib/whiteboard/graph.ts",
+    "renders": ["draw_axes", "plot_graph (x-ordered)", "plot_points", "plot_point", "draw_line (2 points)", "draw_arrow (2 points + head)"],
+    "gapFixed": "plot_* objects previously rendered nowhere; graphs from the AI now appear on the board",
+    "deterministic": "pure coordinate mapping, clamped to [-10,10], no executable input"
+  },
+  "presets": {
+    "file": "lib/whiteboard/presets.ts",
+    "keys": ["geometry (triangle+altitude)", "physics (force vectors+resultant)", "history (timeline)", "arabic (coloured sentence analysis)", "chemistry (H2O diagram)"],
+    "architecture": "compositional primitives (plot_*/draw_*/labels/KaTeX); no bespoke widgets, no schema change — the proven 23-action schema is untouched"
+  },
+  "fixtures": {
+    "file": "lib/whiteboard/fixtures-subjects.ts",
+    "labelled": "every title starts with «عرض تجريبي» and the board shows «عرض تجريبي — بيانات وهمية»",
+    "access": "development-only ?fixture=<key> parameter; never in production, never in a normal student session",
+    "browserResults": {
+      "physics": "1 graph svg, 5 strokes, 3 arrowheads, badge visible",
+      "chemistry": "1 graph svg, 2 bond strokes, 3 atom dots",
+      "arabic": "5 objects (coloured words + labels)",
+      "mobile390": "no overflow, lesson renders"
+    }
+  },
+  "realAiDemos": {
+    "math": {
+      "question": "اشرح حل معادلة تربيعية بالتحليل إلى عوامل، وارسم تمثيلها البياني على السبورة.",
+      "status": 200,
+      "segments": 5,
+      "actions": ["write_text", "write_latex", "draw_axes", "plot_points", "plot_graph", "show_label"],
+      "plotGraphPoints": 6,
+      "mathCheck": "AI solved 2x²−54x=0 → roots 0 and 27 (correct)",
+      "latexInNarration": 0,
+      "screenshots": ["math-lesson-playing.png", "math-lesson-completed.png"]
+    },
+    "geometry": {
+      "question": "أنشئ مثلثًا على السبورة وارسم ارتفاعه، ثم اشرح قانون مساحة المثلث.",
+      "status": 200,
+      "segments": 3,
+      "actions": ["draw_line x4", "plot_point x4", "write_latex"],
+      "graphActions": "4 lines + 4 points in graph-area (triangle + altitude)",
+      "latexInNarration": 0,
+      "gap": "the model drew points without vertex labels in this run",
+      "screenshots": ["geometry-triangle-progress.png", "geometry-completed.png", "recording/geometry-frame-*.png"]
+    }
+  },
+  "latency": {
+    "questionToLessonMs": "~12000 (unchanged; LLM-bound)",
+    "streaming": "NOT implemented — blocker and measured path reported below",
+    "firstVisibleContent": "first board stroke starts as soon as the lesson arrives (0.8s measured in Phase 1), audio loads in parallel"
+  },
+  "streamingAnalysis": {
+    "blocker": "lesson validation is whole-document: cross-segment source-id checks, board-state progression (validateActions), katex pass, repair loop regenerates the full lesson on any failure",
+    "measuredPath": [
+      "1. server emits SSE frames after validating each segment against the running board state (1-2 days)",
+      "2. client renders a segment as soon as it validates and prefetches its audio (client change is small)",
+      "3. repair stays whole-lesson but only for the failing segment; provisional badge until the stream closes",
+      "4. credit charge stays once per request; duplicate SSE frames ignored by requestId"
+    ],
+    "risk": "medium; no work started"
+  },
+  "tests": {
+    "new": "tests/visual-presets.test.ts (5 tests: graph mapping/clamping, presets strict-schema + engine + katex, fixtures labelled + valid, fixture routing contract)",
+    "totals": "180/180 pass",
+    "gates": { "typecheck": true, "buildNext": true }
+  },
+  "files": [
+    "lib/whiteboard/graph.ts (new)",
+    "components/whiteboard/GraphLayer.tsx (new)",
+    "lib/whiteboard/presets.ts (new)",
+    "lib/whiteboard/fixtures-subjects.ts (new)",
+    "components/whiteboard/SmartBoard.tsx (graph layer, erase ghosts, write direction)",
+    "components/classroom/Classroom.tsx (dev-only fixture loader + badge)",
+    "lib/ai/tutor.ts (visual composition prompt guidance)",
+    "app/globals.css (chalk writing/stroke/erase/reduced-motion + graph styles)",
+    "tests/visual-presets.test.ts (new)"
+  ],
+  "limitations": [
+    "No bespoke drawTriangle/flowchart/table widgets — diagrams are deterministic compositions of the existing primitives",
+    "Geometry run lacked vertex labels (prompt-level composition gap)",
+    "Screenshot frame bursts returned identical frames (headless capture staleness); progressive writing proven via DOM animation state instead",
+    "No video encoder available for a screen recording — frame sequence + DOM evidence delivered",
+    "Streaming deferred with a measured path; ~12s initial wait remains",
+    "Dev server wedged once under the long browser session (restarted); operational note only"
+  ]
+}
