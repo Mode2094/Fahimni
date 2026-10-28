@@ -1,4 +1,4 @@
-# مَدار — AI Interactive Whiteboard Tutor
+# فهمني — AI Interactive Whiteboard Tutor
 
 نموذج رياضيات الصف العاشر — الفصل الأول، مستند إلى الكتاب الأردني المرفق (132 صفحة).
 
@@ -16,6 +16,15 @@ npm run dev:next
 افتح http://localhost:3000. للإنتاج: `npm run build:next && npm run start:next`.
 
 المشروع يستخدم Next.js App Router وReact وTypeScript. مسار النشر على Sites يستخدم Vinext لتشغيل نفس التطبيق على Workers. أوامر `dev` و`build` مخصصة لهذا المسار؛ أوامر `*:next` تستخدم Next.js نفسه.
+
+## النشر للإنتاج (Docker)
+
+راجع [deploy/README.md](deploy/README.md) لحزمة Docker المعزولة: `fahimni-web` و`fahimni-worker` و`fahimni-postgres` و`fahimni-redis`، على شبكة `fahimni-net` ووحدات تخزين خاصة، مع نشر الويب على `127.0.0.1:3100` فقط.
+
+- الترحيل يدوي: `pnpm db:migrate` ثم `pnpm db:seed` عند أول تشغيل.
+- النسخ الاحتياطي: `bash scripts/backup.sh` (قاعدة البيانات + مجلد الكتب).
+- فحص الصحة: `GET /api/health`.
+- الصفحة الجذرية `/` صفحة تعريفية عامة؛ السبورة القديمة (`/legacy`) متاحة في التطوير/الاختبار فقط ولا تُنشر إنتاجيًا.
 
 ## الحالة الصادقة
 

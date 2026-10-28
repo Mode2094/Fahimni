@@ -1,0 +1,127 @@
+# Fahimni production stack — fully isolated from any other project on this VPS.
+# Unique project name, container names, network and volumes. Web is published
+# ONLY on 127.0.0.1:3100; PostgreSQL and Redis stay private to the network.
+#
+# Usage (from the repository root):
+#   cp deploy/env.production.example deploy/env.production   # fill in secrets
+#   docker compose -f deploy/docker-compose.production.yml build
+#   docker compose -f deploy/docker-compose.production.yml up -d fahimni-postgres fahimni-redis
+#   docker compose -f deploy/docker-compose.production.yml run --rm fahimni-web pnpm db:migrate
+#   docker compose -f deploy/docker-compose.production.yml run --rm fahimni-web pnpm db:seed   # first launch only
+#   docker compose -f deploy/docker-compose.production.yml up -d
+#
+# STAGING on the same VPS: use the same file with a staging variable file so
+# every name, port, database and path is different (never run two stacks with
+# the same defaults):
+#   docker compose --env-file deploy/env.staging -f deploy/docker-compose.production.yml up -d
+name: ${STACK_PREFIX:-fahimni}
+
+services:
+  fahimni-postgres:
+    image: postgres:16-alpine
+    container_name: ${STACK_PREFIX:-fahimni}-postgres
+    restart: unless-stopped
+    mem_limit: ${PG_MEM_LIMIT:-768m}
+    cpus: ${PG_CPUS:-1.0}
+    logging: &bounded-logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fahimni}
+      POSTGRES_USER: fahimni
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment file}
+    volumes:
+      - fahimni-pg-data:/var/lib/postgresql/data
+    networks:
+      - fahimni-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fahimni -d ${POSTGRES_DB:-fahimni}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  fahimni-redis:
+    image: redis:7-alpine
+    container_name: ${STACK_PREFIX:-fahimni}-redis
+    restart: unless-stopped
+    mem_limit: ${REDIS_MEM_LIMIT:-256m}
+    cpus: ${REDIS_CPUS:-0.5}
+    logging: *bounded-logs
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - fahimni-redis-data:/data
+    networks:
+      - fahimni-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  fahimni-web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: ${STACK_PREFIX:-fahimni}:latest
+    container_name: ${STACK_PREFIX:-fahimni}-web
+    restart: unless-stopped
+    mem_limit: ${WEB_MEM_LIMIT:-1536m}
+    cpus: ${WEB_CPUS:-1.5}
+    logging: *bounded-logs
+    env_file:
+      - ${ENV_FILE:-./env.production}
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3100}:3100"
+    volumes:
+      # Books, page images and uploaded subject images must survive restarts
+      # and be shared with the worker.
+      - ${DATA_HOST_DIR:-/data/fahimni}:${DATA_CONTAINER_DIR:-/data/fahimni}
+    depends_on:
+      fahimni-postgres:
+        condition: service_healthy
+      fahimni-redis:
+        condition: service_healthy
+    networks:
+      - fahimni-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  fahimni-worker:
+    image: ${STACK_PREFIX:-fahimni}:latest
+    container_name: ${STACK_PREFIX:-fahimni}-worker
+    restart: unless-stopped
+    mem_limit: ${WORKER_MEM_LIMIT:-1024m}
+    cpus: ${WORKER_CPUS:-1.0}
+    logging: *bounded-logs
+    command: ["node", "--import", "tsx", "scripts/index-worker.ts"]
+    env_file:
+      - ${ENV_FILE:-./env.production}
+    environment:
+      NODE_ENV: production
+    volumes:
+      - ${DATA_HOST_DIR:-/data/fahimni}:${DATA_CONTAINER_DIR:-/data/fahimni}
+    depends_on:
+      fahimni-postgres:
+        condition: service_healthy
+      fahimni-redis:
+        condition: service_healthy
+    networks:
+      - fahimni-net
+
+networks:
+  fahimni-net:
+    name: ${STACK_PREFIX:-fahimni}-net
+
+volumes:
+  fahimni-pg-data:
+    name: ${STACK_PREFIX:-fahimni}-pg-data
+  fahimni-redis-data:
+    name: ${STACK_PREFIX:-fahimni}-redis-data
