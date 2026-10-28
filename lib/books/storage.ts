@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -86,4 +86,109 @@ export async function sha256File(filePath: string): Promise<string> {
 export async function writeBookSource(bookId: string, bytes: Uint8Array): Promise<void> {
   await ensureBookDirs(bookId);
   await writeFile(sourcePdfPath(bookId), bytes);
+}
+
+/* ---------------------------------------------------- staged replacement ---- */
+// A replacement upload must never destroy the working book before the new PDF
+// is extracted, validated and promoted. New sources are written to
+// <book>/staging/<token>.pdf and extracted into <book>/staging/<token>-pages;
+// only a successful run promotes them over the live source.pdf/pages.
+
+export function stagingDir(bookId: string): string {
+  if (!isUuid(bookId)) throw new Error('invalid_book_id');
+  return path.join(bookDir(bookId), 'staging');
+}
+
+export function stagedPdfPath(bookId: string, token: string): string {
+  if (!isUuid(token)) throw new Error('invalid_token');
+  return path.join(stagingDir(bookId), `${token}.pdf`);
+}
+
+export function stagedPagesDir(bookId: string, token: string): string {
+  if (!isUuid(token)) throw new Error('invalid_token');
+  return path.join(stagingDir(bookId), `${token}-pages`);
+}
+
+// Writes a replacement PDF into staging and returns its token.
+export async function writeStagedSource(bookId: string, bytes: Uint8Array): Promise<string> {
+  const token = crypto.randomUUID();
+  await mkdir(stagedPagesDir(bookId, token), { recursive: true });
+  await writeFile(stagedPdfPath(bookId, token), bytes);
+  return token;
+}
+
+// The newest staged PDF for a book, or null when there is nothing pending.
+export async function findStagedToken(bookId: string): Promise<string | null> {
+  try {
+    const entries = await readdir(stagingDir(bookId));
+    const tokens = entries
+      .filter((name) => name.endsWith('.pdf'))
+      .map((name) => name.slice(0, -4))
+      .filter((token) => isUuid(token))
+      .sort();
+    return tokens.length ? tokens[tokens.length - 1] : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function discardStagedSource(bookId: string, token: string): Promise<void> {
+  await rm(stagedPdfPath(bookId, token), { force: true }).catch(() => undefined);
+  await rm(stagedPagesDir(bookId, token), { recursive: true, force: true }).catch(() => undefined);
+}
+
+// Atomically replaces source.pdf and pages/ with the staged versions. The
+// previous files are moved aside first and restored if any step fails, so a
+// failure can never leave the book without its working source and pages.
+export async function promoteStagedSource(bookId: string, token: string): Promise<void> {
+  const staging = stagingDir(bookId);
+  const stagedPdf = stagedPdfPath(bookId, token);
+  const stagedPages = stagedPagesDir(bookId, token);
+  const previousPdf = path.join(staging, 'previous.pdf');
+  const previousPages = path.join(staging, 'previous-pages');
+  const livePdf = sourcePdfPath(bookId);
+  const livePages = pagesDir(bookId);
+
+  await mkdir(staging, { recursive: true });
+  await rm(previousPdf, { force: true }).catch(() => undefined);
+  await rm(previousPages, { recursive: true, force: true }).catch(() => undefined);
+
+  const moved: string[] = [];
+  try {
+    if (await exists(livePdf)) {
+      await rename(livePdf, previousPdf);
+      moved.push('pdf');
+    }
+    if (await exists(livePages)) {
+      await rename(livePages, previousPages);
+      moved.push('pages');
+    }
+    await rename(stagedPdf, livePdf);
+    await mkdir(livePages, { recursive: true });
+    if (await exists(stagedPages)) {
+      await rm(livePages, { recursive: true, force: true });
+      await rename(stagedPages, livePages);
+    }
+  } catch (error) {
+    // Roll back to exactly the previous state.
+    if (moved.includes('pdf')) await rename(previousPdf, livePdf).catch(() => undefined);
+    if (moved.includes('pages')) {
+      await rm(livePages, { recursive: true, force: true }).catch(() => undefined);
+      await rename(previousPages, livePages).catch(() => undefined);
+    }
+    throw error;
+  }
+
+  await rm(previousPdf, { force: true }).catch(() => undefined);
+  await rm(previousPages, { recursive: true, force: true }).catch(() => undefined);
+  await rm(staging, { recursive: true, force: true }).catch(() => undefined);
+}
+
+async function exists(target: string): Promise<boolean> {
+  try {
+    await stat(target);
+    return true;
+  } catch {
+    return false;
+  }
 }

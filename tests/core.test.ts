@@ -29,3 +29,22 @@ test('insufficient grounding stops lesson generation',async()=>{const ai=fakeAI(
 async function uploadReq(type:string,bytes:Uint8Array,name:string){const form=new FormData();form.set('file',new File([bytes as BlobPart],name,{type}));return new Request('https://local/api/vision',{method:'POST',body:form});}
 test('upload rejects forged MIME, oversized bodies, SVG and validates real source JPEG',async()=>{await assert.rejects(upload(await uploadReq('image/png',new TextEncoder().encode('<script>bad</script>'),'fake.png'),'image'),/upload/);await assert.rejects(upload(await uploadReq('image/svg+xml',new TextEncoder().encode('<svg/>'),'bad.svg'),'image'),/upload/);await assert.rejects(boundedBody(new Request('http://local',{method:'POST',body:'123456789'}),4),/too_large/);const valid=await upload(await uploadReq('image/jpeg',new Uint8Array(fs.readFileSync('public/book/8.jpg')),'question.jpg'),'image');assert(valid.size>1000);});
 test('missing credentials fail honestly; provider errors remain typed',async()=>{const old=process.env.OPENAI_API_KEY;delete process.env.OPENAI_API_KEY;try{await assert.rejects(provider.json('x',{}),/missing_key/);await assert.rejects(provider.speak('مرحبا'),/missing_key/);}finally{if(old)process.env.OPENAI_API_KEY=old;}});
+
+test('the tutor prompt is subject-aware: math and a non-math subject',async()=>{
+ // Capture the system prompt the tutor sends to the provider.
+ const systems:string[]=[];
+ const ai=fakeAI((input)=>fixture(input));
+ ai.json=async(_s:string,input:unknown)=>{const system=String(_s);systems.push(system);if(system.startsWith('Normalize'))return {searchQuery:q,followup:false};return fixture(input as FakeInput);};
+
+ await teach({...baseInput,subjectSlug:'tawjihi-math',subjectName:'رياضيات التوجيهي'},undefined,ai);
+ const mathSystem=systems.join(' \n ');
+ assert.ok(mathSystem.includes('رياضيات التوجيهي'),'the math subject name must reach the prompt');
+ assert.equal(mathSystem.includes('Grade 10'),false,'no hard-coded grade in the prompt');
+
+ systems.length=0;
+ await teach({...baseInput,question:'ما هو قانون الغاز المثالي؟',subjectSlug:'tawjihi-chemistry',subjectName:'كيمياء التوجيهي'},undefined,ai);
+ const chemSystem=systems.join(' \n ');
+ assert.ok(chemSystem.includes('كيمياء التوجيهي'),'the chemistry subject name must reach the prompt');
+ assert.equal(chemSystem.toLowerCase().includes('mathemat'),false,'chemistry must not be taught as mathematics');
+ assert.equal(chemSystem.includes('Grade 10'),false);
+});

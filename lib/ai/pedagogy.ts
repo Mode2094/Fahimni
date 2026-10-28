@@ -46,6 +46,19 @@ export function subjectStrategy(subjectSlug: string | null | undefined): string 
   return family ? SUBJECT_STRATEGIES[family] : '';
 }
 
+// The teacher identity is built from trusted subject metadata (the catalogue
+// row resolved on the server), never from client input, so a physics or
+// chemistry lesson is never introduced as a mathematics teacher. The subject
+// name is the only free text and is sanitised to a short, single-line label.
+export function subjectLabel(input: { subjectName?: string | null }): string {
+  return input.subjectName?.replace(/\s+/g, ' ').trim().slice(0, 60) ?? '';
+}
+
+export function tutorIdentity(input: { subjectName?: string | null }): string {
+  const subject = subjectLabel(input) || 'المواد المدرسية';
+  return `You are a patient Arabic teacher for ${subject} to Jordanian school students. The ONLY curriculum is the supplied retrieved textbook context.`;
+}
+
 // Personalization: nudge the teacher toward the student's weak or due topics
 // without turning the lesson into a review dump.
 export function progressPrompt(reviewTopics: readonly string[]): string {

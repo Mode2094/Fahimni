@@ -5,8 +5,10 @@ import {
   normalizeTeachingMode,
   progressPrompt,
   quizTurn,
+  subjectLabel,
   subjectStrategy,
   teachingPolicy,
+  tutorIdentity,
 } from '../lib/ai/pedagogy';
 import { assessmentSchema, generatedLessonSchema } from '../schemas/lesson';
 
@@ -20,6 +22,31 @@ test('teaching modes normalize safely and quiz turns are deterministic', () => {
   assert.equal(quizTurn('quiz', true), 'evaluate');
   assert.equal(quizTurn('coach', true), null);
   assert.equal(quizTurn('explain', false), null);
+});
+
+test('the teacher identity is built from trusted subject metadata, never hard-coded', () => {
+  // Mathematics keeps working exactly as before.
+  const math = tutorIdentity({ subjectName: 'رياضيات التوجيهي' });
+  assert.ok(math.includes('رياضيات التوجيهي'), 'the catalogue subject name must appear');
+  assert.equal(math.includes('Grade 10'), false, 'no hard-coded grade');
+  assert.ok(math.includes('textbook context'), 'grounding is still stated');
+
+  // A non-mathematics subject is never introduced as a mathematics teacher.
+  const chemistry = tutorIdentity({ subjectName: 'كيمياء التوجيهي' });
+  assert.ok(chemistry.includes('كيمياء التوجيهي'));
+  assert.equal(chemistry.toLowerCase().includes('mathemat'), false, 'no mathematics identity for chemistry');
+  assert.equal(chemistry.includes('Grade 10'), false);
+
+  // Missing metadata degrades to a neutral Arabic teacher, never to maths.
+  const unknown = tutorIdentity({ subjectName: null });
+  assert.equal(unknown.toLowerCase().includes('mathemat'), false);
+  assert.ok(unknown.includes('المواد المدرسية'));
+
+  // The label is sanitised: single line, bounded length.
+  const noisy = tutorIdentity({ subjectName: `  فيزياء\n${'طويل '.repeat(40)}  ` });
+  assert.equal(noisy.includes('\n'), false);
+  assert.equal(subjectLabel({ subjectName: '  عربي  ' }), 'عربي');
+  assert.ok(subjectLabel({ subjectName: 'x'.repeat(200) }).length <= 60);
 });
 
 test('teaching policy carries the mode, the subject strategy and review points', () => {

@@ -39,6 +39,8 @@ import type { DeviceRecord, DeviceStore } from '../lib/devices/store';
 import { createMemoryLimiter, setRateLimiterForTests } from '../lib/rate-limit/limiter';
 import { setStudentStoreForTests } from '../lib/student/store';
 import type { AcademicField, CatalogSubject, Grade, StudentProfile, StudentStore } from '../lib/student/store';
+import { setOfferProviderLinkStoreForTests } from '../lib/freemius/links';
+import { createFakeProviderLinks } from './support/provider-links';
 import { resetTrialTestDoubles, setTrialTestDoubles } from './support/trial-doubles';
 
 const student: AuthUser = { id: 'student-1', email: 'student@example.com', name: 'طالب', image: null, role: 'STUDENT' };
@@ -343,7 +345,25 @@ test('checkout uses the server-side plan and the authenticated email', async () 
  setFreemiusClientForTests(client as never);
  await installSession(student, 'student-token');
 
+ // Legacy plans now share the offer verification source of truth.
+ const links = createFakeProviderLinks();
+ setOfferProviderLinkStoreForTests(links.store);
+
  try {
+  // Unverified plan id: no live checkout may start.
+  const unverified = await checkoutPost(checkoutRequest({ subjectId: subject.id, planType: 'MONTHLY' }, 'student-token'));
+  assert.equal(unverified.status, 409);
+  assert.equal(((await unverified.json()) as { code?: string }).code, 'plan_unavailable');
+
+  // Demo/placeholder plan id: blocked before any provider call.
+  plans.set('plan-1', {...plans.get('plan-1')!, freemiusPlanId: 'plan_demo_math_monthly'});
+  const demo = await checkoutPost(checkoutRequest({ subjectId: subject.id, planType: 'MONTHLY' }, 'student-token'));
+  assert.equal(demo.status, 409);
+  assert.equal(captured.planId, undefined, 'a demo plan id must never reach the provider');
+
+  // Only a verified provider mapping starts the real, server-resolved checkout.
+  plans.set('plan-1', {...plans.get('plan-1')!, freemiusPlanId: '999'});
+  links.seed('plan-1', { planId: '999' });
   const response = await checkoutPost(checkoutRequest({ subjectId: subject.id, planType: 'MONTHLY' }, 'student-token'));
   assert.equal(response.status, 200);
   const payload = (await response.json()) as { url?: string };

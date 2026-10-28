@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: the workflow only reads the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: install · test · typecheck · lint · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Integration tests run against disposable service containers. Mock/CI-only
+    # credentials are used; no real provider or payment secret is ever needed.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fahimni
+          POSTGRES_PASSWORD: fahimni-ci-password
+          POSTGRES_DB: fahimni_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fahimni -d fahimni_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Safe, non-secret values. AUTH_SECRET is generated per run.
+      NODE_ENV: test
+      TEST_DATABASE_URL: postgresql://fahimni:fahimni-ci-password@127.0.0.1:5432/fahimni_test
+      DATABASE_URL: postgresql://fahimni:fahimni-ci-password@127.0.0.1:5432/fahimni_test
+      REDIS_URL: redis://127.0.0.1:6379
+      AUTH_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+      GOOGLE_CLIENT_ID: ci-placeholder
+      GOOGLE_CLIENT_SECRET: ci-placeholder
+      # Provider keys are intentionally empty: tests use simulated transports.
+      OPENAI_API_KEY: ''
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Production build
+        run: pnpm build:next
+        env:
+          NODE_ENV: production
+
+  # Live-browser UX verification is intentionally NOT automated in CI: the
+  # repository ships no browser-automation dependency (Playwright/Puppeteer),
+  # and adding one is out of scope for this change. Real-browser verification
+  # was performed manually and its evidence is committed under
+  # docs/reviews/phase-1-screenshots/. This job therefore only builds the
+  # production bundle a second time to confirm reproducibility on a clean
+  # runner; it does not claim browser coverage.
+  production-build-repro:
+    name: production build (reproducibility)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verify
+    env:
+      AUTH_SECRET: ci-only-not-a-real-secret-0123456789abcdef
+      NEXT_PUBLIC_VISUAL_DEV_MODE: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Production build
+        run: pnpm build:next
+        env:
+          NODE_ENV: production

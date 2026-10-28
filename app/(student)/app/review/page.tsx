@@ -27,6 +27,13 @@ const STATE_BADGE: Record<ProgressState, 'gold' | 'sky' | 'mint'> = {
   DEMONSTRATED: 'mint',
 };
 
+// Reading the clock is intentionally side-effect free but not pure from the
+// compiler's perspective; wrapping it keeps the render body free of direct
+// impure calls (this is a server component rendered per request).
+function currentTimeMs(): number {
+  return Date.now();
+}
+
 export default async function ReviewPage() {
   const { user, profile } = await requireOnboardedStudent('/app/review');
   const [records, subjects] = await Promise.all([
@@ -34,7 +41,7 @@ export default async function ReviewPage() {
     studentStore().listSubjectsForStudent(profile.gradeId, profile.academicFieldId),
   ]);
   const subjectById = new Map(subjects.map((subject) => [subject.id, subject]));
-  const now = Date.now();
+  const now = currentTimeMs();
 
   return (
     <div className="fn-container fn-stack fn-stack--lg">

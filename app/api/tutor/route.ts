@@ -43,7 +43,7 @@ export async function POST(req:Request){
   if(!charge.ok)return aiFailureResponse(charge.failure,access.context);
 
   try{
-   const lesson=await teach({...input,mode:normalizeTeachingMode(input.mode),subjectSlug:access.context.subject?.slug??null,reviewTopics},req.signal,undefined,retrieveFn);
+   const lesson=await teach({...input,mode:normalizeTeachingMode(input.mode),subjectSlug:access.context.subject?.slug??null,subjectName:access.context.subject?.name??null,reviewTopics},req.signal,undefined,retrieveFn);
    // Real assessment evidence only; failures never block the lesson response.
    if(lesson.assessment&&access.context.user&&access.context.subject){
     try{await learningProgressStore().recordAssessment({userId:access.context.user.id,subjectId:access.context.subject.id,assessment:lesson.assessment});}

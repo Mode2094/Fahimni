@@ -7,7 +7,7 @@ import { termPhase } from '../../../lib/billing/terms';
 import { booksStore } from '../../../lib/books/store';
 import { FreemiusConfigError, freemiusClient } from '../../../lib/freemius/client';
 import { offerProviderLinkStore } from '../../../lib/freemius/links';
-import { isCheckoutReady } from '../../../lib/freemius/readiness';
+import { isCheckoutReady, isDemoPlanId } from '../../../lib/freemius/readiness';
 import { sdkCheckoutCreator } from '../../../lib/freemius/checkout';
 import { jsonBody, sameOrigin } from '../../../lib/http';
 import { subjectAppliesTo } from '../../../lib/student/onboarding';
@@ -135,6 +135,15 @@ export async function POST(request: Request) {
     const plan = await billing.findSubjectPlanBySubjectAndType(subject.id, parsed.data.planType);
     if (!plan || !plan.isActive || !plan.freemiusPlanId) {
       return Response.json({ error: 'الخطة غير متاحة حاليًا.', code: 'plan_unavailable' }, { status: 409 });
+    }
+    // Legacy plans share the offer verification source of truth: a plan id that
+    // is not a verified provider mapping must never start a live checkout.
+    if (isDemoPlanId(plan.freemiusPlanId)) {
+      return Response.json({ error: 'الخطة غير جاهزة للدفع بعد.', code: 'plan_unavailable' }, { status: 409 });
+    }
+    const legacyLink = await offerProviderLinkStore().findByPlanId('freemius', plan.freemiusPlanId);
+    if (!isCheckoutReady({ offerActive: plan.isActive, link: legacyLink })) {
+      return Response.json({ error: 'الخطة غير جاهزة للدفع بعد.', code: 'plan_unavailable' }, { status: 409 });
     }
     freemiusPlanId = plan.freemiusPlanId;
   }

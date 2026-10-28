@@ -92,7 +92,7 @@ export function SubscriptionPicker({
       });
       const data = (await response.json()) as { url?: string; error?: string };
       if (!response.ok || !data.url) throw new Error(data.error || 'تعذر بدء عملية الدفع.');
-      window.location.href = data.url;
+      window.location.assign(data.url);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'تعذر بدء عملية الدفع.');
       setBusyKey(null);

@@ -1,6 +1,7 @@
 import {test, after} from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -14,7 +15,7 @@ import type { BillingStore } from '../lib/billing/store';
 import { processBook, type Extractor } from '../lib/books/indexing';
 import { allowBookAction } from '../lib/books/rate-limit';
 import { resolveBookPage } from '../lib/books/pages';
-import { pageImagePath, safeFileName, sourcePdfPath, writeBookSource, dataDir } from '../lib/books/storage';
+import { pageImagePath, safeFileName, sourcePdfPath, writeBookSource, dataDir, findStagedToken, promoteStagedSource } from '../lib/books/storage';
 import type { BookRecord, BooksStore, NewChunk } from '../lib/books/store';
 import { MAX_PDF_BYTES, uploadBook } from '../lib/books/upload';
 import { subjectRetriever } from '../lib/textbook/subject-retrieval';
@@ -30,6 +31,10 @@ const admin: AuthUser = { id: 'admin-1', email: 'admin@example.com', name: 'مش
 const student: AuthUser = { id: 'student-1', email: 'student@example.com', name: 'طالب', image: null, role: 'STUDENT' };
 const profile: StudentProfile = { userId: 'student-1', gradeId: 'g12', academicFieldId: null, onboardingCompleted: true };
 const subject: CatalogSubject = { id: 'subject-1', gradeId: 'g12', academicFieldId: null, name: 'رياضيات', slug: 'math', shortDescription: null, image: null, isActive: true, isFeatured: false, sortOrder: 0 };
+
+function pdfText(payload: string): string {
+ return `%PDF-1.4\n${payload}\n%%EOF`;
+}
 
 function pdfBytes(payload = 'hello'): Uint8Array<ArrayBuffer> {
  const text = `%PDF-1.4\n${payload}\n%%EOF`;
@@ -141,7 +146,7 @@ test('upload stores a valid PDF under a UUID directory and creates an UPLOADED b
  assert.ok(sourcePdfPath(result.bookId).startsWith(dataDir()));
 });
 
-test('upload refuses a second book unless replace is requested, then resets in place', async () => {
+test('upload refuses a second book unless replace is requested, then stages the replacement', async () => {
  const {store, books} = createFakeBooksStore();
  const first = await uploadBook({store, subjectId: subject.id, file: new File([pdfBytes()], 'one.pdf', {type: 'application/pdf'})});
  assert.equal(first.ok, true);
@@ -155,6 +160,9 @@ test('upload refuses a second book unless replace is requested, then resets in p
  assert.equal(books.get(first.bookId)?.originalFileName, 'two.pdf');
  assert.equal(books.get(first.bookId)?.status, 'UPLOADED');
  assert.equal(books.size, 1);
+ // The replacement is held in staging; the live source is untouched until it
+ // is extracted, validated and promoted.
+ assert.ok(await findStagedToken(first.bookId));
 });
 
 test('indexing transitions PROCESSING → READY and persists subject-scoped chunks', async () => {
@@ -367,4 +375,104 @@ test('book upload route answers truncated and invalid uploads with Arabic errors
   setAuthStoreForTests(null);
   setStudentStoreForTests(null);
  }
+});
+
+/* ------------------------- replacement safety (Phase 1 review) ------------------------- */
+
+const readSource = async (bookId: string): Promise<string> => {
+ const bytes = await readFile(sourcePdfPath(bookId));
+ return new TextDecoder().decode(bytes);
+};
+
+test('a failed replacement preserves the working book, its pages and its index', async () => {
+ const {store, books, chunksByBook} = createFakeBooksStore();
+ // 1. A working READY book with pages and an index.
+ const book = await store.createBook({id: crypto.randomUUID(), subjectId: subject.id, title: 'الأصل', originalFileName: 'original.pdf', storedFilePath: 'books/x/source.pdf', sha256: null, totalPages: 0, indexedPages: 0, status: 'UPLOADED', errorMessage: null});
+ const originalPdf = pdfBytes('original-source');
+ await writeBookSource(book.id, originalPdf);
+ await processBook(book.id, {store, extractor: okExtractor});
+ await mkdir(pageImagePath(book.id, 1).replace(/\/1\.jpg$/, ''), {recursive: true});
+ await writeFile(pageImagePath(book.id, 1), new Uint8Array([1, 2, 3]));
+ const goodChunks = chunksByBook.get(book.id) ?? [];
+ assert.equal(books.get(book.id)?.status, 'READY');
+
+ // 2. A replacement upload is staged, not promoted.
+ const replaced = await uploadBook({store, subjectId: subject.id, file: new File([pdfBytes('replacement-source')], 'replacement.pdf', {type: 'application/pdf'}), replace: true});
+ assert.equal(replaced.ok, true);
+ if (!replaced.ok) return;
+ assert.equal(await readSource(book.id), pdfText('original-source'), 'the live source must not change before promotion');
+
+ // 3. Extraction fails (failure injection).
+ const failing: Extractor = async () => { throw new Error('python_unavailable'); };
+ const result = await processBook(book.id, {store, extractor: failing});
+ assert.equal(result.status, 'FAILED');
+
+ // 4. The previously working book is intact.
+ const after = books.get(book.id);
+ assert.equal(after?.status, 'READY', 'the book must stay READY after a failed replacement');
+ assert.equal(after?.indexedPages, 3);
+ assert.equal(after?.totalPages, 3);
+ assert.equal(after?.errorMessage, 'replacement_failed');
+ assert.equal(await readSource(book.id), pdfText('original-source'), 'the original source PDF must be preserved');
+ assert.ok(existsSync(pageImagePath(book.id, 1)), 'the original page images must be preserved');
+ const chunksAfter = chunksByBook.get(book.id) ?? [];
+ assert.deepEqual(chunksAfter, goodChunks, 'the search index must be preserved');
+ assert.equal(await findStagedToken(book.id), null, 'the failed staging must be discarded');
+});
+
+test('a successful replacement promotes the new source, pages and index atomically', async () => {
+ const {store, books, chunksByBook} = createFakeBooksStore();
+ const book = await store.createBook({id: crypto.randomUUID(), subjectId: subject.id, title: 'الأصل', originalFileName: 'original.pdf', storedFilePath: 'books/x/source.pdf', sha256: null, totalPages: 0, indexedPages: 0, status: 'UPLOADED', errorMessage: null});
+ await writeBookSource(book.id, pdfBytes('original-source'));
+ await processBook(book.id, {store, extractor: okExtractor});
+
+ const replaced = await uploadBook({store, subjectId: subject.id, file: new File([pdfBytes('replacement-source')], 'replacement.pdf', {type: 'application/pdf'}), replace: true});
+ assert.equal(replaced.ok, true);
+ const promoting: Extractor = async ({pagesDir: out}) => {
+  await mkdir(out, {recursive: true});
+  await writeFile(`${out}/1.jpg`, new Uint8Array([9, 9, 9]));
+  return {sha256: 'sha-new', totalPages: 1, sourceId: 'book-new', pages: [page(1, 'درس جديد')]};
+ };
+ const result = await processBook(book.id, {store, extractor: promoting});
+ assert.deepEqual(result, {status: 'READY', indexedPages: 1});
+ assert.equal(await readSource(book.id), pdfText('replacement-source'), 'the new source must be promoted');
+ assert.ok(existsSync(pageImagePath(book.id, 1)), 'the new page images must be promoted');
+ const chunks = chunksByBook.get(book.id) ?? [];
+ assert.equal(chunks.length, 1);
+ assert.equal(chunks[0].sourceId, 'book-new');
+ assert.equal(books.get(book.id)?.status, 'READY');
+ assert.equal(await findStagedToken(book.id), null, 'staging must be cleaned up after promotion');
+});
+
+test('extracting nothing from a replacement never replaces a working book', async () => {
+ const {store, books, chunksByBook} = createFakeBooksStore();
+ const book = await store.createBook({id: crypto.randomUUID(), subjectId: subject.id, title: 'الأصل', originalFileName: 'original.pdf', storedFilePath: 'books/x/source.pdf', sha256: null, totalPages: 0, indexedPages: 0, status: 'UPLOADED', errorMessage: null});
+ await writeBookSource(book.id, pdfBytes('original-source'));
+ await processBook(book.id, {store, extractor: okExtractor});
+ const replaced = await uploadBook({store, subjectId: subject.id, file: new File([pdfBytes('replacement-source')], 'replacement.pdf', {type: 'application/pdf'}), replace: true});
+ assert.equal(replaced.ok, true);
+
+ const empty: Extractor = async () => ({sha256: 'sha-empty', totalPages: 0, sourceId: 'book-empty', pages: []});
+ const result = await processBook(book.id, {store, extractor: empty});
+ assert.equal(result.status, 'FAILED');
+ assert.equal(await readSource(book.id), pdfText('original-source'));
+ assert.equal(books.get(book.id)?.status, 'READY');
+ assert.equal((chunksByBook.get(book.id) ?? []).length, 3);
+});
+
+test('promotion rolls back to the previous source and pages when a step fails', async () => {
+ const {store} = createFakeBooksStore();
+ const book = await store.createBook({id: crypto.randomUUID(), subjectId: subject.id, title: 'الأصل', originalFileName: 'original.pdf', storedFilePath: 'books/x/source.pdf', sha256: null, totalPages: 0, indexedPages: 0, status: 'UPLOADED', errorMessage: null});
+ await writeBookSource(book.id, pdfBytes('original-source'));
+ const pages = pageImagePath(book.id, 1).replace(/\/1\.jpg$/, '');
+ await mkdir(pages, {recursive: true});
+ await writeFile(pageImagePath(book.id, 1), new Uint8Array([7, 7, 7]));
+
+ // A token with no staged PDF makes the promotion fail after the live files
+ // have been moved aside, exercising the rollback path.
+ const missingToken = crypto.randomUUID();
+ await assert.rejects(() => promoteStagedSource(book.id, missingToken));
+
+ assert.equal(await readSource(book.id), pdfText('original-source'), 'the previous source must be restored');
+ assert.ok(existsSync(pageImagePath(book.id, 1)), 'the previous pages must be restored');
 });

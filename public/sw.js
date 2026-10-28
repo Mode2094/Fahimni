@@ -2,8 +2,12 @@
    Never caches HTML, API responses, auth, AI, payment or webhook traffic.
    Development assets (Cache-Control: no-cache from next dev) are never cached,
    so local styling/chunks always come from the dev server. */
-const CACHE = 'fahimni-static-v2';
-const ASSET_PREFIXES = ['/_next/static/', '/icons/', '/fonts/', '/book/'];
+const CACHE = 'fahimni-static-v3';
+// Textbook page images are NOT cached: they are protected curriculum content
+// served through the authorised /api/books/... endpoints, and book/ is retained
+// only for the legacy classroom path until it is migrated. Bumping the cache
+// name retires the previously cached copies.
+const ASSET_PREFIXES = ['/_next/static/', '/icons/', '/fonts/'];
 
 // Only long-lived, cacheable responses are stored. next dev serves its chunks
 // with "no-cache, must-revalidate"; honouring that here makes dev caching

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { FnButton, FnIconButton } from "@/components/fahimni";
 
@@ -68,16 +68,35 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+const DISMISS_KEY = "fahimni-install-dismissed";
+const dismissListeners = new Set<() => void>();
+function subscribeDismissed(listener: () => void) {
+  dismissListeners.add(listener);
+  return () => dismissListeners.delete(listener);
+}
+function readDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(DISMISS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function writeDismissed() {
+  try {
+    window.localStorage.setItem(DISMISS_KEY, "1");
+  } catch {
+    // Storage can be unavailable (private mode); dismissal stays in-memory.
+  }
+  for (const listener of dismissListeners) listener();
+}
+
 export function InstallPrompt() {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(true);
+  // Read the persisted dismissal through an external store instead of a
+  // setState-in-effect; the server snapshot is "not dismissed".
+  const dismissed = useSyncExternalStore(subscribeDismissed, readDismissed, () => false);
 
   useEffect(() => {
-    try {
-      setDismissed(window.localStorage.getItem("fahimni-install-dismissed") === "1");
-    } catch {
-      setDismissed(false);
-    }
     if (window.matchMedia("(display-mode: standalone)").matches) return;
     const onPrompt = (event: Event) => {
       event.preventDefault();
@@ -100,12 +119,8 @@ export function InstallPrompt() {
   };
 
   const dismiss = () => {
-    try {
-      window.localStorage.setItem("fahimni-install-dismissed", "1");
-    } catch {
-      // Ignore storage failures.
-    }
-    setDismissed(true);
+    writeDismissed();
+    setPromptEvent(null);
   };
 
   return (

@@ -43,3 +43,11 @@ test('same-origin check trusts Host, never a forged X-Forwarded-Host',()=>{
  // A caller can forge X-Forwarded-Host, so it must never widen what is accepted.
  assert.equal(sameOrigin(new Request('http://0.0.0.0:3000/api/vision',{headers:{Host:'localhost:3000',Origin:'http://evil.example','X-Forwarded-Host':'evil.example'}})),false);
 });
+
+test('textbook excerpt endpoint requires an authenticated session', async () => {
+ const { GET: bookExcerpt } = await import('../app/api/book/route');
+ // Anonymous callers never receive textbook excerpts.
+ const anonymous = await bookExcerpt(new Request('https://local/api/book?q=معادلة'));
+ assert.equal(anonymous.status, 401);
+ assert.equal((await anonymous.text()).includes('excerpt'), false);
+});

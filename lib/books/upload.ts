@@ -1,4 +1,4 @@
-import { isPdfSignature, safeFileName, writeBookSource } from './storage';
+import { isPdfSignature, safeFileName, writeBookSource, writeStagedSource } from './storage';
 import type { BooksStore } from './store';
 
 export const MAX_PDF_BYTES = 100 * 1024 * 1024;
@@ -35,8 +35,12 @@ export async function uploadBook(input: {
   if (existing && !input.replace) return { ok: false, reason: 'exists' };
 
   const bookId = existing?.id ?? crypto.randomUUID();
+  // A replacement is staged: the live source.pdf and pages/ are only replaced
+  // after the worker extracts, validates and promotes the new PDF. A failed
+  // replacement therefore leaves the working book untouched.
   try {
-    await writeBookSource(bookId, new Uint8Array(await file.arrayBuffer()));
+    if (existing) await writeStagedSource(bookId, new Uint8Array(await file.arrayBuffer()));
+    else await writeBookSource(bookId, new Uint8Array(await file.arrayBuffer()));
   } catch {
     return { ok: false, reason: 'storage' };
   }
@@ -45,15 +49,12 @@ export async function uploadBook(input: {
   const storedFilePath = `books/${bookId}/source.pdf`;
 
   if (existing) {
-    // Replace in place: keep the book id (and any still-valid chunks) until the
-    // worker swaps them atomically after re-indexing.
+    // Keep the previous page count and index until the new PDF is promoted, so
+    // a failed replacement can restore the last known-good state exactly.
     await input.store.updateBook(bookId, {
       title,
       originalFileName,
       storedFilePath,
-      sha256: null,
-      totalPages: 0,
-      indexedPages: 0,
       status: 'UPLOADED',
       errorMessage: null,
     });

@@ -1,11 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Menu, PanelRightClose, PanelRightOpen, X } from "lucide-react";
 
 import { AdminNav } from "./admin-nav";
 
 const COLLAPSE_KEY = "fahimni.admin.collapsed";
+
+// The sidebar preference lives in localStorage. A tiny external store keeps the
+// read out of render (hydration-safe: the server snapshot is always false) and
+// avoids the setState-in-effect pattern entirely.
+const collapseListeners = new Set<() => void>();
+function subscribeCollapse(listener: () => void) {
+  collapseListeners.add(listener);
+  return () => collapseListeners.delete(listener);
+}
+function readCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(COLLAPSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function writeCollapsed(next: boolean) {
+  try {
+    window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+  } catch {
+    // Storage can be unavailable (private mode); the preference is optional.
+  }
+  for (const listener of collapseListeners) listener();
+}
 
 export function AdminShell({
   brand,
@@ -17,13 +41,9 @@ export function AdminShell({
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = useSyncExternalStore(subscribeCollapse, readCollapsed, () => false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
-  }, []);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -44,11 +64,7 @@ export function AdminShell({
   }, [drawerOpen]);
 
   function toggleCollapsed() {
-    setCollapsed((previous) => {
-      const next = !previous;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
+    writeCollapsed(!collapsed);
   }
 
   return (
