@@ -1,0 +1,17 @@
+node_modules
+.next
+.next-native
+dist
+.wrangler
+.sites-runtime
+.data
+.git
+.gitignore
+outputs
+work
+.qa
+.env
+.env.*
+!.env.example
+examples
+*.log
