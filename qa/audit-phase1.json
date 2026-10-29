@@ -1,0 +1,70 @@
+{
+  "phase": "PHASE 1 — Admin UI/UX improvement",
+  "date": "2026-10-08",
+  "viewports": ["1440x900", "390x844"],
+  "results": {
+    "desktopSidebar": {
+      "links": ["الرئيسية", "الصفوف", "الحقول", "المواد", "الاشتراكات", "الإعدادات"],
+      "activeState": "الرئيسية then المواد via sidebar click",
+      "sidebarRightOfMain": true,
+      "sidebarWidthPx": 256,
+      "collapsedWidthPx": 76,
+      "collapseToggle": "works both ways, labels hidden when collapsed, localStorage persisted"
+    },
+    "mobileDrawer": {
+      "sidebarHiddenAt390": true,
+      "menuVisible": true,
+      "role": "dialog",
+      "ariaModal": "true",
+      "anchoredRight": true,
+      "focusMovedInside": true,
+      "escapeCloses": true,
+      "focusReturnsToTrigger": "فتح قائمة الإدارة",
+      "scrimClickCloses": true,
+      "linkNavigatesAndCloses": "/admin/subjects with active المواد"
+    },
+    "imageManagement": {
+      "uploadPng": "/api/media/6913bad8-993a-41f7-832b-98c8d4c68409.png",
+      "previewRenders": true,
+      "createWithImage": "row + thumbnail rendered after save",
+      "studentPageDisplay": "img loaded on /app/subjects/<slug> (naturalWidth > 0)",
+      "replaceWithJpg": "/api/media/b0e5e4ef-36ad-413c-8407-4cd3ee0ac888.jpg persisted after reload",
+      "remove": "value cleared, preview placeholder, persisted after save"
+    },
+    "serverValidation": {
+      "invalidFile": "magic-byte check (JPEG/PNG/WebP only)",
+      "tooLarge": "5MB limit -> 413",
+      "dimensions": "16..6000 px and <=25MP",
+      "storage": ".data/uploads UUID-named, served via /api/media with immutable cache + nosniff"
+    },
+    "settings": {
+      "cards": ["الأجهزة والجلسات", "التجربة المجانية وميزانية الذكاء", "الدعم عبر واتساب", "الدفع عبر فريميوس"],
+      "readOnlyStatuses": ["واتساب: غير مضبوط", "فريميوس: غير مهيأ"],
+      "saveFlow": "maxDevices 2 -> 4 saved, success alert, reload shows 4, restored to 2",
+      "formsUnchanged": "same actions and field names as before"
+    },
+    "existingAdminActions": {
+      "gradesList": "2 rows",
+      "subscriptionsPage": "إدارة الاشتراكات loads",
+      "subjectToggle/featured": "untouched routes, forms preserved"
+    },
+    "security": {
+      "studentOnAdminPage": "redirect /app",
+      "studentUploadApi": 403,
+      "anonymousUploadApi": 401,
+      "csrf": "same-origin enforced via authorizeAdminRequest"
+    },
+    "responsive": {
+      "overflowAt390": false,
+      "overflowAt1440": false,
+      "consoleErrors": []
+    }
+  },
+  "cleanup": {
+    "testSubjectDeleted": true,
+    "uploadedMediaDeleted": true,
+    "maxDevicesRestored": 2,
+    "fixturesCleaned": true
+  },
+  "screenshots": "qa/screenshots/phase1-admin/ (15)"
+}

@@ -9,7 +9,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import Whiteboard from '../components/Whiteboard';
 const a=(id:string,content:string):Action=>({type:'write_latex',id,content,region:'working-area',targets:[],points:[],color:'ink',geometry:null,delayMs:0});
 const source={chunkId:'math10-2ad3b12dc497-p8',sourceId:'math10-2ad3b12dc497',pdfPage:8,printedPage:8,lesson:'حل معادلات خاصة',image:'/book/8.jpg'};
-const lesson:Lesson={id:'test',title:'المعادلات',question:'سؤال',mode:'new',sufficientContext:true,message:'',sources:[source],segments:[{id:'s1',goal:'نبدأ',narration:'المعادلة الأولى',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq1','x^3+4x^2=5x')]},{id:'s2',goal:'نحلل',narration:'المعادلة الثانية',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq2','x(x+5)(x-1)=0')]}]};
+const lesson:Lesson={id:'test',title:'المعادلات',question:'سؤال',mode:'new',sufficientContext:true,assessment:null,message:'',sources:[source],segments:[{id:'s1',goal:'نبدأ',narration:'المعادلة الأولى',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq1','x^3+4x^2=5x')]},{id:'s2',goal:'نحلل',narration:'المعادلة الثانية',sourceChunkIds:[source.chunkId],sources:[source],actions:[a('eq2','x(x+5)(x-1)=0')]}]};
 test('playback: progressive actions, pause/resume, previous/next/replay, stop, clear; DOM simulation, not a browser QA',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'https://local'});
  Object.assign(globalThis,{window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true});

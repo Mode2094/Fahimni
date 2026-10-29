@@ -1,8 +1,9 @@
 /* ==========================================================================
-   مَدار — teaching surface
+   فهمني — teaching surface (whiteboard)
    The classroom should read as a room with a premium smart board in it, not a
    white web page with a dark card. Board tokens live here so the whole teaching
-   surface themes from one place.
+   surface themes from one place. The product-wide design system lives in
+   design-system.css; this surface migrates to it in a later phase.
    ========================================================================== */
 
 :root{
@@ -12,11 +13,11 @@
  --room:#e8e6e0;--room-deep:#dcdad2;--room-ink:#1b2b2e;--room-muted:#6c7a7b;
  /* board surface */
  --board-bg:#173b36;--board-bg-mid:#102e2b;--board-bg-deep:#0c2624;
- --board-frame:#20423c;--board-frame-edge:#2c554e;--board-shadow:0 28px 68px rgba(14,42,38,.22);
+ --board-frame:#20423c;--board-frame-edge:#2c554e;--board-shadow:0 28px 68px rgba(33,29,82,.22);
  /* chalk */
- --chalk-main:rgba(247,247,238,.97);--chalk-soft:rgba(238,240,229,.82);--chalk-muted:rgba(226,231,220,.56);--chalk-faint:rgba(222,230,218,.34);
+ --chalk-main:rgba(33,29,82,.97);--chalk-soft:rgba(63,59,102,.82);--chalk-muted:rgba(33,29,82,.56);--chalk-faint:rgba(33,29,82,.34);
  --chalk-accent:#e8c477;--chalk-teal:#7fd4c1;--chalk-blue:#8fb8ea;--chalk-warn:#e08a86;
- --teacher-focus:rgba(232,196,119,.9);
+ --teacher-focus:rgba(108,75,244,.9);
  --success-soft:rgba(127,212,193,.16);
  --duration-reveal:340ms;--ease-teaching:cubic-bezier(.2,.7,.2,1);
 }
@@ -33,47 +34,53 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 img{max-width:100%}
 
 /* The surround is a room, so it is warmer and darker than pure white. */
-.classroom{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#eceae4 0%,var(--room) 34%,var(--room-deep) 100%)}
-.workspace{flex:1;width:min(1360px,100%);margin:0 auto;padding:22px 26px 40px;display:flex;flex-direction:column;gap:18px}
+.classroom{min-height:100vh;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,#eceae4 0%,var(--room) 34%,var(--room-deep) 100%)}
+.workspace{flex:1;min-height:0;overflow:hidden;width:min(1360px,100%);margin:0 auto;padding:16px 22px 30px;display:flex;flex-direction:column;gap:14px}
 
 /* ------------------------------------------------------------- topbar --- */
-.topbar{display:flex;align-items:center;gap:18px;padding:12px 26px;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(16,45,42,.08)}
+.topbar{display:flex;align-items:center;gap:18px;padding:12px 26px;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(33,29,82,.08)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--room-ink);font-weight:600;font-size:19px}
-.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:var(--lime);box-shadow:0 8px 18px rgba(10,109,96,.28)}
-.brand-sub{display:block;font-size:11.5px;font-weight:400;color:var(--room-muted);letter-spacing:.02em}
+.brand-name{font-family:var(--fn-font-display,inherit);font-weight:800;font-size:21px;line-height:1.1;color:var(--room-ink)}
+.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:var(--fn-surface,#fff);box-shadow:0 8px 18px rgba(33,29,82,.16)}
+.brand-sub{display:block;font-size:11.5px;font-weight:400;color:var(--room-muted);letter-spacing:.02em;font-family:var(--font)}
 .course{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--room-muted)}
 .course strong{color:var(--room-ink);font-weight:600}
-.course-divider{width:1px;height:15px;background:rgba(27,43,46,.16)}
-.semester{padding:3px 10px;border-radius:999px;background:rgba(10,109,96,.09);color:var(--green-dark);font-size:12.5px}
-.book-button{margin-inline-start:auto;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:12px;background:rgba(10,109,96,.09);color:var(--green-dark);font-size:14px}
-.book-button:hover{background:rgba(10,109,96,.15)}
+.course-divider{width:1px;height:15px;background:rgba(33,29,82,.16)}
+.semester{padding:3px 10px;border-radius:999px;background:rgba(108,75,244,.09);color:var(--green-dark);font-size:12.5px}
+.credit-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(108,75,244,.12);color:#4a2bbd;font-size:13px;font-weight:600}
+.credit-chip strong{font-variant-numeric:tabular-nums}
+.credit-chip span{font-weight:400;color:#5a37e0}
+.book-button{margin-inline-start:auto;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:12px;background:rgba(108,75,244,.09);color:var(--green-dark);font-size:14px}
+.book-button:hover{background:rgba(108,75,244,.15)}
 .book-count{font-size:12px;color:var(--room-muted)}
 
 .workspace-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
 .heading-actions{display:flex;align-items:center;gap:9px}
 .eyebrow{font-size:12.5px;letter-spacing:.06em;color:var(--green);font-weight:600}
 .workspace-heading h1{margin:5px 0 0;font-size:clamp(21px,2.4vw,29px);color:var(--room-ink);font-weight:600;letter-spacing:-.01em}
-.quiet-button{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:11px;background:rgba(27,43,46,.05);color:var(--room-ink);font-size:14px}
-.quiet-button:hover{background:rgba(27,43,46,.09)}
+.quiet-button{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:11px;background:rgba(33,29,82,.05);color:var(--room-ink);font-size:14px}
+.quiet-button:hover{background:rgba(33,29,82,.09)}
 .quiet-button:active{transform:translateY(1px)}
 
-.classroom-grid{display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:20px;align-items:start}
+/* One full-width column app frame: the board region owns the remaining
+   viewport, the console and composer keep their intrinsic height. */
+.classroom-grid{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;gap:14px}
 
 /* ============================================================ the board === */
-.board-shell{position:relative;display:flex;flex-direction:column;gap:13px;min-width:0}
+.board-shell{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;min-width:0}
 
-.board-toolbar{display:flex;align-items:center;gap:12px;padding:0 4px}
-.board-title{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--room-ink)}
-.teacher-status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--room-muted);margin-inline-start:auto}
-.status-dot,.pulse-dot{width:8px;height:8px;border-radius:50%;background:rgba(27,43,46,.24)}
-.pulse-dot{background:var(--green);box-shadow:0 0 0 0 rgba(10,109,96,.5);animation:teachPulse 2.1s var(--ease-teaching) infinite}
-@keyframes teachPulse{0%{box-shadow:0 0 0 0 rgba(10,109,96,.45)}70%{box-shadow:0 0 0 9px rgba(10,109,96,0)}100%{box-shadow:0 0 0 0 rgba(10,109,96,0)}}
-.board-tools{display:flex;gap:4px;padding:3px;border-radius:11px;background:rgba(27,43,46,.05)}
+/* Row 2: lesson tabs + whiteboard controls, shared by every viewport. */
+.course-bar{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
+.narration-copy{flex:1;min-width:0}
+.status-dot,.pulse-dot{width:8px;height:8px;border-radius:50%;background:rgba(33,29,82,.24)}
+.pulse-dot{background:var(--green);box-shadow:0 0 0 0 rgba(108,75,244,.5);animation:teachPulse 2.1s var(--ease-teaching) infinite}
+@keyframes teachPulse{0%{box-shadow:0 0 0 0 rgba(108,75,244,.45)}70%{box-shadow:0 0 0 9px rgba(108,75,244,0)}100%{box-shadow:0 0 0 0 rgba(108,75,244,0)}}
+.board-tools{display:flex;gap:4px;padding:3px;border-radius:11px;background:rgba(33,29,82,.05)}
 .board-tools button{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;color:var(--room-ink)}
-.board-tools button:hover{background:rgba(27,43,46,.1)}
+.board-tools button:hover{background:rgba(33,29,82,.1)}
 
-.board-stage{position:relative}
-.board-frame{position:relative;border-radius:24px;padding:13px;background:linear-gradient(160deg,var(--board-frame) 0%,var(--board-frame-edge) 46%,var(--board-frame) 100%);box-shadow:var(--board-shadow),inset 0 1px 0 rgba(255,255,255,.14)}
+.board-stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;width:100%;min-width:0}
+.board-frame{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;border-radius:24px;padding:13px;background:linear-gradient(160deg,var(--board-frame) 0%,var(--board-frame-edge) 46%,var(--board-frame) 100%);box-shadow:var(--board-shadow),inset 0 1px 0 rgba(255,255,255,.14)}
 
 /* Layered surface: gradient body, then grain, chalk residue and vignette as
    separate layers so maths contrast is never reduced to fake texture. */
@@ -88,36 +95,69 @@ img{max-width:100%}
 @keyframes grainShift{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-2%)}80%{transform:translate(3%,1%)}100%{transform:translate(0,0)}}
 .board-surface .residue{position:absolute;inset:0;opacity:.05;mix-blend-mode:screen;
  background:
-  radial-gradient(120% 70% at 12% 88%,rgba(240,244,232,.5),transparent 60%),
-  radial-gradient(80% 50% at 88% 16%,rgba(238,242,230,.42),transparent 62%)}
+  radial-gradient(120% 70% at 12% 88%,rgba(108,75,244,.5),transparent 60%),
+  radial-gradient(80% 50% at 88% 16%,rgba(108,75,244,.42),transparent 62%)}
 .board-surface .vignette{position:absolute;inset:0;
  background:radial-gradient(120% 96% at 50% 42%,transparent 52%,rgba(0,0,0,.3) 100%)}
 
-.board-scroll{position:relative;height:clamp(430px,60vh,660px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(226,231,220,.22) transparent}
+.board-scroll{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(33,29,82,.22) transparent}
 .board-scroll::-webkit-scrollbar{width:8px}
-.board-scroll::-webkit-scrollbar-thumb{background:rgba(226,231,220,.2);border-radius:8px}
-.board-content{position:relative;display:flex;flex-direction:column;gap:clamp(10px,1.6vw,18px);padding:clamp(14px,2.4vw,26px) clamp(12px,2.2vw,26px) clamp(46px,6vw,64px);min-height:100%;font-size:calc(1rem * var(--board-scale,1))}
+.board-scroll::-webkit-scrollbar-thumb{background:rgba(33,29,82,.2);border-radius:8px}
+.board-content{position:relative;display:flex;flex-direction:column;gap:clamp(12px,1.8vw,22px);padding:clamp(16px,2.6vw,30px) clamp(14px,2.4vw,30px) clamp(46px,6vw,64px);min-height:100%;font-size:calc(clamp(1.08rem,1.3vw,1.5rem) * var(--board-scale,1))}
 .row-item{display:inline-flex;align-items:center}
 
 /* Zones create a reading order instead of one uniform column. */
-.board-zone{position:relative;display:flex;flex-direction:column;gap:9px;opacity:var(--zone-weight,1);transition:opacity var(--ease-teaching) 400ms}
+.board-zone{position:relative;display:flex;flex-direction:column;gap:clamp(10px,1.2vw,16px);opacity:var(--zone-weight,1);transition:opacity var(--ease-teaching) 400ms}
 .board-zone.is-focus{opacity:1}
 .zone-header .board-row{align-items:baseline}
-.zone-header{gap:4px}
-.zone-result{margin-top:clamp(10px,2vw,20px);padding-top:clamp(10px,1.8vw,18px);border-top:1px dashed rgba(226,231,220,.14)}
-.board-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-height:1.2em}
+.zone-header{gap:6px}
+/* The working zone owns the middle of the board: sparse content sits in the
+   reading band instead of hugging one corner. */
+.zone-work{flex:1 1 auto;justify-content:center}
+.zone-result{margin-top:clamp(10px,2vw,20px);padding-top:clamp(10px,1.8vw,18px);border-top:1px dashed rgba(33,29,82,.14)}
+.board-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;min-height:1.2em}
 .zone-work .board-row:not(:last-child){opacity:.9}
 
-.board-watermark{position:absolute;bottom:24px;inset-inline-end:28px;font-size:11px;letter-spacing:.08em;color:rgba(226,231,220,.24);pointer-events:none;z-index:3}
+.board-watermark{position:absolute;bottom:24px;inset-inline-end:28px;font-size:11px;letter-spacing:.08em;color:rgba(33,29,82,.24);pointer-events:none;z-index:3}
 
 /* ------------------------------------------------------------- objects --- */
 .board-object{position:relative;display:inline-flex;align-items:center;gap:9px;padding:3px 7px;border-radius:9px;color:var(--tone,var(--chalk-main));text-align:start;
  transition:opacity 320ms var(--ease-teaching),transform 320ms var(--ease-teaching),filter 320ms var(--ease-teaching),color 320ms var(--ease-teaching)}
-.board-object .object-label{font-size:.95em;line-height:1.7;color:var(--chalk-soft)}
-.board-object .math{font-size:1.16em}
+.board-object .object-label{font-size:1em;line-height:1.75;color:var(--chalk-soft)}
+.board-object .math{font-size:1.35em}
 .board-object:focus-visible{outline:2px solid var(--teacher-focus);outline-offset:3px}
-.board-object:not(:disabled):hover{background:rgba(232,196,119,.09)}
-.board-object.type-show_label .object-label{font-size:.82em;letter-spacing:.02em;color:var(--chalk-muted);padding:2px 0}
+.board-object:not(:disabled):hover{background:rgba(255,255,255,.06)}
+.board-object.type-show_label .object-label{font-size:.88em;letter-spacing:.02em;color:var(--chalk-muted);padding:2px 0}
+
+/* Live chalk writing: every new object is revealed along its natural writing
+   direction (LTR for maths, RTL for Arabic) with a soft chalk edge. Text and
+   KaTeX stay real DOM — only clip-path/opacity animate, so the maths is never
+   rasterised and remains selectable and crisp. */
+@keyframes chalkWriteLtr{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 -2% 0 0)}}
+@keyframes chalkWriteRtl{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 -2%)}}
+@keyframes chalkStrokeDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes chalkErase{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-2px)}}
+.board-object{animation:chalkWriteLtr .8s cubic-bezier(.25,.8,.3,1) both}
+.board-object[data-write-dir='rtl']{animation-name:chalkWriteRtl}
+.board-object.is-erasing{animation:chalkErase .28s ease-in both}
+.handStroke,.handBox,.graph-stroke{stroke-dasharray:1;stroke-dashoffset:1;animation:chalkStrokeDraw .7s cubic-bezier(.3,.7,.3,1) forwards}
+.graph-arrow-head{animation:chalkWriteLtr .25s ease-out .55s both}
+.graph-layer{display:block;inline-size:100%;max-inline-size:440px;margin-inline:auto;padding:6px 4px}
+.graph-layer svg{inline-size:100%;block-size:auto;aspect-ratio:1}
+.graph-grid line{stroke:rgba(255,255,255,.09);stroke-width:.3}
+.graph-axis-label{fill:var(--chalk-muted);font-size:4px;font-family:var(--font-math,inherit)}
+.graph-dot{animation:chalkWriteLtr .35s ease-out both}
+@media (prefers-reduced-motion:reduce){
+ .board-object,.board-object.is-erasing,.graph-dot{animation:none}
+ .handStroke,.handBox,.graph-stroke{animation:none;stroke-dashoffset:0}
+ .graph-arrow-head{animation:none}
+}
+html[data-reduced-motion='true'] .board-object,
+html[data-reduced-motion='true'] .board-object.is-erasing,
+html[data-reduced-motion='true'] .graph-dot{animation:none}
+html[data-reduced-motion='true'] .handStroke,
+html[data-reduced-motion='true'] .handBox,
+html[data-reduced-motion='true'] .graph-stroke{animation:none;stroke-dashoffset:0}
 .board-object.is-annotation{pointer-events:none}
 
 /* Teaching visual states. Emphasis moves between opacity, weight and a soft
@@ -126,15 +166,19 @@ img{max-width:100%}
 .board-object.state-entering{animation:chalkIn var(--duration-reveal) var(--ease-teaching) both}
 @keyframes chalkIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .board-object.state-active{opacity:1}
-.board-object.state-highlighted{background:rgba(232,196,119,.11);box-shadow:0 0 0 1px rgba(232,196,119,.22) inset}
-.board-object.state-focused{opacity:1;color:var(--chalk-main);filter:drop-shadow(0 0 11px rgba(232,196,119,.34))}
+/* Chalk emphasis, never a UI card: the highlighted object glows softly like it
+   was just chalked over — no background box, no inset border. */
+.board-object.state-highlighted{opacity:1;filter:drop-shadow(0 0 9px rgba(240,172,63,.4))}
+.board-object.state-focused{opacity:1;color:var(--chalk-main);filter:drop-shadow(0 0 11px rgba(108,75,244,.34))}
 .board-object.state-completed{opacity:.62;filter:saturate(.86)}
 .board-object.state-dimmed{opacity:.34}
 .board-object.state-important{opacity:1;color:var(--chalk-accent)}
 .board-object.state-invalid{opacity:.4;filter:grayscale(.5)}
-.board-object.state-final{opacity:1;color:var(--chalk-accent);filter:drop-shadow(0 0 16px rgba(232,196,119,.28))}
+.board-object.state-final{opacity:1;color:var(--chalk-accent);filter:drop-shadow(0 0 16px rgba(108,75,244,.28))}
 
-.source-image{max-height:230px;border-radius:10px;border:1px solid rgba(226,231,220,.16);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.source-image{max-height:230px;border-radius:10px;border:1px solid rgba(33,29,82,.16);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.math--inline{display:inline-block;font-size:1em;vertical-align:middle}
+.question-math-text{unicode-bidi:plaintext}
 .math-error{font-size:.86em;color:var(--chalk-warn)}
 .katex{color:inherit}
 
@@ -163,8 +207,8 @@ img{max-width:100%}
 .teacher-pointer{position:absolute;inset:13px;pointer-events:none;z-index:4;opacity:0;transition:opacity 300ms var(--ease-teaching)}
 .teacher-pointer[data-active="true"]{opacity:1}
 .teacher-pointer .pointer-dot,.teacher-pointer .pointer-ring{position:absolute;left:var(--px,50%);top:var(--py,50%);border-radius:50%;transform:translate(-50%,-50%)}
-.teacher-pointer .pointer-dot{width:7px;height:7px;background:var(--teacher-focus);box-shadow:0 0 10px rgba(232,196,119,.6);animation:pointerSettle 520ms var(--ease-teaching)}
-.teacher-pointer .pointer-ring{width:22px;height:22px;border:1px solid rgba(232,196,119,.42);animation:pointerBreathe 2.8s ease-in-out infinite}
+.teacher-pointer .pointer-dot{width:7px;height:7px;background:var(--teacher-focus);box-shadow:0 0 10px rgba(108,75,244,.6);animation:pointerSettle 520ms var(--ease-teaching)}
+.teacher-pointer .pointer-ring{width:22px;height:22px;border:1px solid rgba(108,75,244,.42);animation:pointerBreathe 2.8s ease-in-out infinite}
 @keyframes pointerSettle{from{transform:translate(-50%,-50%) scale(.4);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes pointerBreathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.55}50%{transform:translate(-50%,-50%) scale(1.24);opacity:.16}}
 
@@ -175,119 +219,129 @@ img{max-width:100%}
 @keyframes voiceBar{from{height:22%;opacity:.45}to{height:calc(28% + var(--level,.5) * 62%);opacity:.95}}
 
 /* ------------------------------------------------------------ narration --- */
-.narration-bar{display:flex;align-items:flex-start;gap:13px;padding:15px 17px;border-radius:17px;background:rgba(255,255,255,.8);border:1px solid rgba(16,45,42,.08);box-shadow:0 12px 30px rgba(16,45,42,.05)}
-.voice-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:12px;background:rgba(10,109,96,.1);color:var(--green)}
+.narration-bar{display:flex;align-items:flex-start;gap:13px;padding:15px 17px;border-radius:17px;background:rgba(255,255,255,.8);border:1px solid rgba(33,29,82,.08);box-shadow:0 12px 30px rgba(33,29,82,.05)}
+.voice-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:12px;background:rgba(108,75,244,.1);color:var(--green)}
 .narrator-label{display:flex;align-items:baseline;gap:8px;font-size:13.5px;font-weight:600;color:var(--room-ink)}
 .narrator-label small{font-size:11.5px;font-weight:400;color:var(--room-muted)}
 .narration-bar p{margin:5px 0 0;font-size:15.5px;line-height:1.75;color:var(--room-ink)}
 .icon-button{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:11px;color:var(--room-ink)}
-.icon-button:hover{background:rgba(27,43,46,.08)}
+.icon-button:hover{background:rgba(33,29,82,.08)}
 .icon-button:active{transform:translateY(1px)}
 .narration-bar .icon-button{margin-inline-start:auto}
 
 .board-sources{display:flex;align-items:center;gap:8px;padding:0 6px;font-size:13px;color:var(--room-muted)}
-.board-sources button{padding:4px 11px;border-radius:999px;background:rgba(10,109,96,.09);color:var(--green-dark);font-size:12.5px}
-.board-sources button:hover{background:rgba(10,109,96,.16)}
+.teacher-actions{display:flex;flex-wrap:wrap;gap:6px;padding:2px 4px}
+.mode-selector{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:rgba(33,29,82,.06);border:1px solid rgba(33,29,82,.08)}
+.mode-selector button{border:0;border-radius:999px;padding:6px 12px;background:transparent;color:var(--room-muted);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease}
+.mode-selector button:hover{color:var(--room-ink)}
+.mode-selector button.is-active{background:var(--green-dark);color:#fff;box-shadow:0 6px 14px rgba(31,122,92,.25)}
+.mode-selector button:disabled{opacity:.55;cursor:default}
+@media (max-width:640px){.mode-selector{order:3;inline-size:100%;justify-content:center}.mode-selector button{flex:1}}
+.teacher-action{padding:5px 12px;border-radius:999px;border:1px solid rgba(33,29,82,.14);background:rgba(255,255,255,.75);color:var(--room-ink);font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.teacher-action:hover{border-color:rgba(108,75,244,.4);background:rgba(108,75,244,.08)}
+.teacher-action.resume{border-color:rgba(31,122,92,.35);background:rgba(31,122,92,.1);color:#14705a}
+.teacher-action.resume:hover{background:rgba(31,122,92,.18)}
+a.teacher-action{text-decoration:none;display:inline-flex;align-items:center}
+@media (max-width:640px){.teacher-actions{overflow-x:auto;flex-wrap:nowrap;padding-block-end:2px}.teacher-action{white-space:nowrap}}
+.board-sources button{padding:4px 11px;border-radius:999px;background:rgba(108,75,244,.09);color:var(--green-dark);font-size:12.5px}
+.board-sources button:hover{background:rgba(108,75,244,.16)}
 
 /* ------------------------------------------------------------ playback --- */
-.playback{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 14px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(16,45,42,.07)}
+.playback{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 14px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(33,29,82,.07)}
 .playback-actions{display:flex;align-items:center;gap:5px}
-.play-button{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;box-shadow:0 10px 22px rgba(10,109,96,.3)}
-.play-button:hover:not(:disabled){box-shadow:0 12px 26px rgba(10,109,96,.36)}
+.play-button{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;box-shadow:0 10px 22px rgba(108,75,244,.3)}
+.play-button:hover:not(:disabled){box-shadow:0 12px 26px rgba(108,75,244,.36)}
 .play-button:active:not(:disabled){transform:translateY(1px)}
-.control-divider{width:1px;height:22px;background:rgba(27,43,46,.13);margin:0 5px}
-.playback .tiny{font-size:9.5px;margin-inline-start:-6px;margin-top:9px}
+.control-divider{width:1px;height:22px;background:rgba(33,29,82,.13);margin:0 5px}
 .playback-meta{margin-inline-start:auto;display:flex;align-items:center;gap:11px}
-.playback-meta select{padding:7px 11px;border-radius:10px;border:1px solid rgba(16,45,42,.12);background:rgba(255,255,255,.7);color:var(--room-ink);font-size:13.5px}
+.playback-meta select{padding:7px 11px;border-radius:10px;border:1px solid rgba(33,29,82,.12);background:rgba(255,255,255,.7);color:var(--room-ink);font-size:13.5px}
 .step-time{font-size:13px;color:var(--room-muted)}
 .spin{animation:teachSpin 1.05s linear infinite}
 @keyframes teachSpin{to{transform:rotate(360deg)}}
 
 /* ===================================================== lesson journey ==== */
-.lesson-sidebar{position:sticky;top:18px;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:19px;background:rgba(255,255,255,.7);border:1px solid rgba(16,45,42,.07)}
+.lesson-sidebar{position:sticky;top:18px;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:19px;background:rgba(255,255,255,.7);border:1px solid rgba(33,29,82,.07)}
 .lesson-sidebar[data-empty="true"]{display:none}
 .sidebar-title{display:flex;align-items:center;justify-content:space-between;font-size:14.5px;font-weight:600;color:var(--room-ink)}
-.journey-progress{font-size:12px;font-weight:500;color:var(--room-muted);padding:2px 9px;border-radius:999px;background:rgba(27,43,46,.06)}
+.journey-progress{font-size:12px;font-weight:500;color:var(--room-muted);padding:2px 9px;border-radius:999px;background:rgba(33,29,82,.06)}
 .sidebar-description{margin:0;font-size:13px;line-height:1.7;color:var(--room-muted)}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .steps button{position:relative;width:100%;display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:11px;text-align:start;font-size:13.5px;line-height:1.6;color:var(--room-muted)}
-.steps button:hover:not(:disabled){background:rgba(27,43,46,.05)}
-.step-number{display:grid;place-items:center;flex:0 0 auto;width:23px;height:23px;border-radius:8px;background:rgba(27,43,46,.07);font-size:11px;font-weight:600}
+.steps button:hover:not(:disabled){background:rgba(33,29,82,.05)}
+.step-number{display:grid;place-items:center;flex:0 0 auto;width:23px;height:23px;border-radius:8px;background:rgba(33,29,82,.07);font-size:11px;font-weight:600}
 .step-copy{flex:1;min-width:0}
-.steps li[data-state="done"] button{color:rgba(27,43,46,.5)}
-.steps li[data-state="done"] .step-number{background:rgba(10,109,96,.16);color:var(--green-dark)}
-.steps li[data-state="active"] button{background:rgba(10,109,96,.1);color:var(--room-ink);font-weight:600}
+.steps li[data-state="done"] button{color:rgba(33,29,82,.5)}
+.steps li[data-state="done"] .step-number{background:rgba(108,75,244,.16);color:var(--green-dark)}
+.steps li[data-state="active"] button{background:rgba(108,75,244,.1);color:var(--room-ink);font-weight:600}
 .steps li[data-state="active"] .step-number{background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:#fff}
 .steps li[data-state="future"] button{opacity:.5}
 .active-step{position:absolute;inset-inline-end:3px;top:12px;bottom:12px;width:2.5px;border-radius:3px;background:var(--green);animation:activeBar 2.3s var(--ease-teaching) infinite}
 @keyframes activeBar{0%,100%{opacity:1}50%{opacity:.35}}
-.followups{display:flex;flex-direction:column;gap:6px;padding-top:11px;border-top:1px solid rgba(16,45,42,.08)}
+.followups{display:flex;flex-direction:column;gap:6px;padding-top:11px;border-top:1px solid rgba(33,29,82,.08)}
 .followups span{font-size:12.5px;color:var(--room-muted)}
-.followups button{padding:9px 12px;border-radius:11px;background:rgba(27,43,46,.05);font-size:13.5px;text-align:start;color:var(--room-ink)}
-.followups button:hover:not(:disabled){background:rgba(10,109,96,.11);color:var(--green-dark)}
+.followups button{padding:9px 12px;border-radius:11px;background:rgba(33,29,82,.05);font-size:13.5px;text-align:start;color:var(--room-ink)}
+.followups button:hover:not(:disabled){background:rgba(108,75,244,.11);color:var(--green-dark)}
 .journey-done{display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:12px;background:var(--success-soft);color:var(--green-dark);font-size:13px;line-height:1.6}
 
 /* book / units when no lesson */
 .units{display:flex;flex-direction:column;gap:6px}
 .units button{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:13px;text-align:start;color:var(--room-ink)}
-.units button:hover,.units button.active{background:rgba(10,109,96,.09)}
+.units button:hover,.units button.active{background:rgba(108,75,244,.09)}
 .unit-num{font-size:11.5px;font-weight:600;color:var(--green);letter-spacing:.06em}
 .units button span:nth-child(2){flex:1}
 .units strong{display:block;font-size:14px;font-weight:600}
 .units small{font-size:12px;color:var(--room-muted)}
-.book-card{padding:15px;border-radius:15px;background:linear-gradient(150deg,rgba(10,109,96,.11),rgba(19,75,67,.07))}
+.book-card{padding:15px;border-radius:15px;background:linear-gradient(150deg,rgba(108,75,244,.11),rgba(90,55,224,.07))}
 .book-card-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.72);color:var(--green);margin-bottom:9px}
 .book-card strong{font-size:14.5px;color:var(--room-ink)}
 .book-card p{margin:5px 0 11px;font-size:13px;line-height:1.7;color:var(--room-muted)}
 .book-card button{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--green-dark);font-weight:600}
-.teacher-tip{padding:13px;border-radius:14px;background:rgba(27,43,46,.045)}
+.teacher-tip{padding:13px;border-radius:14px;background:rgba(33,29,82,.045)}
 .teacher-tip span{font-size:12.5px;color:var(--green);font-weight:600}
 .teacher-tip p{margin:5px 0 0;font-size:13px;line-height:1.75;color:var(--room-muted)}
 
 /* =========================================================== welcome ===== */
 .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;flex:1;min-height:340px;text-align:center;padding:20px 0;color:var(--chalk-soft)}
-.welcome-symbol{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:rgba(232,196,119,.13);color:var(--chalk-accent)}
+.welcome-symbol{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:rgba(108,75,244,.13);color:var(--chalk-accent)}
 .small-label{font-size:12.5px;letter-spacing:.06em;color:var(--chalk-muted)}
 .welcome h2{margin:4px 0 0;font-size:clamp(24px,3.4vw,36px);font-weight:600;line-height:1.35;color:var(--chalk-main)}
 .welcome h2 span{color:var(--chalk-accent)}
 .welcome p{margin:5px 0 6px;font-size:15px;line-height:1.85;color:var(--chalk-muted)}
-.example-equation{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px;padding:17px 30px;border-radius:17px;background:rgba(247,247,238,.05);border:1px solid rgba(226,231,220,.14);color:var(--chalk-soft)}
-.example-equation:hover:not(:disabled){background:rgba(232,196,119,.09);border-color:rgba(232,196,119,.3)}
+.example-equation{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px;padding:17px 30px;border-radius:17px;background:rgba(33,29,82,.05);border:1px solid rgba(33,29,82,.14);color:var(--chalk-soft)}
+.example-equation:hover:not(:disabled){background:rgba(108,75,244,.09);border-color:rgba(108,75,244,.3)}
 .example-equation>span:first-child{font-size:12.5px;color:var(--chalk-muted)}
 .example-equation .math{color:var(--chalk-main)}
 .example-footer{font-size:12.5px;color:var(--chalk-muted)}
 .example-footer span{color:var(--chalk-accent)}
 .welcome-note{display:flex;align-items:center;gap:11px;margin-top:12px;font-size:12.5px;color:var(--chalk-faint)}
-.tiny-line{width:26px;height:1px;background:rgba(226,231,220,.22)}
+.tiny-line{width:26px;height:1px;background:rgba(33,29,82,.22)}
 
-.board-stage-wrap{position:relative}
-.lesson-kicker{position:relative;z-index:3;display:flex;align-items:baseline;gap:10px;padding:0 6px 2px;font-size:12.5px;color:var(--room-muted)}
-.lesson-kicker span:first-child{color:var(--green);font-weight:600}
+.board-stage-wrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding-bottom:12px}
 
 /* --------------------------------------------------------- preparing ---- */
-.preparing-overlay{position:absolute;inset:13px;z-index:6;display:grid;place-items:center;border-radius:14px;background:rgba(10,32,30,.76);backdrop-filter:blur(3px)}
+.preparing-overlay{position:absolute;inset:13px;z-index:6;display:grid;place-items:center;border-radius:14px;background:rgba(33,29,82,.76);backdrop-filter:blur(3px)}
 .preparing-card{display:flex;flex-direction:column;align-items:center;gap:9px;padding:28px 34px;border-radius:19px;background:rgba(255,255,255,.96);text-align:center;color:var(--room-ink);box-shadow:0 24px 60px rgba(0,0,0,.3)}
 .preparing-card strong{font-size:16.5px}
 .preparing-card span{font-size:13.5px;color:var(--room-muted)}
 .preparing-card .spin{color:var(--green)}
 
 /* ================================================== interaction area ==== */
-.interaction-area{position:sticky;bottom:0;z-index:20;display:flex;flex-direction:column;gap:9px;padding:12px 0 6px;background:linear-gradient(180deg,transparent,var(--room-deep) 26%)}
-.connection-note{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:12px;background:rgba(232,196,119,.16);color:#6a5418;font-size:13.5px}
+.interaction-area{position:static;flex:0 0 auto;display:flex;flex-direction:column;gap:6px;padding:6px 0 calc(4px + env(safe-area-inset-bottom,0px));background:none}
+.connection-note{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:12px;background:rgba(108,75,244,.16);color:#6a5418;font-size:13.5px}
 .amber-dot{width:8px;height:8px;border-radius:50%;background:#d9a520}
-.inline-notice{padding:10px 14px;border-radius:12px;background:rgba(10,109,96,.1);color:var(--green-dark);font-size:13.5px}
+.inline-notice{padding:10px 14px;border-radius:12px;background:rgba(108,75,244,.1);color:var(--green-dark);font-size:13.5px}
 .error-message{display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:12px;background:#fdecec;color:#96302f;font-size:14px}
 .error-message button{margin-inline-start:auto;display:grid;place-items:center}
 
-.input-context{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.86);border:1px solid rgba(16,45,42,.09);font-size:13.5px;color:var(--room-ink)}
+.input-context{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.86);border:1px solid rgba(33,29,82,.09);font-size:13.5px;color:var(--room-ink)}
 .input-context img{width:42px;height:42px;object-fit:cover;border-radius:9px}
 .input-context span{flex:1;min-width:0}
 .input-context .icon-button{margin-inline-start:auto;width:30px;height:30px}
 
-.question-form{display:flex;align-items:flex-end;gap:11px;padding:11px 13px;border-radius:21px;background:rgba(255,255,255,.92);border:1px solid rgba(16,45,42,.1);box-shadow:0 18px 44px rgba(16,45,42,.11);transition:border-color .2s,box-shadow .2s}
-.question-form:focus-within{border-color:rgba(10,109,96,.45);box-shadow:0 20px 50px rgba(10,109,96,.16)}
+.question-form{display:flex;align-items:flex-end;gap:11px;padding:11px 13px;border-radius:21px;background:rgba(255,255,255,.92);border:1px solid rgba(33,29,82,.1);box-shadow:0 18px 44px rgba(33,29,82,.11);transition:border-color .2s,box-shadow .2s}
+.question-form:focus-within{border-color:rgba(108,75,244,.45);box-shadow:0 20px 50px rgba(108,75,244,.16)}
 .question-form.recording{border-color:rgba(190,78,81,.5)}
-.input-spark{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:12px;background:rgba(10,109,96,.1);color:var(--green)}
+.input-spark{display:grid;place-items:center;width:38px;height:38px;flex:0 0 auto;border-radius:12px;background:rgba(108,75,244,.1);color:var(--green)}
 .question-form textarea{flex:1;min-width:0;padding:9px 4px;border:0;resize:none;background:none;color:var(--room-ink);font-size:15.5px;line-height:1.6;max-height:132px;scroll-margin-bottom:12px}
 .question-form textarea:focus{outline:none}
 .question-form textarea::placeholder{color:var(--room-muted)}
@@ -295,13 +349,13 @@ img{max-width:100%}
 .question-form .mic{color:var(--green)}
 .question-form .mic.is-recording{background:#fdecec;color:#b93b3a;animation:recordPulse 1.7s ease-in-out infinite}
 @keyframes recordPulse{0%,100%{box-shadow:0 0 0 0 rgba(185,59,58,.42)}70%{box-shadow:0 0 0 8px rgba(185,59,58,0)}}
-.send-button{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;box-shadow:0 10px 22px rgba(10,109,96,.3)}
-.send-button:hover:not(:disabled){box-shadow:0 12px 26px rgba(10,109,96,.36)}
+.send-button{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(150deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;box-shadow:0 10px 22px rgba(108,75,244,.3)}
+.send-button:hover:not(:disabled){box-shadow:0 12px 26px rgba(108,75,244,.36)}
 .send-button:active:not(:disabled){transform:translateY(1px)}
 .input-hint{display:flex;justify-content:space-between;gap:14px;padding:0 6px;font-size:12.5px;color:var(--room-muted)}
 
 /* ------------------------------------------------------------- modal ----- */
-.modal-backdrop{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;background:rgba(14,32,30,.62);backdrop-filter:blur(5px)}
+.modal-backdrop{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:22px;background:rgba(33,29,82,.62);backdrop-filter:blur(5px)}
 .book-modal{display:flex;flex-direction:column;gap:11px;width:min(760px,100%);max-height:92vh;padding:15px;border-radius:21px;background:var(--room)}
 .modal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .modal-toolbar strong{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--room-ink)}
@@ -309,75 +363,68 @@ img{max-width:100%}
 .book-page img{display:block;width:100%;height:auto}
 .book-navigation{display:flex;align-items:center;justify-content:space-between;gap:13px;flex-wrap:wrap}
 .book-navigation label{font-size:13.5px;color:var(--room-muted)}
-.book-navigation input{width:66px;padding:6px 9px;border-radius:9px;border:1px solid rgba(16,45,42,.15);background:#fff;color:var(--room-ink);text-align:center}
+.book-navigation input{width:66px;padding:6px 9px;border-radius:9px;border:1px solid rgba(33,29,82,.15);background:#fff;color:var(--room-ink);text-align:center}
 
-.debug-toggle{position:fixed;bottom:12px;inset-inline-end:12px;z-index:50;padding:7px 12px;border-radius:9px;background:rgba(27,43,46,.82);color:#fff;font-size:12px}
-.debug-panel{position:fixed;bottom:46px;inset-inline-end:12px;z-index:50;width:min(520px,92vw);max-height:62vh;overflow:auto;margin:0;padding:13px;border-radius:13px;background:rgba(14,32,30,.95);color:#cfe6df;font-size:11.5px;direction:l;text-align:left}
+.debug-toggle{position:fixed;bottom:12px;inset-inline-end:12px;z-index:50;padding:7px 12px;border-radius:9px;background:rgba(33,29,82,.82);color:#fff;font-size:12px}
+.debug-panel{position:fixed;bottom:46px;inset-inline-end:12px;z-index:50;width:min(520px,92vw);max-height:62vh;overflow:auto;margin:0;padding:13px;border-radius:13px;background:rgba(33,29,82,.95);color:#cfe6df;font-size:11.5px;direction:l;text-align:left}
 
 .mobile-units{display:none}
 .new-session{margin-top:4px}
 
 /* ============================================== fullscreen classroom ==== */
-.board-shell:fullscreen,.board-stage-wrap:fullscreen{padding:0;background:var(--board-bg-deep)}
-.board-stage-wrap:fullscreen .board-frame{border-radius:0;min-height:100vh;display:flex;flex-direction:column;padding:18px}
-.board-stage-wrap:fullscreen .board-scroll{height:auto;flex:1;max-height:none}
-.board-stage-wrap:fullscreen .board-content{justify-content:center;min-height:100%}
-.board-stage-wrap:fullscreen .board-surface{inset:18px;border-radius:22px}
-.board-stage-wrap:fullscreen .board-watermark{display:none}
-/* Immersive mode drops the app chrome and keeps only what teaching needs. */
-.is-immersive .topbar,.is-immersive .workspace-heading,.is-immersive .lesson-sidebar,.is-immersive .journey-slot,.is-immersive .board-sources,.is-immersive .book-sources{display:none}
-.is-immersive .workspace{padding:0 18px 18px;gap:0;width:100%;max-width:none}
-.is-immersive .classroom-grid{grid-template-columns:minmax(0,1fr)}
-.is-immersive .board-scroll{height:calc(100vh - 250px)}
-.is-immersive .interaction-area{position:static;background:none;padding-top:14px}
-.is-immersive .input-hint{display:none}
-.fs-exit{position:absolute;top:16px;inset-inline-end:16px;z-index:12;display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:rgba(12,38,36,.82);color:var(--chalk-soft);backdrop-filter:blur(6px)}
-.fs-exit:hover{background:rgba(12,38,36,.95);color:var(--chalk-main)}
+/* The Fullscreen API is applied to the whole classroom wrapper, so the header,
+   board, playback strip and question composer all stay available while the
+   board expands into the remaining space. `.is-immersive` is the CSS-only
+   fallback for browsers without element fullscreen (e.g. iOS Safari). */
+.classroom:fullscreen,.classroom.is-immersive{background:linear-gradient(180deg,#f9f8fe 0%,var(--room) 42%,var(--room-deep) 100%)}
+.classroom:fullscreen .topbar,.classroom.is-immersive .topbar{flex:0 0 auto;padding:6px 16px;gap:10px}
+.classroom:fullscreen .workspace,.classroom.is-immersive .workspace{padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;width:100%;max-width:none}
+.classroom:fullscreen .board-frame::before,.classroom:fullscreen .board-frame::after,
+.classroom.is-immersive .board-frame::before,.classroom.is-immersive .board-frame::after{display:none}
+.classroom:fullscreen .board-watermark,.classroom.is-immersive .board-watermark{display:none}
+.classroom:fullscreen .lesson-sidebar,.classroom.is-immersive .lesson-sidebar{display:none}
+@media(max-width:860px){
+ .classroom.is-immersive .topbar{display:none}
+ .classroom.is-immersive .workspace{padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));gap:6px}
+}
 
 /* ========================================================== responsive === */
+/* The same app-frame rules apply at every width; only chrome density, the
+   console cap and the board surface change on small screens. */
 @media(max-width:1080px){
- .classroom-grid{grid-template-columns:minmax(0,1fr)}
  .lesson-sidebar{position:static}
 }
 @media(max-width:860px){
- .workspace{padding:16px 15px 30px}
- .topbar{padding:10px 15px;gap:12px}
- .course{display:none}
+ /* compact header: subject stays visible and truncates safely */
+ .topbar{gap:8px}
+ .course{display:flex;flex:1 1 auto;min-width:0;gap:6px}
+ .course .semester,.course .course-divider,.course>span:first-child:not(strong){display:none}
+ .course strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600}
  .book-count{display:none}
- .board-scroll{height:clamp(370px,54vh,520px)}
- .input-hint{flex-direction:column;gap:2px}
- .board-content{padding-bottom:34px}
+ .dev-badge{display:none}
  .optional-control{display:none}
 }
+@media(min-width:861px){
+ /* desktop safety valve: the legacy sidebar or a very long explanation
+    scrolls this region instead of pushing the composer out of the frame */
+ .classroom-grid{overflow:auto}
+ .board-stage-wrap{min-height:220px}
+ .board-content{padding-bottom:clamp(18px,2.4vw,28px)}
+}
 @media(max-width:520px){
- .workspace{padding:13px 11px 26px}
- .workspace-heading h1{font-size:20px}
- .new-session{font-size:13px;padding:8px 12px}
- .mobile-units{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px}
- .mobile-units button{flex:0 0 auto;padding:7px 13px;border-radius:999px;background:rgba(27,43,46,.06);font-size:13px;color:var(--room-muted)}
- .mobile-units button.active{background:rgba(10,109,96,.12);color:var(--green-dark);font-weight:600}
- .board-frame{padding:9px;border-radius:19px}
- .board-surface{inset:9px;border-radius:12px}
- .board-scroll{height:clamp(340px,50vh,460px)}
- .board-content{font-size:calc(.95rem * var(--board-scale,1));gap:11px;padding:12px 12px 30px}
- .narration-bar{padding:12px 13px;border-radius:15px}
- .narration-bar p{font-size:14.5px}
- .playback{padding:9px 11px}
- .playback-actions{gap:3px}
- .playback-actions .icon-button{width:34px;height:34px}
- .play-button{width:40px;height:40px}
- .playback-meta{width:100%;margin-inline-start:0;justify-content:space-between}
- .question-form{padding:9px 10px;border-radius:18px}
- .question-form textarea{font-size:15px}
- .input-tools .upload-button{display:none}
- .lesson-sidebar{padding:14px}
+ .board-content{font-size:calc(.95rem * var(--board-scale,1));gap:11px;padding:12px 12px 14px}
  .example-equation{padding:14px 20px}
+ .lesson-sidebar{padding:14px}
+}
+@media(max-width:380px){
+ /* very small phones: the upload tool stays one tap away in "أدوات الشرح" */
+ .input-tools .upload-button{display:none}
 }
 
 /* The board is the destination: on a compact viewer the journey collapses into
    a drawer instead of a competing column. */
 .journey-slot{display:contents}
-.journey-toggle{display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(27,43,46,.06);font-size:13.5px;color:var(--room-ink)}
+.journey-toggle{display:none;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(33,29,82,.06);font-size:13.5px;color:var(--room-ink)}
 @media(max-width:1080px){
  .journey-slot{display:block}
  .journey-slot .lesson-sidebar{display:none}
@@ -394,4 +441,227 @@ img{max-width:100%}
  .final-underline{transform:scaleX(1);animation:none}
  .board-surface .grain{animation:none}
  .teacher-pointer .pointer-dot,.teacher-pointer .pointer-ring{animation:none}
+}
+
+/* ==========================================================================
+   فهمني — light identity + tutor layout refinement
+   Overrides only; every selector, control and behavior above is preserved.
+   ========================================================================== */
+:root{
+ --ink:#211d52;--muted:#6f6c8f;--green:#6c4bf4;--green-dark:#5a37e0;--lime:#cdc0ff;--border:#e9e6f5;--page:#f5f4fb;
+ --room:#f5f4fb;--room-deep:#efeef8;--room-ink:#211d52;--room-muted:#6f6c8f;
+ --board-bg:#1f6b4a;--board-bg-mid:#1a5c3f;--board-bg-deep:#144d34;
+ --board-frame:#b4763a;--board-frame-edge:#8a5222;--board-shadow:0 22px 48px rgba(20,40,30,.26);
+ --chalk-main:rgba(247,247,238,.97);--chalk-soft:rgba(238,240,229,.84);--chalk-muted:rgba(226,231,220,.58);--chalk-faint:rgba(222,230,218,.34);
+ --chalk-accent:#f2d27a;--chalk-teal:#9fe3cf;--chalk-blue:#a8c8f0;--chalk-warn:#f0a3a0;
+ --teacher-focus:rgba(242,210,122,.9);
+}
+
+/* room + chrome: calm light surface so the board is the visual center */
+.classroom{background:linear-gradient(180deg,#f9f8fe 0%,var(--room) 42%,var(--room-deep) 100%)}
+.topbar{padding:8px 20px;gap:12px;flex-wrap:wrap}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-inline-start:auto}
+.topbar-actions .quiet-button,.topbar-actions .journey-toggle{white-space:nowrap}
+.book-button{margin-inline-start:0}
+.dev-badge{padding:4px 10px;border-radius:999px;background:rgba(240,172,63,.16);color:#8a6114;font-size:12px;font-weight:600;white-space:nowrap}
+@media (max-width:640px){.topbar .btn-label{display:none}.topbar-actions{gap:6px}}
+
+/* the board reads as a real green classroom board in a wooden frame */
+.board-frame{padding:12px;border-radius:14px;background:linear-gradient(180deg,#c07f42 0%,#a9662f 46%,#8a5222 100%);border:0;box-shadow:var(--board-shadow),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.18)}
+.board-frame::after{content:'';position:absolute;inset-inline:-6px;bottom:-15px;height:15px;border-radius:0 0 8px 8px;background:linear-gradient(180deg,#a9662f,#7c4a1e);box-shadow:0 10px 18px rgba(20,40,30,.22),inset 0 1px 0 rgba(255,255,255,.22)}
+.board-frame::before{content:'';position:absolute;bottom:-11px;inset-inline-start:28px;width:40px;height:6px;border-radius:3px;background:linear-gradient(90deg,#f7f7ee 0 60%,#f2d27a 60% 100%);box-shadow:0 1px 2px rgba(0,0,0,.28);z-index:1}
+.board-surface{inset:12px;border-radius:8px;background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.05),transparent 46%),linear-gradient(160deg,#226b4b 0%,#1a5c3f 55%,#144d34 100%);box-shadow:inset 0 2px 6px rgba(0,0,0,.34),inset 0 -20px 48px rgba(0,0,0,.16)}
+.board-surface .grain{display:block;opacity:.04;mix-blend-mode:overlay;animation:none}
+.board-surface .residue{display:block;opacity:.07;mix-blend-mode:screen;background:radial-gradient(60% 34% at 30% 28%,rgba(255,255,255,.5),transparent 70%),radial-gradient(52% 30% at 74% 64%,rgba(255,255,255,.4),transparent 72%)}
+.board-surface .vignette{display:block;background:radial-gradient(130% 100% at 50% 45%,transparent 56%,rgba(0,0,0,.2) 100%)}
+.teacher-pointer,.preparing-overlay{inset:12px}
+.board-scroll{scrollbar-color:rgba(255,255,255,.22) transparent}
+.board-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2)}
+.zone-result{border-top-color:rgba(255,255,255,.14)}
+.board-watermark{bottom:12px;color:rgba(255,255,255,.22)}
+.source-image{border:1px solid rgba(255,255,255,.16);box-shadow:0 12px 28px rgba(0,0,0,.3)}
+.preparing-overlay{background:rgba(10,32,26,.55)}
+.board-object:not(:disabled):hover{background:rgba(255,255,255,.07)}
+.board-object.state-highlighted{background:rgba(255,255,255,.09);box-shadow:0 0 0 1px rgba(255,255,255,.18) inset}
+.board-object.state-focused{filter:drop-shadow(0 0 11px rgba(242,210,122,.35))}
+.board-object.state-final{filter:drop-shadow(0 0 16px rgba(242,210,122,.3))}
+.teacher-pointer .pointer-dot{background:var(--teacher-focus);box-shadow:0 0 10px rgba(242,210,122,.6)}
+.teacher-pointer .pointer-ring{border:1px solid rgba(242,210,122,.42)}
+.example-equation{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:var(--chalk-soft)}
+.example-equation:hover:not(:disabled){background:rgba(242,210,122,.1);border-color:rgba(242,210,122,.32)}
+.welcome-symbol{background:rgba(242,210,122,.14);color:var(--chalk-accent)}
+.tiny-line{background:rgba(255,255,255,.22)}
+
+/* one full-width column: the board owns the entire width */
+.journey-slot{display:block}
+.journey-slot .lesson-sidebar{display:none}
+.journey-slot[data-open="true"] .lesson-sidebar{display:flex}
+.journey-toggle{display:inline-flex}
+
+@media (min-width:1024px){
+ .board-stage-wrap:fullscreen .board-frame::after,.board-stage-wrap:fullscreen .board-frame::before{display:none}
+}
+
+/* board controls: compact group used in the tabs row */
+.board-tools{border:1px solid var(--fn-border,#e9e6f5);background:var(--fn-surface,#fff);box-shadow:0 4px 14px rgba(33,29,82,.05)}
+
+/* explanation + sources + playback grouped in one calm console card. The card
+   yields before the board does: long narrations scroll inside it. */
+.lesson-console{display:flex;flex-direction:column;flex:0 1 auto;min-height:0;max-height:44dvh;background:var(--fn-surface,#fff);border:1px solid var(--fn-border,#e9e6f5);border-radius:18px;box-shadow:0 10px 28px rgba(33,29,82,.06);overflow:hidden}
+.lesson-console .narration-bar{background:transparent;border:0;border-radius:0;box-shadow:none;padding:10px 14px}
+.lesson-console .board-sources{padding:0 14px 6px}
+.lesson-console .playback{background:transparent;border:0;border-top:1px solid var(--fn-border,#e9e6f5);border-radius:0;box-shadow:none;padding:8px 12px}
+.playback-actions{flex-wrap:wrap}
+
+/* composer: compact and always inside the frame */
+.input-hint{font-size:11.5px}
+.question-form{box-shadow:0 14px 34px rgba(33,29,82,.10)}
+
+/* ==========================================================================
+   فهمني — desktop classroom layout (≥861px)
+   Compact chrome, one merged teacher/playback strip, and the board as the
+   dominant flexible region. Placed after the base/refinement rules so these
+   are the single source of truth for desktop layout.
+   ========================================================================== */
+@media(min-width:861px){
+ .topbar{padding:6px 18px;gap:10px}
+ .workspace{padding:10px 18px 12px;gap:10px}
+
+ /* row 2: step tabs + zoom/fullscreen controls */
+ .course-bar .mobile-units{display:flex;flex:1;min-width:0;flex-wrap:nowrap;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+ .course-bar .mobile-units::-webkit-scrollbar{display:none}
+ .course-bar .mobile-units button{flex:0 0 auto;max-width:22rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 12px;border-radius:999px;background:rgba(33,29,82,.06);font-size:12.5px;color:var(--room-muted)}
+ .course-bar .mobile-units button.active{background:rgba(108,75,244,.14);color:var(--green-dark);font-weight:600}
+ .course-bar .mobile-units button:disabled{opacity:.5}
+ .course-bar .board-tools{margin-inline-start:auto}
+
+ /* row 3: one merged teacher + playback strip */
+ .lesson-console{flex-direction:row;align-items:center;gap:10px;padding:6px 10px}
+ .lesson-console .narration-bar{flex:1 1 auto;min-width:0;align-items:center;gap:10px;padding:0;background:none;border:0;box-shadow:none;overflow:visible}
+ .narrator-label{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
+ .narration-bar p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:2px 0 0;font-size:13.5px;line-height:1.5}
+ .lesson-console .narration-bar .icon-button{margin-inline-start:0}
+ .lesson-console .board-sources{flex:0 0 auto;flex-wrap:nowrap;overflow-x:auto;padding:0}
+ .lesson-console .playback{flex:0 0 auto;flex-wrap:nowrap;padding:0;border-top:0;background:none;box-shadow:none}
+ .lesson-console .playback-actions{flex-wrap:nowrap}
+ /* secondary playback actions live in the أدوات الشرح menu on desktop */
+ .lesson-console .step-replay,.lesson-console .optional-control,.lesson-console .clear-board,.lesson-console .control-divider{display:none}
+ .lesson-console .playback-meta{margin-inline-start:0;gap:8px}
+ .tools-button{display:inline-flex;align-items:center;gap:6px;width:auto;height:38px;padding:0 12px;border-radius:11px;background:rgba(108,75,244,.09);color:var(--green-dark);font-size:13px;font-weight:600}
+ .tools-button:hover{background:rgba(108,75,244,.16)}
+ .tools-button__label{white-space:nowrap}
+}
+
+/* ==========================================================================
+   فهمني — compact classroom shell (≤860px)
+   Header + lesson tabs + board (priority) + capped console + composer.
+   Secondary tools move to the "أدوات الشرح" sheet.
+   ========================================================================== */
+.board-hud,.board-hud-expand,.more-button,.voice-mobile-control{display:none}
+.narrator-name{white-space:nowrap}
+.teacher-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--room-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+@media (max-width:860px){
+ .topbar{flex:0 0 auto;flex-wrap:nowrap;align-items:center;gap:8px;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 6px}
+ .topbar .brand-sub{display:none}
+ .brand-name{font-size:15px}
+ .brand-mark{width:32px;height:32px;border-radius:10px}
+ .brand-mark svg{width:24px;height:24px}
+ .credit-chip{padding:4px 9px;font-size:12px;gap:4px}
+ .credit-chip span{display:none}
+ .topbar-actions .quiet-button,.topbar-actions .journey-toggle{width:36px;height:36px;padding:0;justify-content:center}
+ .new-session{margin-top:0}
+ .workspace{padding:8px 11px calc(6px + env(safe-area-inset-bottom,0px));gap:7px}
+
+ /* lesson tabs: one-line horizontal scroll */
+ .mobile-units{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px;scrollbar-width:none}
+ .mobile-units::-webkit-scrollbar{display:none}
+ .mobile-units button{flex:0 0 auto;max-width:62vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:7px 13px;border-radius:999px;background:rgba(33,29,82,.06);font-size:12.5px;color:var(--room-muted)}
+ .mobile-units button.active{background:rgba(108,75,244,.14);color:var(--green-dark);font-weight:600}
+ .mobile-units button:disabled{opacity:.5}
+
+ /* the board keeps every remaining pixel; nothing below it may overflow */
+ .classroom-grid{gap:8px}
+ .board-shell{gap:8px}
+ .course-bar .board-tools{display:none}
+ .course-bar:not(:has(.mobile-units)){display:none}
+ .tools-button{display:none}
+ .lesson-sidebar{display:none}
+ .board-stage-wrap{min-height:0;padding-bottom:0}
+ .board-frame{padding:8px;border-radius:12px}
+ .board-frame::before,.board-frame::after{display:none}
+ .board-surface{inset:8px;border-radius:6px}
+ .teacher-pointer,.preparing-overlay{inset:8px}
+ .board-content{padding-bottom:14px}
+ .board-watermark{bottom:8px}
+
+ /* floating board hud: step + status + expand, replaces the hidden toolbar */
+ .board-hud{position:absolute;top:8px;inset-inline-start:10px;z-index:8;display:flex;align-items:center;gap:6px;max-width:66%;padding:5px 10px;border-radius:999px;background:rgba(16,40,31,.74);backdrop-filter:blur(6px);color:var(--chalk-soft);font-size:12px;pointer-events:none}
+ .board-hud .hud-step{color:var(--chalk-accent);font-weight:600}
+ .board-hud .hud-status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .board-hud-expand{position:absolute;top:8px;inset-inline-end:10px;z-index:8;display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:rgba(16,40,31,.74);backdrop-filter:blur(6px);color:var(--chalk-soft)}
+
+ /* explanation console: capped and shrinkable; narration scrolls inside */
+ .lesson-console{flex:0 1 auto;min-height:0;max-height:32dvh;border-radius:15px}
+ .lesson-console .narration-bar{flex:1;min-height:0;overflow:auto;padding:8px 10px;gap:8px}
+ .voice-icon{width:30px;height:30px;border-radius:9px}
+ .narration-bar p{font-size:13.5px;line-height:1.6;margin-top:2px}
+ .narrator-label{font-size:12.5px}
+ .narrator-label small{display:none}
+ .narration-bar .icon-button{display:none}
+ .lesson-console .board-sources{flex:0 0 auto;flex-wrap:wrap;padding:0 10px 4px;font-size:12px}
+ .lesson-console .board-sources button{padding:3px 9px;font-size:11.5px}
+
+ /* playback: thumb-first row — more · voice · step · prev · play · next */
+ .lesson-console .playback{flex-wrap:nowrap;justify-content:space-between;gap:2px;padding:6px 8px}
+ .playback-actions,.playback-meta{display:contents}
+ .playback-meta select,.control-divider,.step-replay,.optional-control,.clear-board{display:none}
+ .more-button{order:1;display:grid;width:38px;height:38px}
+ .voice-mobile-control{order:2;display:grid;width:38px;height:38px}
+ .step-time{order:3;font-size:12px}
+ .step-prev{order:4;width:38px;height:38px}
+ .play-button{order:5;width:42px;height:42px;border-radius:13px}
+ .step-next{order:6;width:38px;height:38px}
+
+ /* composer: compact and keyboard-safe */
+ .interaction-area{gap:5px;padding:0 0 2px}
+ .input-hint,.input-spark{display:none}
+ .question-form{align-items:flex-end;gap:7px;padding:6px 8px;border-radius:17px}
+ .question-form textarea{font-size:15px;padding:9px 2px}
+ .input-tools{gap:2px}
+ .input-tools .icon-button{width:40px;height:40px;border-radius:11px}
+ .send-button{width:42px;height:42px;border-radius:12px}
+
+ /* journey: bottom drawer instead of a competing column */
+ .journey-slot{display:contents}
+ .journey-slot[data-open="true"] .lesson-sidebar{position:fixed;inset-inline:10px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:45;display:flex;max-height:58dvh;overflow:auto;background:#fff;box-shadow:0 22px 60px rgba(33,29,82,.3)}
+}
+@media (max-width:520px){
+ .dev-badge{display:none}
+ .book-button{padding:0;width:36px;height:36px;justify-content:center}
+ .book-button span{display:none}
+}
+
+/* ================================================== tools panel (shared) ==
+   One panel for every viewport: a bottom sheet on phones, an anchored popover
+   on desktop. Both render the same actions and call the same handlers. */
+.tools-sheet{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(33,29,82,.52);backdrop-filter:blur(3px)}
+.tools-sheet-panel{display:flex;flex-direction:column;gap:10px;width:100%;max-height:72dvh;overflow:auto;padding:13px 13px calc(13px + env(safe-area-inset-bottom,0px));border-radius:20px 20px 0 0;background:#fff;box-shadow:0 -18px 50px rgba(33,29,82,.28);animation:sheetUp .22s ease}
+@keyframes sheetUp{from{transform:translateY(26px);opacity:.5}to{transform:none;opacity:1}}
+.tools-sheet-head{display:flex;align-items:center;justify-content:space-between}
+.tools-sheet-head strong{font-size:15.5px;color:var(--room-ink)}
+.tools-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.tool-tile{display:flex;align-items:center;gap:8px;min-height:48px;padding:10px 12px;border-radius:13px;background:rgba(33,29,82,.05);color:var(--room-ink);font-size:13px;text-align:start}
+.tool-tile svg{flex:0 0 auto;color:var(--green)}
+.tool-tile:disabled{opacity:.45}
+.tool-tile select{flex:1;min-width:0;padding:5px 7px;border-radius:9px;border:1px solid rgba(33,29,82,.13);background:#fff;color:var(--room-ink);font-size:12.5px}
+.tool-tile.wide{grid-column:1/-1;flex-wrap:wrap}
+.tool-chips{display:flex;flex-wrap:wrap;gap:5px}
+.tool-chips button{padding:4px 10px;border-radius:999px;background:rgba(108,75,244,.1);color:var(--green-dark);font-size:12px}
+@media(max-width:860px){
+ .tools-sheet{display:flex}
+}
+@media(min-width:861px){
+ .tools-sheet{display:flex;justify-content:flex-end;padding:0 18px 150px;background:rgba(33,29,82,.34);backdrop-filter:blur(2px)}
+ .tools-sheet-panel{width:min(430px,92vw);max-height:min(62dvh,calc(100dvh - 180px));border-radius:20px;padding:13px;box-shadow:0 24px 60px rgba(33,29,82,.35)}
 }

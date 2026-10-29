@@ -1,0 +1,81 @@
+{
+ "startedAt": "2026-10-10T11:43:50.765Z",
+ "steps": [
+  {
+   "step": "backup",
+   "dbBytes": 120923,
+   "dataBytes": 722
+  },
+  {
+   "step": "db-restore",
+   "counts": {
+    "users": {
+     "source": 11,
+     "restored": 11,
+     "match": true
+    },
+    "student_profiles": {
+     "source": 10,
+     "restored": 10,
+     "match": true
+    },
+    "books": {
+     "source": 1,
+     "restored": 1,
+     "match": true
+    },
+    "textbook_chunks": {
+     "source": 132,
+     "restored": 132,
+     "match": true
+    },
+    "entitlements": {
+     "source": 2,
+     "restored": 2,
+     "match": true
+    },
+    "free_trials": {
+     "source": 5,
+     "restored": 5,
+     "match": true
+    },
+    "ai_usage_events": {
+     "source": 154,
+     "restored": 154,
+     "match": true
+    },
+    "webhook_events": {
+     "source": 0,
+     "restored": 0,
+     "match": true
+    },
+    "billing_events": {
+     "source": 0,
+     "restored": 0,
+     "match": true
+    },
+    "learning_progress": {
+     "source": 3,
+     "restored": 3,
+     "match": true
+    },
+    "secure_settings": {
+     "source": 1,
+     "restored": 1,
+     "match": true
+    }
+   }
+  },
+  {
+   "step": "files-restore",
+   "filesMatch": true
+  },
+  {
+   "step": "migrations",
+   "applied": 11
+  }
+ ],
+ "dbMatch": true,
+ "filesMatch": true,
+ "finishedAt": "2026-10-10T11:43:53.133Z"
+}

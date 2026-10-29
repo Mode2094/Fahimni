@@ -1,0 +1,89 @@
+{
+ "anonymous": {
+  "health": 200,
+  "status": {
+   "status": 200,
+   "body": "{\"configured\":true,\"pages\":132,\"indexed\":127,\"debug\":true}"
+  },
+  "tutor": 401,
+  "vision": 400,
+  "transcribe": 400,
+  "speechInvalid": 400,
+  "speechSubjectScoped": 401,
+  "trialClaim": 401,
+  "checkout": 401,
+  "adminGrades": 303,
+  "adminSettings": 303,
+  "webhookNoSignature": 503,
+  "bookPage": 308,
+  "bookRandom": 401,
+  "appPage": 307,
+  "adminPage": 307,
+  "tutorPage": 307
+ },
+ "student": {
+  "adminGrades": 403,
+  "adminSettings": 403,
+  "adminPage": 307,
+  "adminPageLocation": "/app",
+  "aiNoEntitlement": 403,
+  "speechNoEntitlement": 403,
+  "bookMathPage": 404,
+  "bookOtherSubject": 404
+ },
+ "csrf": {
+  "adminCrossOrigin": 403,
+  "checkoutCrossOrigin": 403,
+  "logoutCrossOrigin": 403
+ },
+ "redirects": {
+  "loginEvilContainsEvil": true,
+  "authStartStatus": 307,
+  "authStartHost": "accounts.google.com"
+ },
+ "secrets": {
+  "scriptsChecked": 6,
+  "scriptsWithSecretPatterns": 0,
+  "htmlHasSecret": false
+ },
+ "trial": {
+  "firstClaim": {
+   "status": 200,
+   "body": {
+    "trial": {
+     "status": "CLAIMED",
+     "totalCredits": 15,
+     "remainingCredits": 15,
+     "claimedAt": "2026-10-08T15:37:48.654Z",
+     "startedAt": null,
+     "expiresAt": null
+    },
+    "created": true
+   }
+  },
+  "secondClaim": {
+   "status": 200,
+   "created": false
+  },
+  "otherAccountSameBrowser": {
+   "status": 200
+  },
+  "paidAccountClaim": {
+   "status": 409,
+   "code": "already_subscribed"
+  }
+ },
+ "limits": {
+  "claimAttempts": "409,409,409,409,409,409,409,409,409,429,429,429",
+  "deviceLimit": 403,
+  "deviceOkButNoEntitlement": 403
+ },
+ "session": {
+  "expiredRowCreated": "see psql step",
+  "adminNoCookie": 303
+ },
+ "upload": {
+  "fakePdf": 303,
+  "empty": 303
+ }
+}

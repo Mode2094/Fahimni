@@ -51,4 +51,10 @@ next-env.d.ts
 /.next-native/
 # Plaintext provider key, kept out of the repository.
 openai-api-key.txt
+# Local book storage when DATA_DIR is not configured.
+/.data/
+/.data-docker/
+# Production env files must never be committed.
+/deploy/env.production
+/deploy/env.staging
 .qa/

@@ -1,0 +1,29 @@
+{
+ "onboarding": "{\"fieldOptions\":4,\"submitDisabledWithoutField\":true}",
+ "onboardingAfterSubmit": "/app",
+ "onboardingRevisit": "/app",
+ "accountBefore": "{\"deviceText\":[\"Chrome · macOS\",\"Safari · iOS\"],\"currentMarkers\":1}",
+ "accountRevoke": {
+  "clicked": true,
+  "text": [
+   "Chrome · macOS"
+  ]
+ },
+ "adminGradeForm": "{\"form\":true,\"fields\":[]}",
+ "adminGradeCreated": {
+  "url": "/login",
+  "slug": "audit-grade-1791474529510"
+ },
+ "picker": "{\"tiles\":2,\"cardsAfterAll\":1,\"ctaText\":\"اشترك الآن\",\"error\":null,\"stayed\":\"/app/subscription\"}",
+ "classroom": "{\"controls\":\"17/17\",\"missing\":[],\"lesson\":true,\"step\":\"1 / 6\",\"formInView\":true,\"playInView\":true}",
+ "classroomStepNext": "2 / 6",
+ "classroomSheet": true,
+ "fullscreen": "{\"fs\":true,\"form\":true,\"playback\":true}",
+ "fullscreenExit": "{\"fs\":true,\"step\":\"2 / 6\",\"lesson\":true}",
+ "persistence": "/app",
+ "logout": {
+  "url": "/login"
+ },
+ "afterLogoutApp": "/login",
+ "anonymousGrade": "/login?returnTo=%2Fapp"
+}

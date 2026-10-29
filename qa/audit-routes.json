@@ -1,0 +1,3522 @@
+[
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "320x568",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 11,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة التي تناسبك. ابدأ الآن كيف يعمل فهمن",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "375x667",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة التي تناسبك. ابدأ الآن كيف يعمل فهمن",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة التي تناسبك. ابدأ الآن كيف يعمل فهمن",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "430x932",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة التي تناسبك. ابدأ الآن كيف يعمل فهمن",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني الرئيسية الصفوف الدراسية كيف يعمل؟ اتصل بنا ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "1024x768",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني الرئيسية الصفوف الدراسية كيف يعمل؟ اتصل بنا ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني الرئيسية الصفوف الدراسية كيف يعمل؟ اتصل بنا ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني الرئيسية الصفوف الدراسية كيف يعمل؟ اتصل بنا ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/",
+  "name": "landing",
+  "group": "public",
+  "session": null,
+  "viewport": "1920x1080",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "فهمني | مدرسك الذكي من كتابك",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مدرّسك الذكي من كتابك"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:مدرّسك الذكي من كتابك",
+   "H2:الصفوف الدراسية",
+   "H2:كيف يعمل فهمني؟",
+   "H2:جاهز تبدأ؟",
+   "H2:تواصل معنا"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 1
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني الرئيسية الصفوف الدراسية كيف يعمل؟ اتصل بنا ابدأ الآن فهمني · منصة تعليمية ذكية لجميع المواد مدرّسك الذكي من كتابك اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "320x568",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "375x667",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "430x932",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "1024x768",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/login",
+  "name": "login",
+  "group": "public",
+  "session": null,
+  "viewport": "1920x1080",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تسجيل الدخول | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ رحلتك مع فهمني"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ رحلتك مع فهمني"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "فهمني ابدأ رحلتك مع فهمني أنشئ حسابك وابدأ التعلّم بخطوات واضحة ومبسطة. المتابعة باستخدام Google بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية. نستخدم بريدك من Google لتسجيل الدخول فقط، ولا نشاركه مع أي جهة أخر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/onboarding",
+  "name": "onboarding",
+  "group": "student",
+  "session": "noProfile",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إعداد حسابك | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ باختيار صفك الدراسي"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ باختيار صفك الدراسي"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 3,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني ابدأ باختيار صفك الدراسي نحتاج هذا الاختيار لعرض المواد المناسبة لك. صفك الدراسي الصف الحادي عشر الصف الثاني عشر (توجيهي) التالي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/onboarding",
+  "name": "onboarding",
+  "group": "student",
+  "session": "noProfile",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إعداد حسابك | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "ابدأ باختيار صفك الدراسي"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:ابدأ باختيار صفك الدراسي"
+  ],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 3,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني ابدأ باختيار صفك الدراسي نحتاج هذا الاختيار لعرض المواد المناسبة لك. صفك الدراسي الصف الحادي عشر الصف الثاني عشر (توجيهي) التالي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "320x568",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "375x667",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "430x932",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "1024x768",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard",
+  "group": "student",
+  "session": "student",
+  "viewport": "1920x1080",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، طالب 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، طالب 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج مرحبًا، طالب 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي اشتراك نشط رصيدك 50 موادي استعرض جميع المواد مشترك رياضيات التوجيهي شرح مفصل وواضح ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "320x568",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "375x667",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "430x932",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "1024x768",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog",
+  "group": "student",
+  "session": "student",
+  "viewport": "1920x1080",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي مشترك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math",
+  "name": "subject-detail",
+  "group": "student",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المادة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "رياضيات التوجيهي"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:رياضيات التوجيهي"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 14,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج كل المواد الصف الثاني عشر (توجيهي) رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ومبسط مع أمثلة وتطبيقات. شرح خطوة بخطوة حل مفصل وواضح لكل خطوة شرح بالصوت",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math",
+  "name": "subject-detail",
+  "group": "student",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المادة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "رياضيات التوجيهي"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:رياضيات التوجيهي"
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 14,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج كل المواد الصف الثاني عشر (توجيهي) رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب سهل ومبسط مع أمثلة وتطبيقات. شرح خطوة ب",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "320x568",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني رياضيات التوجيهي 50 أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. ليس المهم أن تحفظ الإجابة، بل أن تفهمها. جاهز لسؤالك فهمني / مساحة ",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "375x667",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني رياضيات التوجيهي 50 أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. ليس المهم أن تحفظ الإجابة، بل أن تفهمها. جاهز لسؤالك فهمني / مساحة ",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني رياضيات التوجيهي 50 أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. ليس المهم أن تحفظ الإجابة، بل أن تفهمها. جاهز لسؤالك فهمني / مساحة ",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "430x932",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني رياضيات التوجيهي 50 أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. ليس المهم أن تحفظ الإجابة، بل أن تفهمها. جاهز لسؤالك فهمني / مساحة ",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني رياضيات التوجيهي 50 رحلة الحل جلسة جديدة أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. ليس المهم أن تحفظ الإجابة، بل أن تفهمها. جاهز ",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "1024x768",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 14,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم رياضيات التوجيهي من كتاب المادة رصيدك 50 وضع تجريبي رحلة الحل جلسة جديدة أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. لي",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 14,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم رياضيات التوجيهي من كتاب المادة رصيدك 50 وضع تجريبي رحلة الحل جلسة جديدة أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. لي",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 14,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم رياضيات التوجيهي من كتاب المادة رصيدك 50 وضع تجريبي رحلة الحل جلسة جديدة أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. لي",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/tawjihi-math/tutor",
+  "name": "classroom",
+  "group": "classroom",
+  "session": "student",
+  "viewport": "1920x1080",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 27,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 14,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم رياضيات التوجيهي من كتاب المادة رصيدك 50 وضع تجريبي رحلة الحل جلسة جديدة أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. لي",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription",
+  "name": "subscription",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "اشتراكي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "اختر اشتراكك"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:اختر اشتراكك",
+   "H2:اشتراكك الحالي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج اختر اشتراكك مادة واحدة أو جميع المواد، شهريًا أو لفصل كامل — بأسعار واضحة وبدون التزامات مخفية. مادة واحدة اشترك في مادة محددة جميع المواد كل مواد صفك في باقة واحدة شهري فصلي رياضيات التوج",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription",
+  "name": "subscription",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "اشتراكي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "اختر اشتراكك"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:اختر اشتراكك",
+   "H2:اشتراكك الحالي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج اختر اشتراكك مادة واحدة أو جميع المواد، شهريًا أو لفصل كامل — بأسعار واضحة وبدون التزامات مخفية. مادة واحدة اشترك في مادة محددة جميع المواد كل مواد صفك في باقة واحدة شهري فصلي رياضيات التوج",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription",
+  "name": "subscription",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "اشتراكي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "اختر اشتراكك"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:اختر اشتراكك",
+   "H2:اشتراكك الحالي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج اختر اشتراكك مادة واحدة أو جميع المواد، شهريًا أو لفصل كامل — بأسعار واضحة وبدون التزامات مخفية. مادة واحدة اشترك في مادة محددة جميع المواد كل مواد صفك",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription",
+  "name": "subscription",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "اشتراكي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "اختر اشتراكك"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:اختر اشتراكك",
+   "H2:اشتراكك الحالي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 7,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج اختر اشتراكك مادة واحدة أو جميع المواد، شهريًا أو لفصل كامل — بأسعار واضحة وبدون التزامات مخفية. مادة واحدة اشترك في مادة محددة جميع المواد كل مواد صفك",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription/success",
+  "name": "subscription-success",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تم استلام الدفع | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج تم استلام عملية الدفع اشتراكك مفعّل الآن. بالتوفيق في رحلتك مع فهمني. عرض اشتراكاتي الرئيسية المواد السبورة اشتراكي حسابي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription/success",
+  "name": "subscription-success",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تم استلام الدفع | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج تم استلام عملية الدفع اشتراكك مفعّل الآن. بالتوفيق في رحلتك مع فهمني. عرض اشتراكاتي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription/cancel",
+  "name": "subscription-cancel",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إلغاء الدفع | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج تم إلغاء عملية الدفع لم يتم خصم أي مبلغ. يمكنك المحاولة مرة أخرى في أي وقت. العودة للخطط الرئيسية المواد السبورة اشتراكي حسابي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subscription/cancel",
+  "name": "subscription-cancel",
+  "group": "subscription",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إلغاء الدفع | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 1,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 13,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج تم إلغاء عملية الدفع لم يتم خصم أي مبلغ. يمكنك المحاولة مرة أخرى في أي وقت. العودة للخطط",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/account",
+  "name": "account",
+  "group": "account",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "حسابي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "حسابي"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:حسابي",
+   "H2:أجهزتي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج حسابي إدارة معلوماتك الشخصية وأجهزتك واشتراكك في منصة فهمني. المرحلة الدراسية الصف الثاني عشر (توجيهي) نوع الحساب طالب الأجهزة المسجلة 2 من 2 ط طالب تجريبي student@fahimni.local طالب الصف ا",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/account",
+  "name": "account",
+  "group": "account",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "حسابي | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "حسابي"
+  ],
+  "headingCount": 2,
+  "headingSample": [
+   "H1:حسابي",
+   "H2:أجهزتي"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج حسابي إدارة معلوماتك الشخصية وأجهزتك واشتراكك في منصة فهمني. المرحلة الدراسية الصف الثاني عشر (توجيهي) نوع الحساب طالب الأجهزة المسجلة 2 من 2 ط طالب تج",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog-bundle",
+  "group": "student",
+  "session": "bundle",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي ضمن باقتك رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلوب ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog-bundle",
+  "group": "student",
+  "session": "bundle",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي ضمن باقتك رياضيات التوجيهي شرح مفصل وواضح لجميع و",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog-eligible",
+  "group": "student",
+  "session": "trialEligible",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي تجربة متاحة رياضيات التوجيهي شرح مفصل وواضح لجميع وحدات منهاج الرياضيات للتوجيهي، بأسلو",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects",
+  "name": "catalog-eligible",
+  "group": "student",
+  "session": "trialEligible",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد المتاحة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد المتاحة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 15,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 8,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج المواد المتاحة اختر المادة التي تريد التعلم منها. الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي تجربة متاحة رياضيات التوجيهي شرح مفصل وواضح لجميع",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard-trial",
+  "group": "student",
+  "session": "trialActive",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، مدقق 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، مدقق 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 1,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم تسجيل الخروج مرحبًا، مدقق 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي تجربة مجانية نشطة رصيد التجربة 12 تجربتك المجانية نشطة رصيدك: 12 كريدت — مشتركة بين جميع المواد المتاحة لك. يتبقى 45 س 56",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app",
+  "name": "dashboard-trial",
+  "group": "student",
+  "session": "trialActive",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الرئيسية | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "مرحبًا، مدقق 👋"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:مرحبًا، مدقق 👋",
+   "H2:موادي",
+   "H2:آخر الجلسات"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 2,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 6,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الرئيسية المواد السبورة اشتراكي حسابي تسجيل الخروج مرحبًا، مدقق 👋 الصف الثاني عشر (توجيهي) · الحقل العلمي والتكنولوجي تجربة مجانية نشطة رصيد التجربة 12 تجربتك المجانية نشطة رصيدك: 12 كريدت — مشتركة بين",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin",
+  "name": "admin-home",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "نظرة عامة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "نظرة عامة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:نظرة عامة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 9,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات نظرة عامة أرقام سريعة عن منصة فهمني. 7 عدد الطلاب 2 عدد الصفوف 3 عدد المواد 3 المواد النشطة",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin",
+  "name": "admin-home",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "نظرة عامة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "نظرة عامة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:نظرة عامة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 9,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات نظرة عامة أرقام سريعة عن منصة فهمني. 7 عدد الطلاب 2 عدد الصفوف 3 عدد المواد 3 المواد النشطة",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin",
+  "name": "admin-home",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "نظرة عامة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "نظرة عامة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:نظرة عامة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 9,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات نظرة عامة أرقام سريعة عن منصة فهمني. 7 عدد الطلاب 2 عدد الصفوف 3 عدد المواد 3 المواد النشطة",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin",
+  "name": "admin-home",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "نظرة عامة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "نظرة عامة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:نظرة عامة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 9,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 2,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات نظرة عامة أرقام سريعة عن منصة فهمني. 7 عدد الطلاب 2 عدد الصفوف 3 عدد المواد 3 المواد النشطة",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades",
+  "name": "admin-grades",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الصفوف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الصفوف"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:الصفوف"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الصفوف إضافة وتعديل الصفوف الدراسية وترتيبها. إضافة صف الاسم الرابط الترتيب الحالة إجراءات الصف الحادي عشر grade-11 1 نشط تعديل تعطي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades",
+  "name": "admin-grades",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الصفوف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الصفوف"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:الصفوف"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 9,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الصفوف إضافة وتعديل الصفوف الدراسية وترتيبها. إضافة صف الاسم الرابط الترتيب الحالة إجراءات الصف الحادي عشر grade-11 1 نشط تعديل تعطي",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades/new",
+  "name": "admin-grades-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة صف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة صف"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة صف"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة صف العودة للصفوف اسم الصف الرابط المختصر (slug) حروف إنجليزية صغيرة وأرقام وشرطات فقط. الترتيب الصف نشط ويظهر للطلاب حفظ إلغاء",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades/new",
+  "name": "admin-grades-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة صف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة صف"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة صف"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة صف العودة للصفوف اسم الصف الرابط المختصر (slug) حروف إنجليزية صغيرة وأرقام وشرطات فقط. الترتيب الصف نشط ويظهر للطلاب حفظ إلغاء",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades/f933ed20-dde3-489d-9739-8939709c683c",
+  "name": "admin-grade-detail",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تعديل صف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "تعديل: الصف الحادي عشر"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:تعديل: الصف الحادي عشر"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات تعديل: الصف الحادي عشر العودة للصفوف اسم الصف الرابط المختصر (slug) حروف إنجليزية صغيرة وأرقام وشرطات فقط. الترتيب الصف نشط ويظهر لل",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/grades/f933ed20-dde3-489d-9739-8939709c683c",
+  "name": "admin-grade-detail",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تعديل صف",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "تعديل: الصف الحادي عشر"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:تعديل: الصف الحادي عشر"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات تعديل: الصف الحادي عشر العودة للصفوف اسم الصف الرابط المختصر (slug) حروف إنجليزية صغيرة وأرقام وشرطات فقط. الترتيب الصف نشط ويظهر لل",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/fields",
+  "name": "admin-fields",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الحقول",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الحقول"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:الحقول"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 11,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الحقول الحقول الدراسية التابعة لكل صف. إضافة حقل الاسم الصف الرابط الترتيب الحالة إجراءات الحقل العلمي والتكنولوجي الصف الثاني عشر (",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/fields",
+  "name": "admin-fields",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الحقول",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الحقول"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:الحقول"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 18,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 11,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الحقول الحقول الدراسية التابعة لكل صف. إضافة حقل الاسم الصف الرابط الترتيب الحالة إجراءات الحقل العلمي والتكنولوجي الصف الثاني عشر (",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/fields/new",
+  "name": "admin-fields-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة حقل",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة حقل"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة حقل"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 17,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة حقل العودة للحقول الصف اختر الصف الصف الحادي عشر الصف الثاني عشر (توجيهي) اسم الحقل الرابط المختصر (slug) حروف إنجليزية صغيرة ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/fields/new",
+  "name": "admin-fields-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة حقل",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة حقل"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة حقل"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 17,
+  "unnamedControls": 4,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 3,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة حقل العودة للحقول الصف اختر الصف الصف الحادي عشر الصف الثاني عشر (توجيهي) اسم الحقل الرابط المختصر (slug) حروف إنجليزية صغيرة ",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects",
+  "name": "admin-subjects",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 19,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 12,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات المواد إدارة المواد وربطها بالصفوف والحقول. إضافة مادة المادة الصف الحقل الشهري الفصل الحالة إجراءات رياضيات التوجيهي tawjihi-math م",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects",
+  "name": "admin-subjects",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "المواد",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "المواد"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:المواد"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 19,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 12,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات المواد إدارة المواد وربطها بالصفوف والحقول. إضافة مادة المادة الصف الحقل الشهري الفصل الحالة إجراءات رياضيات التوجيهي tawjihi-math م",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects/new",
+  "name": "admin-subjects-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة مادة",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة مادة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة مادة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 24,
+  "unnamedControls": 10,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "TEXTAREA.fn-textarea",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 4,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة مادة العودة للمواد اسم المادة الرابط المختصر (slug) الوصف المختصر صورة المادة (رابط أو مسار داخل الموقع) اترك الحقل فارغًا لعر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects/new",
+  "name": "admin-subjects-new",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إضافة مادة",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إضافة مادة"
+  ],
+  "headingCount": 1,
+  "headingSample": [
+   "H1:إضافة مادة"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 24,
+  "unnamedControls": 10,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "TEXTAREA.fn-textarea",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 4,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إضافة مادة العودة للمواد اسم المادة الرابط المختصر (slug) الوصف المختصر صورة المادة (رابط أو مسار داخل الموقع) اترك الحقل فارغًا لعر",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects/b0285393-fc49-4573-833f-07b87b1cb628",
+  "name": "admin-subject-detail",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تعديل مادة",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "تعديل: رياضيات التوجيهي"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:تعديل: رياضيات التوجيهي",
+   "H2:خطط الاشتراك",
+   "H2:الكتاب"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 37,
+  "unnamedControls": 18,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 10,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات تعديل: رياضيات التوجيهي العودة للمواد اسم المادة الرابط المختصر (slug) الوصف المختصر صورة المادة (رابط أو مسار داخل الموقع) اترك الح",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subjects/b0285393-fc49-4573-833f-07b87b1cb628",
+  "name": "admin-subject-detail",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "تعديل مادة",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "تعديل: رياضيات التوجيهي"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:تعديل: رياضيات التوجيهي",
+   "H2:خطط الاشتراك",
+   "H2:الكتاب"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 37,
+  "unnamedControls": 18,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 10,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات تعديل: رياضيات التوجيهي العودة للمواد اسم المادة الرابط المختصر (slug) الوصف المختصر صورة المادة (رابط أو مسار داخل الموقع) اترك الح",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subscriptions",
+  "name": "admin-subscriptions",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إدارة الاشتراكات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إدارة الاشتراكات"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:إدارة الاشتراكات",
+   "H2:الفصول الدراسية",
+   "H2:اشتراكات المواد",
+   "H2:باقات جميع المواد",
+   "H2:الاشتراكات الحالية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 73,
+  "unnamedControls": 40,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 29,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إدارة الاشتراكات إعداد خطط الاشتراكات والأسعار والمدة الزمنية لكل صف وتخصص. الفصول الدراسية تُفسَّر التواريخ بتوقيت الأردن (Asia/Amm",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subscriptions",
+  "name": "admin-subscriptions",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "768x1024",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إدارة الاشتراكات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إدارة الاشتراكات"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:إدارة الاشتراكات",
+   "H2:الفصول الدراسية",
+   "H2:اشتراكات المواد",
+   "H2:باقات جميع المواد",
+   "H2:الاشتراكات الحالية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 73,
+  "unnamedControls": 40,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 29,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إدارة الاشتراكات إعداد خطط الاشتراكات والأسعار والمدة الزمنية لكل صف وتخصص. الفصول الدراسية تُفسَّر التواريخ بتوقيت الأردن (Asia/Amm",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subscriptions",
+  "name": "admin-subscriptions",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إدارة الاشتراكات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إدارة الاشتراكات"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:إدارة الاشتراكات",
+   "H2:الفصول الدراسية",
+   "H2:اشتراكات المواد",
+   "H2:باقات جميع المواد",
+   "H2:الاشتراكات الحالية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 73,
+  "unnamedControls": 40,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 29,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إدارة الاشتراكات إعداد خطط الاشتراكات والأسعار والمدة الزمنية لكل صف وتخصص. الفصول الدراسية تُفسَّر التواريخ بتوقيت الأردن (Asia/Amm",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/subscriptions",
+  "name": "admin-subscriptions",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1440x900",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "إدارة الاشتراكات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "إدارة الاشتراكات"
+  ],
+  "headingCount": 5,
+  "headingSample": [
+   "H1:إدارة الاشتراكات",
+   "H2:الفصول الدراسية",
+   "H2:اشتراكات المواد",
+   "H2:باقات جميع المواد",
+   "H2:الاشتراكات الحالية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 73,
+  "unnamedControls": 40,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 29,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات إدارة الاشتراكات إعداد خطط الاشتراكات والأسعار والمدة الزمنية لكل صف وتخصص. الفصول الدراسية تُفسَّر التواريخ بتوقيت الأردن (Asia/Amm",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/settings",
+  "name": "admin-settings",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الإعدادات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الإعدادات"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:الإعدادات",
+   "H2:حد الأجهزة",
+   "H2:التجربة المجانية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 5,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 5,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الإعدادات إعدادات عامة بسيطة للمنصة. حد الأجهزة الحد الأقصى لعدد الأجهزة النشطة لكل حساب طالب. عدد الأجهزة المسموح بها حفظ التجربة ا",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/admin/settings",
+  "name": "admin-settings",
+  "group": "admin",
+  "session": "admin",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "الإعدادات",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [
+   "الإعدادات"
+  ],
+  "headingCount": 3,
+  "headingSample": [
+   "H1:الإعدادات",
+   "H2:حد الأجهزة",
+   "H2:التجربة المجانية"
+  ],
+  "landmarks": {
+   "header": 2,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 16,
+  "unnamedControls": 5,
+  "unnamedSample": [
+   "INPUT.fn-input",
+   "INPUT",
+   "INPUT.fn-input",
+   "INPUT.fn-input",
+   "INPUT.fn-input"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 5,
+  "ovX": false,
+  "textSample": "فهمني لوحة الإدارة مساحة الطالب خروج الرئيسية الصفوف الحقول المواد الاشتراكات الإعدادات الإعدادات إعدادات عامة بسيطة للمنصة. حد الأجهزة الحد الأقصى لعدد الأجهزة النشطة لكل حساب طالب. عدد الأجهزة المسموح بها حفظ التجربة ا",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/legacy",
+  "name": "legacy",
+  "group": "public",
+  "session": null,
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة (وضع التطوير) | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 38,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 14,
+  "ovX": false,
+  "textSample": "فهمني الرياضيات المعادلات الدائرة حساب المثلثات تطبيقات المثلثات أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها. سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك. نبدأ بمسألة من كتابك؟ 𝑥 3 +",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/legacy",
+  "name": "legacy",
+  "group": "public",
+  "session": null,
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة (وضع التطوير) | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 1,
+  "headingSample": [
+   "H2:نفكّر معاً.خطوة بخطوة."
+  ],
+  "landmarks": {
+   "header": 1,
+   "nav": 1,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 38,
+  "unnamedControls": 2,
+  "unnamedSample": [
+   "INPUT",
+   "INPUT"
+  ],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 20,
+  "ovX": false,
+  "textSample": "فهمني مساحة للفهم الصف العاشر الرياضيات الفصل الأول وضع تجريبي كتابي ١٣٢ صفحة رحلة الحل جلسة جديدة المعادلات الدائرة حساب المثلثات تطبيقات المثلثات أهلاً بك في فهمني نفكّر معاً. خطوة بخطوة. اكتب مسألتك، احكِها، أو صوّرها",
+  "hasClassroom": true,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/definitely-not-a-subject/tutor",
+  "name": "unknown-tutor-404",
+  "group": "failures",
+  "session": "student",
+  "viewport": "390x844",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "الصفحة غير موجودة ربما تغيّر الرابط أو لم تعد الصفحة متاحة. العودة للرئيسية",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ },
+ {
+  "route": "/app/subjects/definitely-not-a-subject/tutor",
+  "name": "unknown-tutor-404",
+  "group": "failures",
+  "session": "student",
+  "viewport": "1280x720",
+  "consoleErrors": [],
+  "netFailures": [],
+  "title": "السبورة | فهمني",
+  "lang": "ar",
+  "dir": "rtl",
+  "h1": [],
+  "headingCount": 0,
+  "headingSample": [],
+  "landmarks": {
+   "header": 0,
+   "nav": 0,
+   "main": 1,
+   "footer": 0
+  },
+  "controls": 1,
+  "unnamedControls": 0,
+  "unnamedSample": [],
+  "images": 0,
+  "imagesWithoutAlt": 0,
+  "smallTargets": 0,
+  "ovX": false,
+  "textSample": "الصفحة غير موجودة ربما تغيّر الرابط أو لم تعد الصفحة متاحة. العودة للرئيسية",
+  "hasClassroom": false,
+  "bodyBg": "rgb(245, 244, 251)"
+ }
+]

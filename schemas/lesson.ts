@@ -12,11 +12,18 @@ export const actionSchema=z.object({
  delayMs:z.number().int().min(0).max(5000)
 }).strict();
 export const segmentSchema=z.object({id:ID,narration:z.string().min(1).max(1300),goal:z.string().max(150),sourceChunkIds:z.array(z.string().max(100)).min(1).max(6),actions:z.array(actionSchema).min(1).max(18)}).strict();
-export const generatedLessonSchema=z.object({title:z.string().min(1).max(100),mode:z.enum(['new','followup']),sufficientContext:z.boolean(),message:z.string().max(500),segments:z.array(segmentSchema).max(12)}).strict();
+// Machine-readable assessment for quiz evaluation turns; null everywhere else.
+export const assessmentSchema=z.object({
+ correct:z.boolean(),
+ topic:z.string().min(1).max(80),
+ misconception:z.string().max(200).nullable(),
+ nextReviewInDays:z.number().int().min(1).max(60),
+}).strict();
+export const generatedLessonSchema=z.object({title:z.string().min(1).max(100),mode:z.enum(['new','followup']),sufficientContext:z.boolean(),message:z.string().max(500),assessment:assessmentSchema.nullable(),segments:z.array(segmentSchema).max(12)}).strict();
 export type Action=z.infer<typeof actionSchema>;
 export type Segment=z.infer<typeof segmentSchema> & {sources:Source[]};
-export type Source={chunkId:string;sourceId:string;pdfPage:number;printedPage:number|null;lesson:string;image:string};
-export type Lesson=Omit<z.infer<typeof generatedLessonSchema>,'segments'> & {id:string;question:string;segments:Segment[];sources:Source[]};
+export type Source={chunkId:string;sourceId:string;pdfPage:number;printedPage:number|null;lesson:string;image:string;bookId?:string|null};
+export type Lesson=Omit<z.infer<typeof generatedLessonSchema>,'segments'> & {id:string;question:string;segments:Segment[];sources:Source[];credits?:{balance:number;resetAt?:string|null}};
 export type BoardObject={id:string;type:Action['type'];content:string;region:typeof regions[number];points:Action['points'];geometry:Action['geometry'];color:Action['color'];highlighted:boolean;focused:boolean;group:string|null};
 export type BoardState={objects:BoardObject[]};
 export const emptyBoard=():BoardState=>({objects:[]});

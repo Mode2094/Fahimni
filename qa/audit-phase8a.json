@@ -1,0 +1,94 @@
+{
+ "startedAt": "2026-10-10T15:53:34.767Z",
+ "landing": {
+  "390": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "overflow": false,
+   "hasFeatures": true,
+   "hasTrial": true,
+   "hasPricing": true,
+   "hasFaq": true,
+   "hasRealGrades": true,
+   "hasWhatsApp": true,
+   "hasLegalLinks": true,
+   "navFaqLink": true
+  },
+  "768": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "overflow": false,
+   "hasFeatures": true,
+   "hasTrial": true,
+   "hasPricing": true,
+   "hasFaq": true,
+   "hasRealGrades": true,
+   "hasWhatsApp": true,
+   "hasLegalLinks": true,
+   "navFaqLink": true
+  },
+  "1440": {
+   "title": "فهمني | معلّمك الذكي من كتابك",
+   "overflow": false,
+   "hasFeatures": true,
+   "hasTrial": true,
+   "hasPricing": true,
+   "hasFaq": true,
+   "hasRealGrades": true,
+   "hasWhatsApp": true,
+   "hasLegalLinks": true,
+   "navFaqLink": true
+  }
+ },
+ "faq": {
+  "items": 7,
+  "opensOnClick": true,
+  "answerVisible": true
+ },
+ "admin": {
+  "subjects": {
+   "title": "المواد | فهمني",
+   "overflow": false,
+   "warningCard": true,
+   "listsMissing": true,
+   "warningCount": 2
+  },
+  "/admin": "ok",
+  "/admin/grades": "ok",
+  "/admin/fields": "ok",
+  "/admin/subscriptions": "ok",
+  "/admin/settings": "ok",
+  "/admin/students": "ok"
+ },
+ "student": {
+  "app-390": {
+   "title": "الرئيسية | فهمني",
+   "overflow": false
+  },
+  "app-768": {
+   "title": "الرئيسية | فهمني",
+   "overflow": false
+  },
+  "app-1440": {
+   "title": "الرئيسية | فهمني",
+   "overflow": false
+  },
+  "classroom": {
+   "title": "السبورة | فهمني",
+   "overflow": false,
+   "hasToolsButton": true
+  },
+  "controls": {
+   "toolsOpened": true,
+   "fontStep": true,
+   "immersiveOn": true,
+   "immersiveOff": true,
+   "newSession": true,
+   "sheetClosed": true,
+   "errors": 0
+  },
+  "review": {
+   "title": "راجع نقاط ضعفي | فهمني"
+  }
+ },
+ "consoleErrors": [],
+ "finishedAt": "2026-10-10T15:53:49.309Z"
+}

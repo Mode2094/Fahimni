@@ -63,7 +63,6 @@ export function useGlyphFrames(pairs:GlyphPair[],host:HTMLElement|null){
    // Post-layout measurement, not a cascading render: measure() only runs from a
    // frame, a ResizeObserver or a scroll event, and the set bails out unless the
    // geometry actually moved.
-   // eslint-disable-next-line react-hooks/set-state-in-effect
    setFrames(prev=>same(prev,next)?prev:next);
   }
   // Always deferred: measured in a frame, never synchronously in the effect body.

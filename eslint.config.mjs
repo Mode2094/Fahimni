@@ -9,9 +9,16 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // This project builds into .next-native (distDir), so the generated output
+    // must be ignored too — linting it only produced noise from bundled code.
+    ".next-native/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated/derived artefacts that are not project source.
+    ".data/**",
+    ".wrangler/**",
+    "dist/**",
   ]),
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],

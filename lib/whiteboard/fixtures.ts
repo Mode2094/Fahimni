@@ -86,7 +86,7 @@ export const fixtureLesson:Lesson={
  question:'حل المعادلة 9x^3 + 18x^2 + 2x + 4 = 0',
  title:'تحليل المعادلة متعددة الحدود بالعامل المشترك',
  mode:'new',
- sufficientContext:true,
+ sufficientContext:true,assessment:null,
  message:'',
  segments:segments.map(s=>({...s,sources:[source]})),
  sources:[source],

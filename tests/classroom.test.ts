@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import React,{act} from 'react';
 import {createRoot} from 'react-dom/client';
-import Classroom from '../app/page';
+import Classroom from '../components/classroom/Classroom';
 test('classroom mounts in Arabic, exposes book, navigates pages and honestly reports missing provider',async()=>{
  const dom=new JSDOM('<html dir="rtl" lang="ar"><body><div id="root"></div></body></html>',{url:'https://local'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true});
  const oldFetch=globalThis.fetch;globalThis.fetch=async url=>String(url).includes('/status')?Response.json({configured:false,debug:false}):Response.json({error:'المعلّم غير متصل بعد.'},{status:503});

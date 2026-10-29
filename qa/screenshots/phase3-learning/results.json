@@ -1,0 +1,34 @@
+{
+ "modes": {
+  "buttons": [
+   "فهمني الدرس",
+   "ساعدني أحل",
+   "اختبرني"
+  ],
+  "active": "فهمني الدرس",
+  "overflow": false
+ },
+ "modeSwitch": "اختبرني",
+ "reviewPage": {
+  "cards": 3,
+  "topics": [
+   "التحليل إلى عوامل كثير الحدود الدرجة الثالثة",
+   "تحليل كثيرات الحدود",
+   "تحليل كثير الحدود"
+  ],
+  "practiceLinks": 3,
+  "overflow": false
+ },
+ "deepLink": {
+  "active": "اختبرني",
+  "composer": "اختبرني في: تحليل كثيرات الحدود"
+ },
+ "mobile": {
+  "buttons": 3,
+  "overflow": false
+ },
+ "mobileReview": {
+  "overflow": false
+ },
+ "consoleIssues": []
+}

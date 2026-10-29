@@ -1,0 +1,192 @@
+{
+ "before": {},
+ "after": {
+  "timeToLessonMs": 11930,
+  "marksEarly": [
+   {
+    "n": "seg:start:step1",
+    "t": 12723
+   },
+   {
+    "n": "seg:audio-fetch-start:step1",
+    "t": 12724
+   },
+   {
+    "n": "seg:first-action:step1",
+    "t": 13525
+   }
+  ],
+  "marks": [
+   {
+    "n": "seg:start:step1",
+    "t": 12723
+   },
+   {
+    "n": "seg:audio-fetch-start:step1",
+    "t": 12724
+   },
+   {
+    "n": "seg:first-action:step1",
+    "t": 13525
+   },
+   {
+    "n": "seg:audio-ready:step1",
+    "t": 20221
+   },
+   {
+    "n": "seg:end:step1",
+    "t": 37045
+   },
+   {
+    "n": "seg:start:step2",
+    "t": 37089
+   },
+   {
+    "n": "seg:audio-fetch-start:step2",
+    "t": 37089
+   },
+   {
+    "n": "seg:audio-ready:step2",
+    "t": 37089
+   },
+   {
+    "n": "seg:first-action:step2",
+    "t": 38090
+   },
+   {
+    "n": "seg:end:step2",
+    "t": 56890
+   },
+   {
+    "n": "seg:start:step3",
+    "t": 56925
+   },
+   {
+    "n": "seg:audio-fetch-start:step3",
+    "t": 56925
+   },
+   {
+    "n": "seg:audio-ready:step3",
+    "t": 56925
+   },
+   {
+    "n": "seg:first-action:step3",
+    "t": 57726
+   },
+   {
+    "n": "seg:end:step3",
+    "t": 75287
+   },
+   {
+    "n": "seg:start:step4",
+    "t": 75321
+   },
+   {
+    "n": "seg:audio-fetch-start:step4",
+    "t": 75322
+   },
+   {
+    "n": "seg:audio-ready:step4",
+    "t": 75322
+   },
+   {
+    "n": "seg:first-action:step4",
+    "t": 76122
+   },
+   {
+    "n": "seg:end:step4",
+    "t": 90003
+   },
+   {
+    "n": "seg:start:step5",
+    "t": 90038
+   },
+   {
+    "n": "seg:audio-fetch-start:step5",
+    "t": 90038
+   },
+   {
+    "n": "seg:audio-ready:step5",
+    "t": 90038
+   },
+   {
+    "n": "seg:first-action:step5",
+    "t": 91040
+   },
+   {
+    "n": "seg:end:step5",
+    "t": 110040
+   },
+   {
+    "n": "seg:start:step6",
+    "t": 110073
+   },
+   {
+    "n": "seg:audio-fetch-start:step6",
+    "t": 110073
+   },
+   {
+    "n": "seg:audio-ready:step6",
+    "t": 110073
+   },
+   {
+    "n": "seg:first-action:step6",
+    "t": 110874
+   },
+   {
+    "n": "seg:end:step6",
+    "t": 127995
+   }
+  ],
+  "response": {
+   "title": "حل معادلة إكس أس أربعة ناقص 3 إكس أس اثنين زائد 2 يساوي صفر بالتحليل إلى عوامل",
+   "segments": 6,
+   "latexInNarration": 0,
+   "mentionsRoots": false,
+   "finalNarration": "إذًا، جذور المعادلة هي واحد، ناقص واحد، جذر 2، وناقص جذر 2. الخطوات صحيحة لأننا استخدمنا التعويض وتطبيق خاصية الضرب الصفري للحفاظ على تساوي المعادلة في جميع مراحل الحل."
+  }
+ },
+ "interruption": {
+  "pausedForQuestion": {
+   "playButtonLabel": "تشغيل",
+   "hudStatus": "متوقف مؤقتاً",
+   "resumeChip": true
+  },
+  "followup": {
+   "newResponses": 1,
+   "step": "1/6",
+   "narration": "أول شيء نلاحظ أن المعادلة إكس أس أربعة ناقص 3 إكس أس اثنين زائد 2 يساوي صفر يمكن التفكير فيها كمقدار تربيعي بمتغير جديد. نصنع متغير يو يساوي إكس أس اثنين، فنحصل",
+   "resumeChip": true
+  },
+  "resumed": {
+   "step": "1/6",
+   "status": "يشرح الآن",
+   "rememberedStep": "1/6"
+  }
+ },
+ "desktop": {
+  "lesson": {
+   "step": "1/6",
+   "teacherActions": [
+    "وقف، عندي سؤال",
+    "اشرحها أبسط",
+    "ليش عملنا هيك؟",
+    "أعطيني مثال مشابه"
+   ],
+   "narration": "أول شيء نلاحظ أن المعادلة إكس أس أربعة ناقص 3 إكس أس اثنين زائد 2 يساوي صفر يمكن التفكير فيها كمقدار تربيعي بمتغير جديد. نصنع متغير يو يساوي إكس أس اثنين، فنحصل",
+   "demoBadge": false
+  },
+  "completed": {
+   "status": "اكتمل الشرح"
+  }
+ },
+ "mobile": {
+  "state": {
+   "overflow": false,
+   "teacherActions": 4,
+   "step": "1/5",
+   "composer": true
+  }
+ },
+ "consoleErrors": []
+}

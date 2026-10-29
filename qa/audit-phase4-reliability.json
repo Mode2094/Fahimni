@@ -1,0 +1,86 @@
+{
+  "task": "Phase 4 — Reliability, educational accuracy, retrieval quality, latency and final QA",
+  "date": "2026-10-09",
+  "bugsFoundAndFixed": [
+    {
+      "bug": "Deterministic math check called with swapped arguments (attempt passed as the problem and the problem text missing the lesson title) → assessments were lost or left to the unreliable model judge",
+      "fix": "verifyAnswer(title + narration, studentMessage) in both the extraction fallback and the cross-check",
+      "evidence": "real coach pair: correct alternative (س-2)(س-3) → correct:true; wrong (س-1)(س-6) → correct:false with the deterministic reason"
+    },
+    {
+      "bug": "Two regeneration nudges (thin lesson, missing assessment) forced a second full LLM call on short lessons and evaluations, doubling latency (~5.2s LLM instead of ~2.5s)",
+      "fix": "removed both; the bounded extraction fallback supplies evidence instead of regenerating the lesson",
+      "evidence": "stage logs showed llm-attempt0 + llm-attempt1 pairs; after the change a simple lesson completes in 3.8s end-to-end (was 8.1s in the battery for a similar short lesson)"
+    },
+    {
+      "bug": "Single-word and vernacular queries returned nothing (strict score threshold + no tolerant matching)",
+      "fix": "lower threshold for one-term queries + bounded fuzzy expansion (4-char prefix or one edit, weight 0.35–0.45, capped at 6)",
+      "evidence": "«المتطابقات» returned [] before, 4 candidates after; the live single-word question «حل» now returns a real 5-segment lesson (was 422 no_context)"
+    },
+    {
+      "bug": "The retrieval evaluation labels themselves were wrong (keys absent from the book) → meaningless metrics",
+      "fix": "rebuilt the labeled dataset from verified keys with real ground-truth pages (11 queries)",
+      "evidence": "hitRate@3 = 0.909, meanRecall@3 = 0.848"
+    },
+    {
+      "bug": "Arabic «equations» sent through KaTeX produced missing-glyph warnings and worse typography",
+      "fix": "pure-Arabic write_latex (no backslash, ^, _ or braces) becomes write_text; real LaTeX stays mathematical",
+      "evidence": "unit test + fewer warnings in dev logs (mixed Arabic/LaTeX still warns — limitation)"
+    },
+    {
+      "bug": "AI phrasing variants split one skill into multiple progress rows",
+      "fix": "deterministic topic canonicalization (hamza/taa folding, article stripping, light suffix stemming) applied on write + existing rows migrated/merged",
+      "evidence": "DB 3 rows → 2; «تحليل كثيرات الحدود» and «تحليل كثير الحدود» merged with summed evidence"
+    },
+    {
+      "bug": "Two dev-server crashes under long multi-tab test sessions",
+      "fix": "none needed — confirmed dev-only hot-reload/Turbopack instability under heavy watch+session load; production builds and next start stayed stable in all phases; error boundary + credit refunds verified",
+      "evidence": "crash logs showed ECONNREFUSED with no app exception; restart recovered each time"
+    }
+  ],
+  "educationalCorrectness": {
+    "verifyAnswer": "arithmetic, fractions/decimals (tolerance 5e-5), powers, roots (±√), equivalent solution orderings, factorable quadratics, linear equations; unknown is never graded",
+    "fairGrading": "mistakes may still surface for review even when unverifiable; mastery is never recorded without verification (unknown + correct → no progress)",
+    "beforeAfter": "before: the model judge marked (س-1)(س-6) correct in a real run; after: deterministic incorrect with a coefficient reason"
+  },
+  "retrieval": {
+    "dataset": "qa: 11 labeled queries with ground truth derived from the book's own text",
+    "metrics": { "hitRateAt3": 0.909, "meanRecallAt3": 0.848 },
+    "knownMiss": "«زاوية الارتفاع» (page 108) ranks below top-3 despite fuzzy matching",
+    "accessControls": "unchanged; subject-scoped retriever only"
+  },
+  "latency": {
+    "stages": { "normalize": "0.7–2.2s", "retrieve": "6–11ms", "llm": "1.8–8.2s", "validate": "0–926ms" },
+    "simpleLessonEndToEnd": "3.8s (after removing the regeneration nudges; 8.1s before for a comparable short lesson)",
+    "streaming": "not implemented — blocker unchanged: whole-lesson validation (cross-segment source ids, board progression, repair loop); measured path documented in Phase 2"
+  },
+  "tts": {
+    "samples": "qa/evidence/audio/equation-reading.mp3 (189KB), teaching-narration.mp3 (177KB)",
+    "sttRoundTrip": "«اكس أس 4 ناقص ثلاثة اكس تربيع زائد اثنين يساوي صفر … جذر 2 وناقص جذر 2» — no LaTeX commands",
+    "honestNote": "verified via transcription and audio properties, not by human listening"
+  },
+  "progress": {
+    "sameDayRule": "a second correct answer on the same day stays DEVELOPING; a later day reaches DEMONSTRATED",
+    "normalization": "existing rows migrated and merged safely (counts summed, strictest state, earliest due date)"
+  },
+  "browser": {
+    "simpleEquation": "lesson in 3.8s, KaTeX equation + explanation on the board, no error, no overflow, credit charged",
+    "reviewPage": "renders with the merged topics",
+    "consoleErrors": 0,
+    "screenshots": "qa/screenshots/phase4-reliability/ (board + review)"
+  },
+  "accounting": {
+    "realCalls": "~12 tutor turns + 2 speech + 1 transcription this phase",
+    "credits": "1 per tutor turn; refunds verified on failures; balance 20 → 3 on the QA fixture",
+    "budget": "daily cap setting preserved (in-memory locally, resets on dev restart — noted)"
+  },
+  "tests": { "totals": "197/197 pass", "gates": { "typecheck": true, "buildNext": true } },
+  "remaining": [
+    "Streaming deferred (blocker documented)",
+    "Model judge alone still unreliable for non-deterministic math forms; deterministic coverage is bounded to the implemented patterns",
+    "Mixed Arabic+LaTeX still triggers KaTeX glyph warnings",
+    "«زاوية الارتفاع» retrieval miss",
+    "Only mathematics has a real book; other subjects remain dev fixtures"
+  ],
+  "verdict": "GO for platform/content preparation with the documented limitations; no production-blocking defect found"
+}

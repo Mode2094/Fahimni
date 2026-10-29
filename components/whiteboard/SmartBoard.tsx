@@ -2,10 +2,11 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import katex from 'katex';
 import type {Action,BoardObject,BoardState,Lesson} from '../../schemas/lesson';
-import {deriveTeachingStates,idsForSegment,isAnnotation,isMath,pointerTarget,speechNarration,type TeachingVisualState} from '../../lib/whiteboard/teaching-state';
+import {deriveTeachingStates,idsForSegment,isAnnotation,isMath,pointerTarget,type TeachingVisualState} from '../../lib/whiteboard/teaching-state';
 import {planLayout,rowsFor,zoneWeight,type Zone} from '../../lib/whiteboard/layout';
 import {useReducedMotion} from '../../lib/whiteboard/useReducedMotion';
 import TeachingAnnotation,{isGlyph,useGlyphFrames,type GlyphPair} from './TeachingAnnotation';
+import GraphLayer from './GraphLayer';
 
 // Board palette mapped onto design tokens so the teaching surface themes from one
 // place. `ink` is chalk-white on the dark board, not black ink.
@@ -18,15 +19,18 @@ const GRAPHICS=new Set<Action['type']>(['draw_line','draw_arrow','draw_circle','
 
 /* ---------------------------------------------------------------- math ---- */
 
-export function MathText({text,state}:{text:string;state?:TeachingVisualState}){
+export function MathText({text,state,inline=false,fallback='error'}:{text:string;state?:TeachingVisualState;inline?:boolean;fallback?:'error'|'text'}){
  const html=useMemo(()=>{
-  try{return katex.renderToString(text,{throwOnError:true,trust:false,strict:'ignore',displayMode:true,maxSize:10,maxExpand:500});}
+  try{return katex.renderToString(text,{throwOnError:true,trust:false,strict:'ignore',displayMode:!inline,maxSize:10,maxExpand:500});}
   catch{return null;}
- },[text]);
- if(!html)return <span className="math-error">تعذّر عرض هذا التعبير الرياضي. اطلب إعادة صياغته.</span>;
+ },[text,inline]);
+ // Question text may contain mixed Arabic and escaped or unescaped LaTeX. When
+ // KaTeX cannot parse it, the fallback keeps the student's own words intact
+ // instead of showing an error box.
+ if(!html)return fallback==='text'?<span className="question-math-text" dir="auto">{text}</span>:<span className="math-error">تعذّر عرض هذا التعبير الرياضي. اطلب إعادة صياغته.</span>;
  // KaTeX markup stays untouched and crisp: only opacity/transform animate, never
  // a filter or blur, so the maths is never made harder to read.
- return <div className="math" dir="ltr" data-state={state} dangerouslySetInnerHTML={{__html:html}}/>;
+ return <div className={inline?'math math--inline':'math'} dir="ltr" data-state={state} dangerouslySetInnerHTML={{__html:html}}/>;
 }
 
 /* -------------------------------------------------------------- pointer --- */
@@ -64,16 +68,17 @@ function TeacherPointer({targetId,host}:{targetId:string|null;host:React.RefObje
 
 /* -------------------------------------------------------------- objects --- */
 
-function BoardItem({o,state,onSelect}:{o:BoardObject;state:TeachingVisualState;onSelect:(o:BoardObject)=>void}){
+function BoardItem({o,state,onSelect,ghost=false}:{o:BoardObject;state:TeachingVisualState;onSelect:(o:BoardObject)=>void;ghost?:boolean}){
  if(GRAPHICS.has(o.type))return null; // Graph glyphs render in the graph layer.
  const body=o.type==='write_latex'
   ?<MathText text={o.content} state={state}/>
   :o.type==='show_image'
   ?<img className="source-image" src={o.content} alt="صفحة مسترجعة من الكتاب"/>
   :<span className="object-label">{o.content}</span>;
+ const writeDir=o.type==='write_latex'||isMath(o)?'ltr':'rtl';
  return <div
-  className={`board-object type-${o.type} state-${state}${isAnnotation(o)?' is-annotation':''}${isMath(o)?' is-math':''}`}
-  data-object-id={o.id} data-group={o.group||undefined} data-state={state}
+  className={`board-object type-${o.type} state-${state}${isAnnotation(o)?' is-annotation':''}${isMath(o)?' is-math':''}${ghost?' is-erasing':''}`}
+  data-object-id={o.id} data-group={o.group||undefined} data-state={state} data-write-dir={writeDir}
   tabIndex={0} role="button" aria-label={'اسأل عن '+(o.content||'هذا العنصر')}
   onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(o);}}}
   onClick={()=>onSelect(o)}
@@ -83,15 +88,17 @@ function BoardItem({o,state,onSelect}:{o:BoardObject;state:TeachingVisualState;o
 
 /* --------------------------------------------------------------- zones ---- */
 
-function Zone({zone,objects,states,weight,focus,onSelect}:{
+function Zone({zone,objects,states,weight,focus,onSelect,ghostIds}:{
  zone:Zone;objects:BoardObject[];states:Map<string,TeachingVisualState>;weight:number;focus:boolean;
- onSelect:(o:BoardObject)=>void;
+ onSelect:(o:BoardObject)=>void;ghostIds:Set<string>;
 }){
  const rows=rowsFor(objects);
- if(!rows.length)return null;
+ const graphObjects=objects.filter(o=>o.region==='graph-area'&&GRAPHICS.has(o.type));
+ if(!rows.length&&!graphObjects.length)return null;
  return <section className={`board-zone zone-${zone}${focus?' is-focus':''}`} data-zone={zone} style={{'--zone-weight':weight} as React.CSSProperties}>
+  {graphObjects.length?<GraphLayer objects={graphObjects} ghostIds={ghostIds}/>:null}
   {rows.map((row,i)=><div className="board-row" key={row.map(o=>o.id).join('|')||i}>
-   {row.filter(o=>!GRAPHICS.has(o.type)).map(o=><div className="row-item" key={o.id}><BoardItem o={o} state={states.get(o.id)??'inactive'} onSelect={onSelect}/></div>)}
+   {row.filter(o=>!GRAPHICS.has(o.type)).map(o=><div className="row-item" key={o.id}><BoardItem o={o} state={states.get(o.id)??'inactive'} onSelect={onSelect} ghost={ghostIds.has(o.id)}/></div>)}
   </div>)}
  </section>;
 }
@@ -109,7 +116,30 @@ export default function SmartBoard({board,lesson=null,index=0,status='idle',onSe
   const ctx={objects:board.objects,index,segments:(lesson?.segments??[]).map(s=>({actions:s.actions})),status,activeIds:ids.active,focusedIds:ids.focused,highlightedIds:ids.highlighted,finalIds:ids.final};
   return{states:deriveTeachingStates(ctx),pointer:pointerTarget(ctx)};
  },[board.objects,segment,index,lesson,status]);
- const plan=useMemo(()=>planLayout({board,states,index,total:lesson?.segments.length??0}),[board,states,index,lesson]);
+ // Erase transitions: objects that disappear from the board stay on screen for
+ // a short chalk-fade instead of vanishing between two frames.
+ const[ghosts,setGhosts]=useState<BoardObject[]>([]);
+ const previous=useRef<BoardObject[]>([]);
+ useEffect(()=>{
+  const before=previous.current;previous.current=board.objects;
+  const live=new Set(board.objects.map(o=>o.id));
+  const removed=before.filter(o=>!live.has(o.id));
+  if(!removed.length)return;
+  setGhosts(removed);
+  const timer=setTimeout(()=>setGhosts([]),280);
+  return()=>clearTimeout(timer);
+ },[board.objects]);
+ const displayBoard=useMemo(()=>{
+   if(!ghosts.length)return board;
+   // An erased object can come back (re-written with the same id) inside the
+   // fade window; a ghost that is live again must not be shown twice, or the
+   // board would hold two objects with one id and React would see duplicate keys.
+   const live=new Set(board.objects.map(o=>o.id));
+   const fading=ghosts.filter(o=>!live.has(o.id));
+   return fading.length?{objects:[...board.objects,...fading]}:board;
+  },[board,ghosts]);
+ const ghostIds=useMemo(()=>new Set(ghosts.map(o=>o.id)),[ghosts]);
+ const plan=useMemo(()=>planLayout({board:displayBoard,states,index,total:lesson?.segments.length??0}),[displayBoard,states,index,lesson]);
  const hasFuture=index<(lesson?.segments.length??1)-1;
  const scroll=useRef<HTMLDivElement|null>(null);
  const content=useRef<HTMLDivElement|null>(null);
@@ -153,7 +183,7 @@ export default function SmartBoard({board,lesson=null,index=0,status='idle',onSe
    <div className="board-surface" aria-hidden="true"><span className="grain"/><span className="residue"/><span className="vignette"/></div>
    <div className="board-scroll" ref={scroll} dir="rtl">
     <div className="board-content" ref={content}>
-     {plan.zones.map(z=><Zone key={z.zone} zone={z.zone} objects={z.objects} states={states} weight={zoneWeight(z.zone,plan.focus,hasFuture)} focus={z.zone===plan.focus} onSelect={onSelect}/>)}
+     {plan.zones.map(z=><Zone key={z.zone} zone={z.zone} objects={z.objects} states={states} weight={zoneWeight(z.zone,plan.focus,hasFuture)} focus={z.zone===plan.focus} onSelect={onSelect} ghostIds={ghostIds}/>)}
      {!board.objects.length&&children}
     </div>
     <TeachingAnnotation pairs={pairs} frames={frames}/>

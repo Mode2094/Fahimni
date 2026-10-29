@@ -1,0 +1,85 @@
+{
+  "phase": "PHASE 3 — Central admin settings + Freemius automation",
+  "date": "2026-10-08",
+  "databaseChanges": {
+    "migration": "drizzle/0008_silly_mongoose.sql",
+    "tables": [
+      "secure_settings (encrypted credentials, AES-256-GCM, root key in env)",
+      "setting_audit_log (key/action/actor only, never values)",
+      "offer_provider_links (verified plan/pricing mapping + sync state)"
+    ],
+    "existingTablesUnchanged": "subscription_offers, subject_plans, academic_terms, entitlements, webhook_events"
+  },
+  "whatsapp": {
+    "storage": "system_settings.whatsappNumber (normalized international digits; empty string = explicitly disabled)",
+    "fallback": "NEXT_PUBLIC_WHATSAPP_NUMBER only when the admin never saved a value",
+    "verified": {
+      "saveImmediate": true,
+      "landingLinkImmediatelyAfterSave": true,
+      "landingNoteImmediatelyAfterDisable": true,
+      "invalidRejected": "123 -> error=whatsapp_invalid with Arabic alert"
+    }
+  },
+  "openAiKey": {
+    "storage": "secure_settings.openaiApiKey encrypted; env OPENAI_API_KEY remains fallback",
+    "validation": "GET /v1/models with candidate key before storing",
+    "verified": {
+      "invalidKeyRejected": "error=ai_key_invalid, nothing stored",
+      "settingsSavedWithoutKey": "model + budget saved, env key still active",
+      "runtimeNoRestart": "aiRuntimeConfig reads DB first (verified in DB test: tutorModel/budget/key picked up)"
+    }
+  },
+  "secretsSecurity": {
+    "cipher": "AES-256-GCM v1:iv:tag:ct, 32-byte root key from SETTINGS_ENCRYPTION_KEY (hex/base64)",
+    "failClosed": "tampered ciphertext -> treated as unconfigured + safe warning (DB test)",
+    "audit": "set/replace/delete/test actions logged with actor, never values",
+    "noLeakage": "saved fake Freemius key never appeared in page HTML (verified)",
+    "noCache": "settings are read from PostgreSQL on every resolution — saves are visible immediately in all processes"
+  },
+  "freemiusConnection": {
+    "storage": "productId/developerId plain; apiKey/secretKey/publicKey/developerSecret encrypted",
+    "connectionTest": "official read-only SDK calls (product.retrieve + retrievePricingData)",
+    "verified": {
+      "presenceBadgesAfterSave": 4,
+      "fakeCredentialsTest": "error=freemius_network (safe failure, no false success)"
+    }
+  },
+  "checkoutReadiness": {
+    "statuses": ["مسودة", "بانتظار الربط", "جارٍ المزامنة", "فشلت المزامنة", "جاهزة للدفع"],
+    "verified": {
+      "demoOffersNeverReady": "all 4 existing offers show بانتظار الربط; ready count = 0",
+      "studentPage": "unverified offers hidden (empty state), current subscription still shown",
+      "syncBlocked": "sync without credentials -> error=sync_not_configured with Arabic message",
+      "checkoutGate": "checkout route refuses unverified links (unit tested)"
+    }
+  },
+  "syncService": {
+    "readOnlyVerify": "list plans + compare price/currency/cycle (official read paths)",
+    "idempotency": "compare-and-set claim + unique (provider, plan_id) + deterministic slug recovery",
+    "liveWrites": "BLOCKED — plan creation requires developer scope; product Bearer tokens cannot create plans",
+    "mockedTests": ["success", "price/currency/cycle mismatch", "create failure", "duplicate run", "retry idempotency", "developer capability required"]
+  },
+  "currency": {
+    "student": "only provider-verified amounts reach students (link.currency/link.priceMinor)",
+    "admin": "confirmed provider amount shown per offer; unverified offers are not purchasable",
+    "noConversion": "no exchange-rate logic anywhere"
+  },
+  "existingSubscriberSafety": {
+    "entitlementsUntouched": true,
+    "webhookLicenseFlowUntouched": true,
+    "pricingStrategy": "price changes create new pricing versions in live automation instead of mutating existing pricing",
+    "deactivation": "never revokes access"
+  },
+  "tests": {
+    "total": "167/167 pass",
+    "new": ["crypto roundtrip/tamper/fail-closed", "whatsapp normalization", "readiness incl. demo guard", "pricing verification matrix", "sync service (6 scenarios)", "global budget primitive + charge integration", "ai config env fallback", "settings service + routes on PostgreSQL"]
+  },
+  "browserVerification": {
+    "viewports": ["390x844", "768x1024", "1440x900"],
+    "overflow": false,
+    "consoleErrors": 0,
+    "screenshots": "qa/screenshots/phase3-settings/ (9)"
+  },
+  "gates": { "typecheck": true, "tests": true, "build": true, "buildNext": true },
+  "cleanup": "all test settings, secrets, audit rows and fixtures removed; DB back to pre-test state"
+}

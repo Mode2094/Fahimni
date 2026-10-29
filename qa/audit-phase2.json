@@ -1,0 +1,64 @@
+{
+  "phase": "PHASE 2 — Simplify subscriptions, academic terms and pricing UX",
+  "date": "2026-10-08",
+  "schemaChanges": "none (existing tables reused: subscription_offers, subject_plans, academic_terms, bundle_subjects, entitlements, entitlement_subjects)",
+  "adminControlCenter": {
+    "sections": ["terms", "offers", "subscribers", "freemius"],
+    "navigation": "URL-driven sub-tabs inside /admin/subscriptions?section=…",
+    "desktop1440": { "tabs": 4, "overflow": false },
+    "mobile390": { "tabsVisible": 4, "overflow": false, "termCards": 2 },
+    "tablet768": { "overflow": false, "wizardColumns": 4 }
+  },
+  "academicTerms": {
+    "create": "?status=term_saved + card visible",
+    "invalidDates": "?error=invalid_term_dates + Arabic alert + not created",
+    "toggle": "?status=term_deactivated",
+    "connectedOffers": "chips + readiness badges per term",
+    "soldTermProtection": "confirmDates gate preserved; entitlement boundaries unchanged (existing test)"
+  },
+  "offerWizard": {
+    "steps": ["نطاق الباقة", "المدة", "السعر والرصيد", "المراجعة والنشر"],
+    "publish": "single subject monthly (12.5 JOD, 250 credits, plan qa-phase2-plan) -> ?status=offer_saved, card active + جاهز للدفع",
+    "draft": "chemistry monthly without plan id -> ?status=offer_drafted, card يحتاج إعداد, hidden from students",
+    "publishRefusal": "disabled publish button when issues; server refuses (plan_id_required, term_required, term_inactive, term_ended) — unit tested",
+    "review": "scope, duration, dates, price+currency, credits, plan id, publication state"
+  },
+  "studentExperience": {
+    "monthly": "رياضيات التوجيهي — 39 د.أ (real DB values)",
+    "semester": "رياضيات التوجيهي (semester offer)",
+    "bundle": "باقة جميع مواد تخصصك with chips [رياضيات، فيزياء، كيمياء]",
+    "coverageBadge": "لديك وصول ساري يغطي هذا العرض (audit-bundle)",
+    "draftHidden": true,
+    "deactivatedHidden": true,
+    "trialSeparated": true,
+    "currentSubscription": "coverage, credits, expiration/renewal preserved"
+  },
+  "subscribersView": {
+    "search": "email substring works; empty state for no match",
+    "columns": ["student", "offer", "type", "status", "start", "expiry/renewal", "credits"],
+    "readOnly": true
+  },
+  "freemius": {
+    "readOnly": true,
+    "status": "الربط غير مهيأ locally (no keys); key presence badges only; no secret values in DOM",
+    "readyOffers": 4,
+    "needsConfig": "drafts listed with Arabic issue labels",
+    "legacyPlans": "2 legacy subject plans listed",
+    "phase3Note": "plan creation/price sync requires developer-scoped credentials (official docs: POST /developers/{developer_id}/products/{product_id}/plans.json; Bearer tokens are product-scope only)"
+  },
+  "dataSafety": {
+    "note": "browser wizard test initially updated the existing math-monthly offer (same dedupe key, by design). Restored to original values: plan_demo_math_monthly / 39000 / JOD / active. Test offers and test term deleted.",
+    "finalState": "4 original offers active with original plan ids/prices; 1 original term; 0 test leftovers"
+  },
+  "tests": {
+    "added": [
+      "offer readiness issue matrix",
+      "wizard draft/publish intent + unsafe publish refusals",
+      "activation refused for ended term while deactivation allowed",
+      "offer edit preserves explicit currency",
+      "subscriber search by email substring (PostgreSQL)"
+    ],
+    "result": "153/153 pass"
+  },
+  "screenshots": "qa/screenshots/phase2-subscriptions/ (14)"
+}

@@ -1,0 +1,28 @@
+{
+ "startedAt": "2026-10-28T21:10:00.938Z",
+ "viewports": {
+  "desktop-1440": {
+   "overflow": false,
+   "composerValue": "أوجد قيمة x في المعادلة 3x^2 - 12x + 9 =",
+   "sendEnabled": true,
+   "textareaHeight": "43px",
+   "toolsOpen": true
+  },
+  "tablet-768": {
+   "overflow": false,
+   "composerValue": "أوجد قيمة x في المعادلة 3x^2 - 12x + 9 =",
+   "sendEnabled": true,
+   "textareaHeight": "42px",
+   "toolsOpen": true
+  },
+  "mobile-390": {
+   "overflow": false,
+   "composerValue": "أوجد قيمة x في المعادلة 3x^2 - 12x + 9 =",
+   "sendEnabled": true,
+   "textareaHeight": "114px",
+   "toolsOpen": true
+  }
+ },
+ "consoleErrors": [],
+ "finishedAt": "2026-10-28T21:10:10.056Z"
+}

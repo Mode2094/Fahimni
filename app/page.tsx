@@ -1,105 +1,459 @@
-'use client';
-import {useState,useEffect,useRef,useCallback} from 'react';
-import {ArrowUp,Mic,Camera,ImagePlus,BookOpen,Pause,Play,RotateCcw,SkipBack,SkipForward,Square,Trash2,Volume2,VolumeX,X,ChevronLeft,ChevronRight,Expand,Sparkles,PenLine,LoaderCircle,AudioLines,Compass,Plus,Minus,ListTree,Minimize2} from 'lucide-react';
-import SmartBoard,{MathText} from '../components/whiteboard/SmartBoard';
-import LessonJourney from '../components/whiteboard/LessonJourney';
-import {usePlayback} from '../lib/whiteboard/usePlayback';
-import {VISUAL_DEV_MODE,fixtureLesson,fixtureFollowup} from '../lib/whiteboard/fixtures';
-import {BoardObject,BoardState,Lesson} from '../schemas/lesson';
-const units=[{name:'المعادلات',page:8,num:'01',description:'نفهم العلاقات، ونكتشف المجهول',question:'حل المعادلة x^3 + 4x^2 = 5x',latex:'x^3 + 4x^2 = 5x'},{name:'الدائرة',page:54,num:'02',description:'الأوتار، الزوايا، والمماسات',question:'اشرح معادلة الدائرة ومركزها ونصف قطرها',latex:'(x-a)^2+(y-b)^2=r^2'},{name:'حساب المثلثات',page:66,num:'03',description:'نربط الزوايا بأطوال الأضلاع',question:'اشرح النسب المثلثية في المثلث القائم',latex:'\\sin \\theta = \\frac{\\text{opposite}}{\\text{hypotenuse}}'},{name:'تطبيقات المثلثات',page:106,num:'04',description:'نحوّل المفاهيم إلى حلول',question:'اشرح قانون الجيوب بمثال من الكتاب',latex:'\\frac{a}{\\sin A}=\\frac{b}{\\sin B}'}];
-const labels:Record<string,string>={idle:'جاهز لسؤالك',preparing:'يجهّز الشرح',ready:'الشرح متوقف',playing:'يشرح الآن',paused:'متوقف مؤقتاً',completed:'اكتمل الشرح',error:'تعذر تجهيز الشرح'};
-async function post<T= {question:string}>(url:string,data:unknown,signal?:AbortSignal):Promise<T>{const form=data instanceof FormData;const r=await fetch(url,{method:'POST',headers:form?{}:{'Content-Type':'application/json'},body:form?data:JSON.stringify(data),signal});const j=await r.json() as T & {error?:string};if(!r.ok)throw new Error(j.error||'تعذر الاتصال. حاول مرة أخرى.');return j;}
-export default function Classroom(){
- const p=usePlayback();const [question,setQuestion]=useState(''),[error,setError]=useState(''),[phase,setPhase]=useState(''),[unit,setUnit]=useState(0),[book,setBook]=useState<number|null>(null),[configured,setConfigured]=useState<boolean|null>(null),[debug,setDebug]=useState(false),[diagnostics,setDiagnostics]=useState(false),[recording,setRecording]=useState(false),[seconds,setSeconds]=useState(0),[preview,setPreview]=useState<string|null>(null),[detected,setDetected]=useState(''),[selected,setSelected]=useState<BoardObject|null>(null),[fontScale,setFontScale]=useState(1),[history,setHistory]=useState<{question:string;title:string}[]>([]),[immersive,setImmersive]=useState(false),[journeyOpen,setJourneyOpen]=useState(false);
- const request=useRef<AbortController|null>(null),recorder=useRef<MediaRecorder|null>(null),tracks=useRef<MediaStream|null>(null),uploadInput=useRef<HTMLInputElement|null>(null),cameraInput=useRef<HTMLInputElement|null>(null),boardStage=useRef<HTMLDivElement|null>(null),recordTimer=useRef<ReturnType<typeof setTimeout>|null>(null),sessionId=useRef('');
- const busy=Boolean(phase);
- // Visual dev only: a local fixture replaces the network call so animations and
- // layout can be iterated without spending a single credit. Real mode is intact.
- const visualDev=VISUAL_DEV_MODE;
- useEffect(()=>{fetch('/api/status').then(r=>r.json() as Promise<{configured:boolean;debug:boolean}>).then(s=>{setConfigured(s.configured);setDebug(s.debug);}).catch(()=>setError('تعذر الاتصال بالخادم. حدّث الصفحة.'));try{sessionId.current=sessionStorage.getItem('madar-session')||crypto.randomUUID();sessionStorage.setItem('madar-session',sessionId.current);}catch{}return()=>{request.current?.abort();if(recorder.current?.state==='recording'){recorder.current.onstop=null;recorder.current.stop();}if(recordTimer.current)clearTimeout(recordTimer.current);tracks.current?.getTracks().forEach(t=>t.stop());};},[]);
- useEffect(()=>{if(!recording)return;const t=setInterval(()=>setSeconds(s=>s+1),1000);return()=>clearInterval(t);},[recording]);
- useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview);},[preview]);
- useEffect(()=>{if(book===null)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setBook(null);};document.addEventListener('keydown',onKey);const prior=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.removeEventListener('keydown',onKey);document.body.style.overflow=prior;};},[book]);
- useEffect(()=>{
-  const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape'&&immersive)setImmersive(false);};
-  document.addEventListener('keydown',onKey);
-  return()=>document.removeEventListener('keydown',onKey);
- },[immersive]);
- useEffect(()=>{if(!immersive)return;const prior=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prior;};},[immersive]);
- const cancel=()=>{request.current?.abort();request.current=null;setPhase('');p.halt();};
- const loadLesson=(lesson:Lesson,currentBoard:BoardState)=>{p.load(lesson,currentBoard);setHistory(h=>[...h,{question:lesson.question,title:lesson.title}].slice(-8));setSelected(null);};
- const ask=async(value=question,existing?:AbortController)=>{
-  const q=value.trim();if(q.length<2||(!existing&&busy))return;
-  const currentBoard=p.board;p.halt();if(!existing)request.current?.abort();const controller=existing||new AbortController();request.current=controller;
-  setError('');setPhase('أبحث في الكتاب وأجهّز الشرح…');p.setStatus('preparing');setQuestion('');
-  try{
-   // Visual dev: an empty board gets the full fixture lesson; a board that
-   // already has a lesson gets the follow-up fixture, which continues it rather
-   // than erasing it, mirroring the real follow-up contract.
-   if(visualDev){loadLesson(p.lesson?fixtureFollowup:fixtureLesson,currentBoard);return;}
-   const lesson:Lesson=await post<Lesson>('/api/tutor',{question:selected?`${q}\nالعنصر المشار إليه: ${selected.id} (${selected.content})`:q,board:currentBoard,history:history.slice(-8),currentStep:p.index,currentLesson:p.lesson?{title:p.lesson.title,goals:p.lesson.segments.map(s=>s.goal),narrations:p.lesson.segments.map(s=>s.narration)}:null},controller.signal);
-   if(controller.signal.aborted)return;loadLesson(lesson,currentBoard);
-  }catch(e){if(!controller.signal.aborted){setError(e instanceof Error?e.message:'حدث خطأ. حاول مجدداً.');setQuestion(q);p.setStatus(p.lesson?'paused':'error');}}
-  finally{if(request.current===controller){setPhase('');request.current=null;}}
- };
- const handleImage=async(file?:File)=>{if(!file)return;cancel();p.halt();setError('');setDetected('');if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){setError('اختر صورة JPG أو PNG أو WebP بحجم أقل من ٨ ميغابايت.');return;}setPreview(URL.createObjectURL(file));const controller=new AbortController();request.current=controller;setPhase('أقرأ السؤال في الصورة…');const f=new FormData();f.set('file',file);
-  try{const result=await post('/api/vision',f,controller.signal);setDetected(result.question);setQuestion(result.question);await ask(result.question,controller);}catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'تعذر تحليل الصورة.');}finally{if(request.current===controller){request.current=null;setPhase('');}}
- };
- const toggleRecord=async()=>{
-  if(recording){recorder.current?.stop();return;}cancel();p.halt();setError('');setSeconds(0);
-  try{if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)throw new Error('التسجيل غير مدعوم هنا. استخدم متصفحاً حديثاً عبر اتصال آمن.');const stream=await navigator.mediaDevices.getUserMedia({audio:true});tracks.current=stream;const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));const rec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);recorder.current=rec;const parts:Blob[]=[];rec.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};rec.onstop=async()=>{if(recordTimer.current)clearTimeout(recordTimer.current);setRecording(false);stream.getTracks().forEach(t=>t.stop());const type=rec.mimeType;const ext=type.includes('mp4')?'m4a':type.includes('ogg')?'ogg':'webm';const f=new FormData();f.set('file',new File(parts,'question.'+ext,{type}));const controller=new AbortController();request.current=controller;setPhase('أحوّل تسجيلك إلى سؤال…');try{const result=await post('/api/transcribe',f,controller.signal);setDetected(result.question);setQuestion(result.question);await ask(result.question,controller);}catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'لم أفهم التسجيل.');}finally{if(request.current===controller){setPhase('');request.current=null;}}};rec.start();setRecording(true);recordTimer.current=setTimeout(()=>{if(rec.state==='recording')rec.stop();},60000);
-  }catch(e){tracks.current?.getTracks().forEach(t=>t.stop());setError(e instanceof Error&&e.name==='NotAllowedError'?'اسمح بالوصول إلى الميكروفون ثم حاول مجدداً.':e instanceof Error?e.message:'تعذر بدء التسجيل.');}
- };
- const select=(o:BoardObject)=>{p.halt();setSelected(o);setQuestion('وضح لي هذا الجزء');};
- const fresh=()=>{if(recorder.current?.state==='recording'){recorder.current.onstop=null;recorder.current.stop();}tracks.current?.getTracks().forEach(t=>t.stop());if(recordTimer.current)clearTimeout(recordTimer.current);setRecording(false);cancel();p.clear();setHistory([]);setDetected('');setSelected(null);setPreview(null);setQuestion('');setError('');setImmersive(false);};
- const current=p.lesson?.segments[p.index];
- const speaking=p.status==='playing'&&!p.audioError;
- // Amplitude proxy from real playback progress; no synthetic audio is invented.
- const [voiceLevel,setVoiceLevel]=useState(0.2);
- useEffect(()=>{
-  if(!speaking){setVoiceLevel(0.2);return;}
-  const el=p.playerRef.current;let raf=0;let level=0.2;
-  const tick=()=>{const target=el&&!el.paused&&isFinite(el.duration)&&el.duration>0?0.5+0.5*Math.abs(Math.sin(el.currentTime*2.1)):0.24;level+=(target-level)*0.2;setVoiceLevel(level);raf=requestAnimationFrame(tick);};
-  raf=requestAnimationFrame(tick);
-  return()=>cancelAnimationFrame(raf);
- },[speaking,p.index,p.playerRef]);
- const toggleImmersive=useCallback(async()=>{
-  if(immersive){
-   setImmersive(false);
-   if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});
-   return;
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { BookOpen, ChevronLeft, FileText, GraduationCap, ImagePlus, Layers, Mic, PenLine, Play, ShieldCheck, Sparkles, Timer } from 'lucide-react';
+
+import { FnBadge, FnButton, FnCard } from '@/components/fahimni';
+import { FahimniMark } from '@/components/fahimni/logo';
+import { InstallPrompt } from '@/components/pwa/install-prompt';
+import { currentUser } from '@/lib/auth/server';
+import { resolveWhatsAppHref } from '@/lib/contact/whatsapp';
+import { MAX_DEVICES_KEY } from '@/lib/devices/store';
+import { getPlainSetting } from '@/lib/settings/service';
+import { studentStore } from '@/lib/student/store';
+import { trialStore } from '@/lib/trial/store';
+
+export const dynamic = 'force-dynamic';
+
+// The title intentionally falls back to the root layout's template so the
+// admin-managed platform name is always reflected on the landing page.
+export const metadata: Metadata = {
+  description:
+    'اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية من كتابك المدرسي — لجميع المواد والصفوف.',
+};
+
+// Official WhatsApp glyph, drawn locally so no icon dependency is added.
+function WhatsAppIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+const STEPS = [
+  {
+    title: 'اسأل بالنص أو الصورة أو الصوت',
+    text: 'اكتب سؤالك، أو صوّر المسألة من كتابك، أو احكِه بصوتك.',
+    icon: Mic,
+    tile: 'fn-icon-tile fn-icon-tile--mint',
+  },
+  {
+    title: 'شاهد الحل خطوة بخطوة',
+    text: 'سبورة تفاعلية تشرح كل خطوة بوضوح مع صوت المعلّم.',
+    icon: FileText,
+    tile: 'fn-icon-tile',
+  },
+  {
+    title: 'شرح مرتبط بكتابك',
+    text: 'شرح مستند إلى كتابك المدرسي، مع مراجع من صفحاته.',
+    icon: BookOpen,
+    tile: 'fn-icon-tile fn-icon-tile--sky',
+  },
+];
+
+// Real capabilities only — every card maps to a shipped feature.
+const FEATURES = [
+  {
+    title: 'سبورة تفاعلية حيّة',
+    text: 'كتابة ورسوم ومخططات بيانية تُرسم أمامك خطوة بخطوة أثناء الشرح.',
+    icon: PenLine,
+    tile: 'fn-icon-tile fn-icon-tile--gold',
+  },
+  {
+    title: 'ثلاثة أنماط للتعلم',
+    text: '«فهمني الدرس» لشرح جديد، «ساعدني أحل» لحل واجبك، و«اختبرني» لقياس فهمك.',
+    icon: Layers,
+    tile: 'fn-icon-tile fn-icon-tile--mint',
+  },
+  {
+    title: 'سؤال بصورة',
+    text: 'صوّر المسألة من كتابك وسنقرؤها ونشرحها لك.',
+    icon: ImagePlus,
+    tile: 'fn-icon-tile fn-icon-tile--pink',
+  },
+  {
+    title: 'سؤال بالصوت واستماع للشرح',
+    text: 'احكِ سؤالك بصوتك، واستمع للشرح بصوت عربي طبيعي.',
+    icon: Mic,
+    tile: 'fn-icon-tile fn-icon-tile--sky',
+  },
+  {
+    title: 'من كتابك المدرسي',
+    text: 'الشرح يستند إلى كتابك المعتمد، مع إشارة إلى صفحات المصدر.',
+    icon: BookOpen,
+    tile: 'fn-icon-tile',
+  },
+  {
+    title: 'تتبّع تقدمك',
+    text: 'نقاط فهمك محفوظة في حسابك، مع صفحة «راجع نقاط ضعفي» لتعود لأهم الدروس.',
+    icon: Sparkles,
+    tile: 'fn-icon-tile fn-icon-tile--gold',
+  },
+];
+
+const FAQ = (maxDevices: number | null) => [
+  {
+    q: 'ما هو فهمني؟',
+    a: 'منصة تعليمية ذكية تشرح لك دروسك خطوة بخطوة على سبورة تفاعلية، بالاستناد إلى كتابك المدرسي المعتمد.',
+  },
+  {
+    q: 'هل الشرح من الكتاب المدرسي؟',
+    a: 'نعم. يبحث فهمني في كتابك المعتمد ويربط الشرح بمحتواه، ويعرض صفحات المصدر عند الحاجة.',
+  },
+  {
+    q: 'كيف تعمل التجربة المجانية؟',
+    a: 'تحصل على رصيد تجريبي من النقاط خلال مدة محددة تبدأ من أول طلب فعلي، وتُستهلك النقاط حسب نوع الطلب (شرح، صورة، صوت) — مرة واحدة لكل حساب، وليست اشتراكًا متكررًا.',
+  },
+  {
+    q: 'هل يعمل فهمني على الجوال؟',
+    a: 'نعم، الموقع مصمم للجوال واللوح والحاسوب، ويمكنك تثبيته على شاشتك الرئيسية كتطبيق.',
+  },
+  {
+    q: 'على كم جهاز يمكنني استخدام حسابي؟',
+    a: `يمكنك استخدام حسابك على عدد محدود من الأجهزة${maxDevices ? ` (حتى ${maxDevices === 2 ? 'جهازين' : `${maxDevices} أجهزة`} حاليًا)` : ''}، ويمكنك إدارة الأجهزة من صفحة حسابك.`,
+  },
+  {
+    q: 'كيف ألغي اشتراكي؟',
+    a: 'تُدار الاشتراكات والفواتير عبر بوابة الدفع الآمنة، وعند إلغاء التجديد يبقى وصولك حتى نهاية المدة المدفوعة.',
+  },
+  {
+    q: 'ماذا عن خصوصية بياناتي؟',
+    a: 'تقدمك وأسئلتك خاصة بحسابك ولا تظهر لأي طالب آخر. راجع صفحتي الخصوصية والشروط لمزيد من التفاصيل.',
+  },
+];
+
+export default async function LandingPage() {
+  let user: Awaited<ReturnType<typeof currentUser>> = null;
+  try {
+    user = await currentUser();
+  } catch {
+    user = null;
   }
-  setImmersive(true);
-  try{await boardStage.current?.requestFullscreen?.();}catch{/* immersive layout still applies */}
- },[immersive]);
- useEffect(()=>{const onChange=()=>{if(!document.fullscreenElement)setImmersive(false);};document.addEventListener('fullscreenchange',onChange);return()=>document.removeEventListener('fullscreenchange',onChange);},[]);
- const board=(
-  <SmartBoard board={p.board} lesson={p.lesson} index={p.index} status={p.status} onSelect={select} scale={fontScale} voiceActive={speaking} voiceLevel={voiceLevel}>
-   {!p.lesson&&<div className="welcome"><div className="welcome-symbol"><Sparkles size={25}/></div><span className="small-label">أهلاً بك في مَدار</span><h2>نفكّر معاً.<br/><span>خطوة بخطوة.</span></h2><p>اكتب مسألتك، احكِها، أو صوّرها.<br/>سأشرح لك على السبورة، من كتابك وبالسرعة التي تناسبك.</p><button className="example-equation" onClick={()=>ask(units[unit].question)} disabled={busy}><span>نبدأ بمسألة من كتابك؟</span><MathText text={units[unit].latex}/><span className="example-footer">اشرح لي <span>صفحة {units[unit].page}</span></span></button><div className="welcome-note"><span className="tiny-line"/>ليس المهم أن تحفظ الإجابة، بل أن تفهمها.<span className="tiny-line"/></div></div>}
-  </SmartBoard>
- );
- return <div className={`classroom${immersive?' is-immersive':''}`}><header className="topbar"><a href="/" className="brand" aria-label="مدار"><span className="brand-mark"><Compass size={27}/></span><span>مَدار<span className="brand-sub">مساحة للفهم</span></span></a><div className="course"><span>الصف العاشر</span><span className="course-divider"/><strong>الرياضيات</strong><span className="semester">الفصل الأول</span></div><button className="book-button" onClick={()=>setBook(units[unit].page)}><BookOpen size={18}/><span>كتابي</span><span className="book-count">١٣٢ صفحة</span></button></header>
- <main className="workspace"><div className="workspace-heading"><div><span className="eyebrow">فصلك الخاص</span><h1>{p.lesson?p.lesson.title:'كل مسألة، بداية لفهم جديد.'}</h1></div><div className="heading-actions"><button className="journey-toggle" onClick={()=>setJourneyOpen(o=>!o)} aria-expanded={journeyOpen}><ListTree size={16}/>رحلة الحل</button><button className="quiet-button new-session" onClick={fresh}><Plus size={17}/>جلسة جديدة</button></div></div>
- {visualDev&&<div className="connection-note" style={{background:'rgba(127,212,193,.18)',color:'#0f4a40'}}><span className="amber-dot" style={{background:'#2f9e8a'}}/>وضع التطوير البصري مفعّل — الدروس تُعرض من نسخة محلية بدون أي استهلاك لرصيد OpenAI.</div>}
- {!p.lesson&&<div className="mobile-units">{units.map((u,i)=><button className={unit===i?'active':''} key={u.num} onClick={()=>setUnit(i)}>{u.name}</button>)}</div>}
- <div className="classroom-grid"><section className="board-shell" aria-label="السبورة التفاعلية">
- <div className="board-toolbar"><div className="board-title"><PenLine size={17}/><span>السبورة التفاعلية</span></div><div className="teacher-status"><span className={p.status==='playing'?'pulse-dot':'status-dot'}/>{busy?phase:p.audioLoading?'أجهّز صوت الخطوة…':labels[p.status]}</div><div className="board-tools"><button title="تكبير الكتابة" aria-label="تكبير الكتابة" onClick={()=>setFontScale(s=>Math.min(1.5,s+.1))}><Plus size={16}/></button><button title="تصغير الكتابة" aria-label="تصغير الكتابة" onClick={()=>setFontScale(s=>Math.max(.9,s-.1))}><Minus size={16}/></button><button title={immersive?'إنهاء وضع الصف':'ملء الشاشة'} aria-label={immersive?'إنهاء وضع الصف':'ملء الشاشة'} onClick={toggleImmersive}>{immersive?<Minimize2 size={17}/>:<Expand size={17}/>}</button></div></div>
- <div ref={boardStage} className="board-stage-wrap">
-  {p.lesson&&<div className="lesson-kicker"><span>خطوة {p.index+1} من {p.lesson.segments.length}</span><span>{current?.goal}</span></div>}
-  {board}
-  {immersive&&<button className="fs-exit" onClick={toggleImmersive} aria-label="إنهاء وضع الصف"><Minimize2 size={19}/></button>}
-  {busy&&<div className="preparing-overlay" role="status"><div className="preparing-card"><LoaderCircle className="spin" size={25}/><strong>{phase}</strong><span>لحظة واحدة، لنجعل الفكرة أوضح.</span><button className="quiet-button" onClick={cancel}>إلغاء</button></div></div>}
-  <div className="board-watermark">مَدار / مساحة للفهم</div>
- </div>
- <div className="narration-bar" aria-live="polite"><div className="voice-icon">{speaking?<AudioLines size={20}/>:<Sparkles size={19}/>}</div><div><span className="narrator-label">معلّمك الذكي <small>صوت مولّد بالذكاء الاصطناعي</small></span><p>{current?.narration||'خذ وقتك. أنا هنا لأساعدك على فهم الفكرة.'}</p></div><button className="icon-button" aria-label={p.voice?'كتم صوت المعلم':'تفعيل صوت المعلم'} onClick={()=>p.setVoice(!p.voice)}>{p.voice?<Volume2 size={19}/>:<VolumeX size={19}/>}</button></div>
- {p.lesson&&<div className="board-sources"><BookOpen size={13}/><span>من كتابك:</span>{(current?.sources||[]).map(s=><button key={s.chunkId} onClick={()=>setBook(s.pdfPage)}>صفحة {s.printedPage??s.pdfPage}</button>)}</div>}
- <div className="playback"><div className="playback-actions"><button className="icon-button" disabled={!p.lesson||busy} title="الخطوة السابقة" aria-label="الخطوة السابقة" onClick={()=>p.jump(p.index-1)}><SkipBack size={18}/></button><button className="play-button" disabled={!p.lesson||busy} aria-label={p.status==='playing'?'إيقاف مؤقت':'تشغيل'} onClick={p.toggle}>{p.status==='playing'?<Pause size={18}/>:<Play size={18}/>}</button><button className="icon-button" disabled={!p.lesson||busy} title="الخطوة التالية" aria-label="الخطوة التالية" onClick={()=>p.jump(p.index+1)}><SkipForward size={18}/></button><span className="control-divider"/><button className="icon-button" disabled={!p.lesson||busy} title="أعد الخطوة" aria-label="أعد الخطوة" onClick={()=>p.jump(p.index)}><RotateCcw size={17}/></button><button className="icon-button optional-control" disabled={!p.lesson||busy} title="أوقف الشرح" aria-label="أوقف الشرح" onClick={p.stop}><Square size={15}/></button><button className="icon-button optional-control" disabled={!p.lesson||busy} title="أعد الشرح من البداية" aria-label="أعد الشرح من البداية" onClick={p.restart}><RotateCcw size={17}/><span className="tiny">١</span></button><button className="icon-button" disabled={!p.lesson||busy} title="مسح السبورة" aria-label="مسح السبورة" onClick={fresh}><Trash2 size={17}/></button></div><div className="playback-meta"><select aria-label="سرعة الشرح" value={p.rate} onChange={e=>p.setRate(Number(e.target.value))}><option value="0.75">أبطأ · 0.75×</option><option value="1">سرعة عادية</option><option value="1.25">أسرع · 1.25×</option></select><span className="step-time" dir="ltr">{p.lesson?`${p.index+1} / ${p.lesson.segments.length}`:'خطوة بخطوة'}</span></div></div>
- </section>
- {p.lesson?<div className="journey-slot" data-open={journeyOpen} data-collapsible="true"><LessonJourney goals={p.lesson.segments.map(s=>s.goal)} index={p.index} total={p.lesson.segments.length} status={p.status} busy={busy} onJump={i=>{p.jump(i);setJourneyOpen(false);}} onSimpler={()=>ask('مش فاهم. اشرح لي الخطوة الحالية بطريقة أبسط.')} onWhyStep={()=>ask(`ليش عملنا الخطوة ${p.index+1}؟`)}/></div>:<aside className="lesson-sidebar"><div className="sidebar-title"><span>من كتابك</span><BookOpen size={18}/></div><p className="sidebar-description">أربع وحدات. أفكار مترابطة.<br/>اختر نقطة البداية.</p><nav className="units">{units.map((u,i)=><button className={unit===i?'active':''} key={u.num} onClick={()=>setUnit(i)}><span className="unit-num">{u.num}</span><span><strong>{u.name}</strong><small>{u.description}</small></span><ChevronLeft size={16}/></button>)}</nav><div className="book-card"><div className="book-card-icon"><BookOpen size={25}/></div><strong>المرجع بين يديك</strong><p>الشرح يستند إلى كتاب الرياضيات الأردني المرفق.</p><button onClick={()=>setBook(units[unit].page)}>تصفّح الكتاب <ChevronLeft size={16}/></button></div><div className="teacher-tip"><span>مساحة للسؤال</span><p>«ليش؟» سؤال ممتاز.<br/>اسأل في أي لحظة، وسنعود للفكرة معاً.</p></div></aside>}
- </div>
- <div className="interaction-area">{configured===false&&<div className="connection-note"><span className="amber-dot"/>الشرح الذكي والصوت بانتظار تفعيل اتصال المعلّم. يمكنك الآن تصفّح الكتاب.</div>}{p.audioError&&<div className="inline-notice" role="status">{p.audioError}</div>}{error&&<div className="error-message" role="alert">{error}<button aria-label="إغلاق التنبيه" onClick={()=>setError('')}><X size={16}/></button></div>}
- {(preview||detected||selected)&&<div className="input-context">{preview&&<img src={preview} alt="السؤال المرفق"/>}<span>{selected?`نسأل عن: ${selected.content}`:detected?`فهمت السؤال كالتالي: ${detected}`:'الصورة المرفقة'}</span><button className="icon-button" aria-label="إزالة المرفق" onClick={()=>{setPreview(null);setDetected('');setSelected(null);}}><X size={16}/></button></div>}
- <form className={`question-form ${recording?'recording':''}`} onSubmit={e=>{e.preventDefault();ask();}}><div className="input-spark"><Sparkles size={22}/></div><textarea aria-label="سؤالك للمعلم" value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask();}}} placeholder={recording?`أسمعك الآن… ${seconds} ث`:'اكتب سؤالك… أو احكِه، أو صوّره'} rows={1} maxLength={4000} disabled={recording}/><div className="input-tools"><button type="button" className={'icon-button mic '+(recording?'is-recording':'')} aria-label={recording?'إنهاء التسجيل':'تسجيل سؤال صوتي'} title="احكي سؤالك" disabled={busy} onClick={toggleRecord}>{recording?<Square size={18}/>:<Mic size={21}/>}</button><button type="button" className="icon-button" aria-label="تصوير المسألة" title="صوّر السؤال" disabled={busy||recording} onClick={()=>cameraInput.current?.click()}><Camera size={21}/></button><button type="button" className="icon-button upload-button" aria-label="رفع صورة" title="رفع صورة" disabled={busy||recording} onClick={()=>uploadInput.current?.click()}><ImagePlus size={20}/></button><button className="send-button" type="submit" aria-label="أرسل السؤال" disabled={busy||recording||question.trim().length<2}>{busy?<LoaderCircle className="spin" size={20}/>:<ArrowUp size={21}/>}</button></div><input ref={uploadInput} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{handleImage(e.target.files?.[0]);e.target.value='';}}/><input ref={cameraInput} hidden type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={e=>{handleImage(e.target.files?.[0]);e.target.value='';}}/></form><div className="input-hint"><span>{recording?'اضغط المربع لإنهاء التسجيل · دقيقة واحدة كحد أقصى':'اكتب، احكِ، أو صوّر. أنت تختار طريقة السؤال.'}</span><span>قد يخطئ المعلّم الذكي؛ راجع الخطوات مع كتابك.</span></div></div>
- </main>{book!==null&&<div className="modal-backdrop" onClick={()=>setBook(null)}><section className="book-modal" role="dialog" aria-modal="true" aria-label="كتاب الرياضيات" onClick={e=>e.stopPropagation()}><div className="modal-toolbar"><strong><BookOpen size={18}/>كتاب الرياضيات · الصف العاشر</strong><button className="icon-button" aria-label="إغلاق الكتاب" autoFocus onClick={()=>setBook(null)}><X/></button></div><div className="book-page"><img src={`/book/${book}.jpg`} alt={`الكتاب المرفق، صفحة PDF ${book}`} /></div><div className="book-navigation"><button className="quiet-button" disabled={book<=6} onClick={()=>setBook(n=>Math.max(6,n!-1))}><ChevronRight size={18}/>السابقة</button><label>صفحة <input aria-label="رقم صفحة الكتاب" type="number" min="6" max="132" value={book} onChange={e=>{const n=Number(e.target.value);if(n>=6&&n<=132)setBook(n);}}/> من ١٣٢</label><button className="quiet-button" disabled={book>=132} onClick={()=>setBook(n=>Math.min(132,n!+1))}>التالية<ChevronLeft size={18}/></button></div></section></div>}{debug&&<><button className="debug-toggle" onClick={()=>setDiagnostics(!diagnostics)}>تشخيص المطوّر</button>{diagnostics&&<pre className="debug-panel" dir="ltr">{JSON.stringify({session:sessionId.current,visualDev,lesson:p.lesson,board:p.board,step:p.index,status:p.status,error},null,2)}</pre>}</>}
- </div>;
+  let grades: Awaited<ReturnType<ReturnType<typeof studentStore>['listActiveGrades']>> = [];
+  try {
+    grades = await studentStore().listActiveGrades();
+  } catch {
+    grades = [];
+  }
+
+  const startHref = user ? (user.role === 'ADMIN' ? '/admin' : '/app') : '/login';
+  const gradeHref = user ? '/app' : `/login?returnTo=${encodeURIComponent('/app')}`;
+  const whatsAppHref = await resolveWhatsAppHref();
+  // Real, admin-managed values — the landing never invents trial terms.
+  const trialSettings = await trialStore()
+    .getSettings()
+    .catch(() => null);
+  const maxDevicesRaw = await getPlainSetting(MAX_DEVICES_KEY).catch(() => null);
+  const maxDevices = Number.parseInt(maxDevicesRaw ?? '', 10) || null;
+
+  return (
+    <div className="fn-root fn-page">
+      <header className="landing-nav">
+        <div className="fn-container landing-nav__inner">
+          <Link href="/" className="fn-brand" aria-label="فهمني">
+            <FahimniMark size={36} />
+            <span className="fn-brand__name">فهمني</span>
+          </Link>
+          <nav className="landing-nav__links" aria-label="التنقل الرئيسي">
+            <Link href="/" className="fn-nav-link is-active">
+              الرئيسية
+            </Link>
+            <Link href="/#grades" className="fn-nav-link">
+              الصفوف الدراسية
+            </Link>
+            <Link href="/#how" className="fn-nav-link">
+              كيف يعمل؟
+            </Link>
+            <Link href="/#faq" className="fn-nav-link">
+              الأسئلة الشائعة
+            </Link>
+            <Link href="/#contact" className="fn-nav-link">
+              اتصل بنا
+            </Link>
+          </nav>
+          <FnButton asChild size="sm">
+            <Link href={startHref}>ابدأ الآن</Link>
+          </FnButton>
+        </div>
+      </header>
+
+      <main className="fn-app-main">
+        <div className="fn-container landing-sections">
+          <section className="landing-hero">
+            <div className="landing-hero__art landing-hero__art--mascot" aria-hidden="true">
+              <FahimniMark size={200} className="landing-mascot-svg" />
+            </div>
+
+            <div className="landing-hero__copy">
+              <FnBadge variant="primary">
+                <Sparkles size={13} aria-hidden="true" />
+                فهمني · منصة تعليمية ذكية لجميع المواد
+              </FnBadge>
+              <h1 className="fn-display fn-display--hero landing-title">
+                مدرّسك الذكي <span className="fn-text-gradient">من كتابك</span>
+              </h1>
+              <p className="landing-lede">
+                اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة
+                التي تناسبك.
+              </p>
+              <div className="fn-row fn-row--wrap landing-actions">
+                <FnButton asChild size="lg">
+                  <Link href={startHref}>
+                    ابدأ الآن
+                    <ChevronLeft size={19} aria-hidden="true" />
+                  </Link>
+                </FnButton>
+                <FnButton asChild size="lg" variant="outline">
+                  <Link href="/#how">كيف يعمل فهمني؟</Link>
+                </FnButton>
+              </div>
+            </div>
+
+            <div className="landing-hero__art landing-hero__art--visual" aria-hidden="true">
+              <div className="landing-visual">
+                <div className="landing-visual__card">
+                  <span className="landing-visual__head">
+                    <span className="landing-visual__tile">
+                      <Sparkles size={16} />
+                    </span>
+                    <span className="landing-visual__name">فهمني يشرح</span>
+                  </span>
+                  <span className="landing-visual__line" />
+                  <span className="landing-visual__line landing-visual__line--short" />
+                  <span className="landing-visual__line landing-visual__line--mid" />
+                  <span className="landing-visual__chips">
+                    <span className="landing-visual__chip landing-visual__chip--mint">
+                      <Mic size={14} />
+                      صوت
+                    </span>
+                    <span className="landing-visual__chip landing-visual__chip--pink">
+                      <ImagePlus size={14} />
+                      صورة
+                    </span>
+                  </span>
+                </div>
+                <span className="landing-visual__badge">
+                  <PenLine size={14} />
+                  خطوة بخطوة
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <InstallPrompt />
+
+          <section id="grades" className="fn-section landing-anchor">
+            <div className="landing-section-head">
+              <h2 className="landing-section-title">الصفوف الدراسية</h2>
+              <p className="landing-section-sub">اختر صفك الدراسي وابدأ التعلّم مباشرة.</p>
+            </div>
+            {grades.length > 0 ? (
+              <div className="grades-grid">
+                {grades.map((grade, index) => (
+                  <Link
+                    key={grade.id}
+                    href={gradeHref}
+                    className="grade-card"
+                    aria-label={`ابدأ التعلّم — ${grade.name}`}
+                  >
+                    <span className={`grade-card__icon grade-card__icon--${index % 3}`}>
+                      <GraduationCap size={26} aria-hidden="true" />
+                    </span>
+                    <span className="grade-card__title">{grade.name}</span>
+                    <span className="grade-card__cta">
+                      ابدأ التعلّم
+                      <ChevronLeft size={16} aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <FnCard variant="flat" className="fn-empty">
+                <div className="fn-icon-tile fn-icon-tile--lg">
+                  <GraduationCap size={26} aria-hidden="true" />
+                </div>
+                <p className="fn-empty__title">لا توجد صفوف دراسية متاحة حاليًا</p>
+                <p className="fn-empty__text">نعمل على تجهيز الصفوف والمواد. تابعنا قريبًا.</p>
+              </FnCard>
+            )}
+          </section>
+
+          <section id="how" className="fn-section landing-anchor">
+            <div className="landing-how">
+              <div className="landing-section-head">
+                <h2 className="landing-section-title">كيف يعمل فهمني؟</h2>
+              </div>
+              <div className="fn-grid fn-grid--3">
+                {STEPS.map((step) => {
+                  const Icon = step.icon;
+                  return (
+                    <FnCard key={step.title} variant="flat" className="fn-card--centered">
+                      <span className={step.tile}>
+                        <Icon size={22} aria-hidden="true" />
+                      </span>
+                      <span className="fn-card__title">{step.title}</span>
+                      <span className="fn-card__text">{step.text}</span>
+                    </FnCard>
+                  );
+                })}
+              </div>
+
+              <div className="landing-cta" aria-labelledby="landing-cta-title">
+                <div className="landing-cta__inner">
+                  <div className="landing-cta__art" aria-hidden="true">
+                    <div className="landing-board">
+                      <span className="landing-board__bar">
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                      <span className="landing-board__line" />
+                      <span className="landing-board__line landing-board__line--short" />
+                      <span className="landing-board__line landing-board__line--accent" />
+                      <span className="landing-board__line landing-board__line--mid" />
+                      <span className="landing-board__play">
+                        <Play size={15} />
+                      </span>
+                      <span className="landing-board__spark">
+                        <Sparkles size={16} />
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="landing-cta__copy">
+                    <h2 id="landing-cta-title" className="landing-cta__title">
+                      جاهز تبدأ؟
+                    </h2>
+                    <p className="landing-cta__text">أنشئ حسابك مجانًا وجرّب السبورة التفاعلية بنفسك.</p>
+                    <FnButton asChild size="lg" className="landing-cta__btn">
+                      <Link href={startHref}>
+                        ابدأ الآن
+                        <ChevronLeft size={19} aria-hidden="true" />
+                      </Link>
+                    </FnButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="features" className="fn-section landing-anchor">
+            <div className="landing-section-head">
+              <h2 className="landing-section-title">كل ما تحتاجه للفهم</h2>
+              <p className="landing-section-sub">أدوات حقيقية مصممة لطالب المدرسة: اسأل، شاهد، افهم، وتدرّب.</p>
+            </div>
+            <div className="fn-grid fn-grid--3">
+              {FEATURES.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <FnCard key={feature.title} variant="flat" className="fn-stack fn-stack--sm">
+                    <span className={feature.tile}>
+                      <Icon size={20} aria-hidden="true" />
+                    </span>
+                    <span className="fn-card__title">{feature.title}</span>
+                    <span className="fn-card__text">{feature.text}</span>
+                  </FnCard>
+                );
+              })}
+            </div>
+          </section>
+
+          <section id="trial" className="fn-section landing-anchor">
+            <div className="fn-grid fn-grid--2">
+              {trialSettings?.enabled ? (
+                <FnCard variant="tinted" className="fn-stack">
+                  <div className="fn-row">
+                    <span className="fn-icon-tile fn-icon-tile--sm fn-icon-tile--mint">
+                      <Timer size={18} aria-hidden="true" />
+                    </span>
+                    <h2 className="fn-card__title">جرّب فهمني مجانًا</h2>
+                  </div>
+                  <p className="fn-card__text">
+                    عند تفعيل التجربة تحصل على <strong>رصيد تجريبي من {trialSettings.creditAllowance} نقطة</strong> خلال{' '}
+                    <strong>{trialSettings.durationHours} ساعة</strong> تبدأ من أول طلب فعلي. تُستهلك النقاط حسب نوع الطلب
+                    (شرح، صورة، صوت) — مرة واحدة لكل حساب، وليست اشتراكًا متكررًا.
+                  </p>
+                  <FnButton asChild size="sm">
+                    <Link href={startHref}>ابدأ تجربتك المجانية</Link>
+                  </FnButton>
+                </FnCard>
+              ) : (
+                <FnCard variant="flat" className="fn-stack">
+                  <h2 className="fn-card__title">ابدأ بحساب مجاني</h2>
+                  <p className="fn-card__text">أنشئ حسابك وشاهد السبورة التفاعلية. التجربة المجانية قيد التجهيز حاليًا.</p>
+                  <FnButton asChild size="sm">
+                    <Link href={startHref}>ابدأ الآن</Link>
+                  </FnButton>
+                </FnCard>
+              )}
+              <FnCard variant="flat" className="fn-stack">
+                <div className="fn-row">
+                  <span className="fn-icon-tile fn-icon-tile--sm fn-icon-tile--gold">
+                    <ShieldCheck size={18} aria-hidden="true" />
+                  </span>
+                  <h2 className="fn-card__title">الاشتراكات بوضوح</h2>
+                </div>
+                <ul className="fn-list">
+                  <li>مادة واحدة، أو باقة تجمع كل مواد صفك وتخصصك.</li>
+                  <li>شهري متكرر، أو فصلي بدفعة واحدة حتى نهاية الفصل الدراسي.</li>
+                  <li>كل خطة تشمل رصيد نقاط شهريًا معلنًا قبل الشراء.</li>
+                  <li>الأسعار النهائية تُعرض داخل حسابك حسب صفك عند تفعيل الدفع — بلا رسوم خفية.</li>
+                  <li>الإلغاء والتجديد والفواتير عبر بوابة الدفع الآمنة.</li>
+                </ul>
+              </FnCard>
+            </div>
+          </section>
+
+          <section id="faq" className="fn-section landing-anchor">
+            <div className="landing-section-head">
+              <h2 className="landing-section-title">الأسئلة الشائعة</h2>
+              <p className="landing-section-sub">أجوبة مباشرة لأكثر ما يسأل عنه الطلاب وأولياء الأمور.</p>
+            </div>
+            <div className="landing-faq">
+              {FAQ(maxDevices).map((item) => (
+                <details key={item.q} className="faq-item">
+                  <summary className="faq-item__q">{item.q}</summary>
+                  <p className="faq-item__a">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          <section id="contact" className="fn-section landing-anchor">
+            <div className="contact-card">
+              <div className="contact-card__main">
+                <span className="contact-card__icon" aria-hidden="true">
+                  <WhatsAppIcon size={26} />
+                </span>
+                <div className="contact-card__copy">
+                  <h2 className="landing-section-title">تواصل معنا</h2>
+                  <p className="landing-section-sub">عندك سؤال أو تحتاج مساعدة؟ فريق فهمني جاهز يساعدك عبر واتساب.</p>
+                </div>
+              </div>
+              {whatsAppHref ? (
+                <FnButton asChild size="lg" className="contact-card__btn">
+                  <a href={whatsAppHref} target="_blank" rel="noopener noreferrer">
+                    <WhatsAppIcon size={19} />
+                    تواصل عبر واتساب
+                  </a>
+                </FnButton>
+              ) : (
+                <p className="fn-caption contact-card__note">التواصل عبر واتساب قيد التجهيز حاليًا.</p>
+              )}
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer className="fn-footer">
+        <div className="fn-container fn-row fn-row--wrap fn-row--between">
+          <span>© {new Date().getFullYear()} فهمني — مساحة للفهم.</span>
+          <span className="fn-row fn-row--wrap">
+            <Link className="fn-caption" href="/privacy">سياسة الخصوصية (مسودة)</Link>
+            <Link className="fn-caption" href="/terms">الشروط والأحكام (مسودة)</Link>
+          </span>
+        </div>
+      </footer>
+    </div>
+  );
 }

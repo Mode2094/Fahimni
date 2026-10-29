@@ -5,14 +5,22 @@ import {retrieve,chunks} from '../lib/textbook/retrieval';
 import {actionSchema,generatedLessonSchema,emptyBoard,Action} from '../schemas/lesson';
 import {runActions,validateActions,beforeSegment} from '../lib/whiteboard/engine';
 import {teach,TutorInput} from '../lib/ai/tutor';
-import {AIProvider,provider,ProviderError} from '../lib/ai/provider';
+import {AIProvider,provider} from '../lib/ai/provider';
 import {upload,boundedBody} from '../lib/http';
+import {setSettingsReaderForTests} from '../lib/settings/service';
+// The provider reads runtime config from settings. Without a reader override a
+// call opens a database connection; in CI that pending promise cancels sibling
+// tests. An empty reader lets the environment govern provider config.
+setSettingsReaderForTests({getPlain:async()=>null,getSecret:async()=>null,getSecretPresence:async()=>false});
 const action=(type:Action['type'],extra:Partial<Action>={}):Action=>({type,id:null,content:null,region:'working-area',targets:[],points:[],color:'ink',geometry:null,delayMs:0,...extra});
 const q='حل المعادلة x^3 + 4x^2 = 5x';
+// The tutor hands the provider input enriched with retrieval results; the fake
+// only needs those extra fields, not the full internal type.
+type FakeInput=TutorInput&{followup?:boolean;retrieved:{id:string}[]};
 const baseInput:TutorInput={question:q,board:emptyBoard(),history:[],currentStep:0,currentLesson:null};
-function fakeAI(generate:(input:any,call:number)=>unknown):AIProvider{let calls=0;return {json:async(s,input)=>s.startsWith('Normalize')?{searchQuery:q,followup:(input as TutorInput).question.includes('ليش')}:generate(input,++calls),vision:async()=>({clear:true,question:q}),transcribe:async()=>q,speak:async()=>new ArrayBuffer(5)};}
-function fixture(input:any){return {title:'حل معادلة خاصة',mode:input.followup?'followup':'new',sufficientContext:true,message:'',segments:[{id:'step1',narration:'نبدأ بالمعادلة المعطاة.',goal:'نفهم المعادلة',sourceChunkIds:[input.retrieved[0].id],actions:[input.followup?action('highlight',{targets:['eq1']}):action('write_latex',{id:'eq1',content:'x^3+4x^2=5x'})]},{id:'step2',narration:'نطرح خمسة سين من الطرفين، ثم نحلل المقدار.',goal:'نحلل المقدار',sourceChunkIds:[input.retrieved[0].id],actions:[action('write_latex',{id:'eq2',content:'x(x+5)(x-1)=0'})]}]};}
-test('ingestion: 127 real teaching pages, verified printed page numbers, source assets',()=>{assert.equal(chunks.length,127);for(const c of chunks){assert.equal(c.printedPage,c.pdfPage);assert(c.text.length>30);assert(fs.existsSync('public'+c.image));assert.equal(c.sourceId,'math10-2ad3b12dc497');}});
+function fakeAI(generate:(input:FakeInput,call:number)=>unknown):AIProvider{let calls=0;return {json:async(s,input)=>s.startsWith('Normalize')?{searchQuery:q,followup:(input as TutorInput).question.includes('ليش')}:generate(input as FakeInput,++calls),vision:async()=>({clear:true,question:q}),transcribe:async()=>q,speak:async()=>new ArrayBuffer(5)};}
+function fixture(input:FakeInput){return {title:'حل معادلة خاصة',mode:input.followup?'followup':'new',sufficientContext:true,assessment:null,message:'',segments:[{id:'step1',narration:'نبدأ بالمعادلة المعطاة.',goal:'نفهم المعادلة',sourceChunkIds:[input.retrieved[0].id],actions:[input.followup?action('highlight',{targets:['eq1']}):action('write_latex',{id:'eq1',content:'x^3+4x^2=5x'})]},{id:'step2',narration:'نطرح خمسة سين من الطرفين، ثم نحلل المقدار.',goal:'نحلل المقدار',sourceChunkIds:[input.retrieved[0].id],actions:[action('write_latex',{id:'eq2',content:'x(x+5)(x-1)=0'})]},{id:'step3',narration:'إذن الحلول هي صفر وسالب خمسة وواحد.',goal:'نستنتج الحلول',sourceChunkIds:[input.retrieved[0].id],actions:[action('write_latex',{id:'eq3',content:'x=0\\ \\text{أو}\\ x=-5\\ \\text{أو}\\ x=1'})]}]};}
+test('ingestion: 127 real teaching pages, verified printed page numbers, source assets',()=>{assert.equal(chunks.length,127);for(const c of chunks){assert.equal(c.printedPage,c.pdfPage);assert(c.text.length>30);assert(/^\/book\/\d+\.jpg$/.test(c.image));assert(fs.existsSync('assets/legacy-textbook'+c.image.replace('/book/','/')));assert.equal(c.sourceId,'math10-2ad3b12dc497');}});
 test('retrieval distinguishes all four units and neighbouring laws',()=>{for(const [query,min,max]of [['حل معادلات خاصة',8,15],['أوتار الدائرة وأقطارها ومماساتها',34,40],['قانون الجيوب',106,112],['قانون جيوب التمام',113,118],['استعمال جيب الزاوية لإيجاد مساحة المثلث',119,123],['تمثيل الاقترانات المثلثية',82,87],['حل نظام مكون من معادلتين تربيعيتين',25,30]] as const){const results=retrieve(query);assert(results.length>0,query);assert(results[0].pdfPage>=min&&results[0].pdfPage<=max,`${query}: ${results[0].pdfPage}`);}});
 test('retrieval rejects unsupported subject, respects explicit page',()=>{assert.equal(retrieve('أريد تعلم طبخ الكبسة').length,0);assert.equal(retrieve('اشرح صفحة ٤٢')[0].pdfPage,42);});
 test('schema rejects executable actions, extra HTML, out-of-bounds geometry',()=>{assert.equal(actionSchema.safeParse({...action('wait'),type:'eval',code:'alert(1)'}).success,false);assert.equal(actionSchema.safeParse(action('plot_point',{points:[{x:999,y:0}]})).success,false);assert.equal(generatedLessonSchema.safeParse({title:'x',segments:'bad'}).success,false);});
@@ -24,5 +32,24 @@ test('tutor rejects repeatedly hallucinated citations and malformed LaTeX',async
 test('followup receives current objects and focuses without clearing board',async()=>{const board=runActions(emptyBoard(),[action('write_latex',{id:'eq1',content:'x^3+4x^2=5x'})]);const l=await teach({...baseInput,question:'ليش عملنا الخطوة الثانية؟',board,currentStep:1,currentLesson:{title:'حل معادلات خاصة',goals:['المعادلة','التحليل'],narrations:['نبدأ','نحلل']}},undefined,fakeAI(fixture));assert.equal(l.mode,'followup');const next=runActions(board,l.segments[0].actions);assert.equal(next.objects[0].id,'eq1');assert(next.objects[0].highlighted);});
 test('insufficient grounding stops lesson generation',async()=>{const ai=fakeAI(fixture);ai.json=async()=>({searchQuery:'طبخ الكبسة',followup:false});await assert.rejects(teach(baseInput,undefined,ai),/no_context/);});
 async function uploadReq(type:string,bytes:Uint8Array,name:string){const form=new FormData();form.set('file',new File([bytes as BlobPart],name,{type}));return new Request('https://local/api/vision',{method:'POST',body:form});}
-test('upload rejects forged MIME, oversized bodies, SVG and validates real source JPEG',async()=>{await assert.rejects(upload(await uploadReq('image/png',new TextEncoder().encode('<script>bad</script>'),'fake.png'),'image'),/upload/);await assert.rejects(upload(await uploadReq('image/svg+xml',new TextEncoder().encode('<svg/>'),'bad.svg'),'image'),/upload/);await assert.rejects(boundedBody(new Request('http://local',{method:'POST',body:'123456789'}),4),/too_large/);const valid=await upload(await uploadReq('image/jpeg',new Uint8Array(fs.readFileSync('public/book/8.jpg')),'question.jpg'),'image');assert(valid.size>1000);});
+test('upload rejects forged MIME, oversized bodies, SVG and validates real source JPEG',async()=>{await assert.rejects(upload(await uploadReq('image/png',new TextEncoder().encode('<script>bad</script>'),'fake.png'),'image'),/upload/);await assert.rejects(upload(await uploadReq('image/svg+xml',new TextEncoder().encode('<svg/>'),'bad.svg'),'image'),/upload/);await assert.rejects(boundedBody(new Request('http://local',{method:'POST',body:'123456789'}),4),/too_large/);const valid=await upload(await uploadReq('image/jpeg',new Uint8Array(fs.readFileSync('assets/legacy-textbook/8.jpg')),'question.jpg'),'image');assert(valid.size>1000);});
 test('missing credentials fail honestly; provider errors remain typed',async()=>{const old=process.env.OPENAI_API_KEY;delete process.env.OPENAI_API_KEY;try{await assert.rejects(provider.json('x',{}),/missing_key/);await assert.rejects(provider.speak('مرحبا'),/missing_key/);}finally{if(old)process.env.OPENAI_API_KEY=old;}});
+
+test('the tutor prompt is subject-aware: math and a non-math subject',async()=>{
+ // Capture the system prompt the tutor sends to the provider.
+ const systems:string[]=[];
+ const ai=fakeAI((input)=>fixture(input));
+ ai.json=async(_s:string,input:unknown)=>{const system=String(_s);systems.push(system);if(system.startsWith('Normalize'))return {searchQuery:q,followup:false};return fixture(input as FakeInput);};
+
+ await teach({...baseInput,subjectSlug:'tawjihi-math',subjectName:'رياضيات التوجيهي'},undefined,ai);
+ const mathSystem=systems.join(' \n ');
+ assert.ok(mathSystem.includes('رياضيات التوجيهي'),'the math subject name must reach the prompt');
+ assert.equal(mathSystem.includes('Grade 10'),false,'no hard-coded grade in the prompt');
+
+ systems.length=0;
+ await teach({...baseInput,question:'ما هو قانون الغاز المثالي؟',subjectSlug:'tawjihi-chemistry',subjectName:'كيمياء التوجيهي'},undefined,ai);
+ const chemSystem=systems.join(' \n ');
+ assert.ok(chemSystem.includes('كيمياء التوجيهي'),'the chemistry subject name must reach the prompt');
+ assert.equal(chemSystem.toLowerCase().includes('mathemat'),false,'chemistry must not be taught as mathematics');
+ assert.equal(chemSystem.includes('Grade 10'),false);
+});

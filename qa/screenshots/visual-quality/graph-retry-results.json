@@ -1,0 +1,65 @@
+{
+ "timeToLessonMs": 10568,
+ "loaded": true,
+ "distinctFrames": 296,
+ "totalFrames": 522,
+ "savedFrames": [
+  {
+   "name": "graph-retry-1.jpg",
+   "t": 1791496454.910569
+  },
+  {
+   "name": "graph-retry-2.jpg",
+   "t": 1791496455.060174
+  },
+  {
+   "name": "graph-retry-3.jpg",
+   "t": 1791496455.14906
+  },
+  {
+   "name": "graph-retry-4.jpg",
+   "t": 1791496455.231471
+  },
+  {
+   "name": "graph-retry-5.jpg",
+   "t": 1791496455.316074
+  },
+  {
+   "name": "graph-retry-6.jpg",
+   "t": 1791496455.399456
+  }
+ ],
+ "state": {
+  "step": "2/7",
+  "graphSvgs": 1,
+  "graphStrokes": 3,
+  "graphDots": 0,
+  "objects": 0,
+  "overflow": false,
+  "credit": "رصيدك283"
+ },
+ "lesson": {
+  "title": "رسم القطع المكافئ ص يساوي س² ناقص 4 وشرح جذوره من محور السينات",
+  "segments": 7,
+  "actionTypes": [
+   "draw_axes",
+   "plot_points",
+   "plot_graph",
+   "write_latex",
+   "plot_point"
+  ],
+  "graphActions": [
+   "draw_axes",
+   "plot_points",
+   "plot_graph",
+   "plot_point",
+   "plot_point"
+  ],
+  "plotGraphPoints": [
+   9
+  ],
+  "labels": [],
+  "latexInNarration": 0,
+  "finalNarration": "هكذا الجذور هي عند س يساوي 2 وس يساوي ناقص 2، وهي تمثل نقاط تقاطع القطع المكافئ مع محور السينات، لأن الصاد تكون صفر."
+ }
+}

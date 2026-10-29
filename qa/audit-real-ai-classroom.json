@@ -1,0 +1,47 @@
+{
+  "task": "Activate real AI classroom and test real textbook learning",
+  "date": "2026-10-08",
+  "demoMode": {
+    "flag": "NEXT_PUBLIC_VISUAL_DEV_MODE set to false in .env.local (was true); dev server restarted",
+    "scope": "lib/whiteboard/fixtures.ts is consumed only by the browser Classroom when the flag is on; no server route had demo/mock fallbacks (grep of tutor/vision/transcribe/speech + lib/ai: none)",
+    "verified": "no 'وضع تجريبي' badge in the browser; every answer in this report came from real provider calls"
+  },
+  "textbook": {
+    "file": "كتاب الطالب لمادة الرياضيات الصف العاشر الفصل الا_ول.pdf",
+    "size": "18.6MB",
+    "bookId": "11111111-1111-4111-8111-111111111111",
+    "status": "READY",
+    "pages": "132/132 indexed, 132 chunks, 132 page images",
+    "mappingIssue": "CONFIRMED: the grade-10 book is attached to subject رياضيات التوجيهي (grade 12). No grade-10 grade/subject exists in the catalog. Owner confirmation requested before moving; nothing was changed."
+  },
+  "realProviderTests": {
+    "modelConfig": "OPENAI_TUTOR_MODEL from env (gpt-4.1-mini family) via the runtime config; key from env fallback (admin-saved key was cleared during Phase 3 tests)",
+    "questions": [
+      { "level": "easy", "question": "مساحة مثلث ضلعاه 8 و6 والزاوية 30", "expected": 12, "result": "12 ✓", "segments": 5, "sources": [120, 119], "credits": "44" },
+      { "level": "medium", "question": "قانون الجيوب: زاويتان 85/65 والضلع 4", "expected": 4.397, "result": "≈4.4 ✓", "segments": 6, "sources": [106], "credits": "43" },
+      { "level": "multi-step", "question": "المسافة بين منزلين 400م/500م وزاوية 40", "expected": 321.8, "result": "≈322 ✓", "segments": 6, "sources": [32], "credits": "42" },
+      { "level": "follow-up", "question": "لماذا جيوب التمام بدل الجيوب؟", "result": "correct explanation ✓", "segments": 1, "sources": [106, 113], "credits": "41" }
+    ],
+    "citationNote": "Q3 cited page 32 while the exercise lives on page 131 — the answer was correct but the citation page was weak; retrieval ranked page 32 highest for the query text.",
+    "media": {
+      "tts": "200 audio/mpeg 205KB in 2.4s (credit 41→40)",
+      "stt": "200 accurate Arabic transcript of the TTS audio (40→38)",
+      "vision": "200 clear=true; correctly read the rendered textbook page 110 exercise (85°/65°, side 4) (38→35)"
+    },
+    "creditsAndRefunds": "1 credit per tutor call, 1 per speech, 2 per transcription, 3 per vision; balances updated every time; refund-on-failure path unchanged (verified in earlier phases)"
+  },
+  "browser": {
+    "viewports": ["390x844", "1440x900"],
+    "390": "no demo badge, composer present, real lesson 1/5 with whiteboard content, 50 SVG shapes, credits 28→27, no overflow",
+    "1440": "KaTeX formula rendered on the board (K=1/2·a·b·sin C), 48 SVG shapes, no demo badge, no overflow, TTS preparation indicator + AI-voice label",
+    "consoleErrors": 0,
+    "screenshots": "qa/screenshots/real-ai-classroom/ (4 + results.json)"
+  },
+  "cost": "aiDailyBudgetUsd set to 2 (local testing cap). Real spend this task: 4 tutor + 2 speech + 1 transcription + 1 vision calls.",
+  "gates": { "typecheck": true, "tests": "170/170", "buildNext": true },
+  "remaining": [
+    "Grade-10 book mapping awaits owner confirmation (create grade-10 grade/subject and move the book)",
+    "Q3 citation page weakness (retrieval ranking) — content answer correct",
+    "Single-token retrieval queries fall below the design score threshold (existing behavior)"
+  ]
+}

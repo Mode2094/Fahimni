@@ -1,0 +1,81 @@
+{
+ "startedAt": "2026-10-10T13:11:49.544Z",
+ "admin": {},
+ "student": {
+  "dashboard": {
+   "title": "الرئيسية | فهمني"
+  },
+  "subjects": {
+   "listed": true
+  },
+  "mockCheck": {
+   "demoBadge": false,
+   "fixtureBadge": false,
+   "creditChip": "رصيدك3"
+  },
+  "lesson": {
+   "loaded": true,
+   "stepLabel": "1/2",
+   "interruptBar": true,
+   "errorText": null,
+   "statusText": "فهمنيمساحة للفهمرياضيات التوجيهيمن كتاب المادةرصيدك2رحلة الحلجلسة جديدةفهمني الدرسساعدني أحلاختبرني1. معرفة قانون مساحة المثلث باستخدام جيب الزاوية المحصورة بين الضلعين.قانون مساحة"
+  },
+  "interrupt": {
+   "followupDone": true,
+   "hasResume": true,
+   "creditChip": "رصيدك0"
+  },
+  "audio": {
+   "speechResponses": [
+    {
+     "status": 200,
+     "mime": "audio/mpeg"
+    },
+    {
+     "status": 402,
+     "mime": "application/json"
+    }
+   ]
+  },
+  "review": {
+   "title": "راجع نقاط ضعفي | فهمني"
+  },
+  "slowNetwork": {
+   "loaded": true,
+   "title": "الرئيسية | فهمني"
+  }
+ },
+ "security": {
+  "expiredSession": {
+   "url": "/login",
+   "onLogin": true
+  },
+  "studentOnAdmin": {
+   "url": "/app",
+   "blocked": true
+  },
+  "unauthBookPage": 401,
+  "concurrent": [
+   200,
+   200,
+   200,
+   200,
+   200
+  ],
+  "exhaustedCredits": {
+   "status": 402,
+   "code": "credit_required",
+   "balancesRestored": 1
+  }
+ },
+ "viewports": {
+  "mobile390": {
+   "overflow": false
+  },
+  "tablet768": {
+   "overflow": false
+  }
+ },
+ "consoleErrors": [],
+ "finishedAt": "2026-10-10T13:12:12.404Z"
+}
