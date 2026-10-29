@@ -15,7 +15,7 @@ import type { BillingStore } from '../lib/billing/store';
 import { processBook, type Extractor } from '../lib/books/indexing';
 import { allowBookAction } from '../lib/books/rate-limit';
 import { resolveBookPage } from '../lib/books/pages';
-import { pageImagePath, safeFileName, sourcePdfPath, writeBookSource, dataDir, findStagedToken, promoteStagedSource } from '../lib/books/storage';
+import { pageImagePath, safeFileName, sourcePdfPath, writeBookSource, dataDir, stagedSourceExists, listStagedTokens, promoteStagedSource } from '../lib/books/storage';
 import type { BookRecord, BooksStore, NewChunk } from '../lib/books/store';
 import { MAX_PDF_BYTES, uploadBook } from '../lib/books/upload';
 import { subjectRetriever } from '../lib/textbook/subject-retrieval';
@@ -72,17 +72,34 @@ function createFakeBooksStore() {
   async findBookBySubject(subjectId) { return [...books.values()].find(book => book.subjectId === subjectId) ?? null; },
   async findReadyBookBySubject(subjectId) { return [...books.values()].find(book => book.subjectId === subjectId && book.status === 'READY') ?? null; },
   async findBookById(id) { return books.get(id) ?? null; },
-  async createBook(input) { const row: BookRecord = {...input, createdAt: new Date(), updatedAt: new Date()}; books.set(row.id, row); return row; },
+  async createBook(input) { const row: BookRecord = {...input, pendingStagedToken: input.pendingStagedToken ?? null, pendingStagedAt: input.pendingStagedAt ?? null, createdAt: new Date(), updatedAt: new Date()}; books.set(row.id, row); return row; },
   async updateBook(id, patch) { const book = books.get(id); if (book) books.set(id, {...book, ...patch, updatedAt: new Date()}); },
   async deleteBook(id) { books.delete(id); chunksByBook.delete(id); },
+  async stageReplacement(bookId, token) {
+   const book = books.get(bookId);
+   if (!book || book.pendingStagedToken) return false;
+   books.set(bookId, {...book, pendingStagedToken: token, pendingStagedAt: new Date(), updatedAt: new Date()});
+   return true;
+  },
+  async clearPendingReplacement(bookId, token) {
+   const book = books.get(bookId);
+   if (book && book.pendingStagedToken === token) books.set(bookId, {...book, pendingStagedToken: null, pendingStagedAt: null, updatedAt: new Date()});
+  },
   async listChunksForBook(bookId) { return chunksByBook.get(bookId) ?? []; },
-  async replaceChunks(bookId, _subjectId, chunks, bookPatch) {
+  async replaceChunks(bookId, _subjectId, chunks, bookPatch, expectedPendingToken) {
+   if (expectedPendingToken !== undefined) {
+    const current = books.get(bookId);
+    if (!current || current.pendingStagedToken !== expectedPendingToken) return false;
+   }
    chunksByBook.set(bookId, chunks);
    const book = books.get(bookId);
-   if (book) books.set(bookId, {...book, ...bookPatch, updatedAt: new Date()});
+   const patch = expectedPendingToken === undefined ? bookPatch : {...bookPatch, pendingStagedToken: null, pendingStagedAt: null};
+   if (book) books.set(bookId, {...book, ...patch, updatedAt: new Date()});
+   return true;
   },
   async claimNextUploadedBook() { return null; },
   async resetStaleProcessing() { return 0; },
+  async listBookIds() { return [...books.keys()]; },
  };
  return { store, books, chunksByBook };
 }
@@ -160,9 +177,12 @@ test('upload refuses a second book unless replace is requested, then stages the 
  assert.equal(books.get(first.bookId)?.originalFileName, 'two.pdf');
  assert.equal(books.get(first.bookId)?.status, 'UPLOADED');
  assert.equal(books.size, 1);
- // The replacement is held in staging; the live source is untouched until it
- // is extracted, validated and promoted.
- assert.ok(await findStagedToken(first.bookId));
+ // The replacement is held in staging and tracked as a pending token; the live
+ // source is untouched and the book keeps its status until it is promoted.
+ const pendingToken = books.get(first.bookId)?.pendingStagedToken ?? null;
+ assert.ok(pendingToken);
+ assert.ok(await stagedSourceExists(first.bookId, pendingToken));
+ assert.equal(books.get(first.bookId)?.status, 'UPLOADED');
 });
 
 test('indexing transitions PROCESSING → READY and persists subject-scoped chunks', async () => {
@@ -417,7 +437,8 @@ test('a failed replacement preserves the working book, its pages and its index',
  assert.ok(existsSync(pageImagePath(book.id, 1)), 'the original page images must be preserved');
  const chunksAfter = chunksByBook.get(book.id) ?? [];
  assert.deepEqual(chunksAfter, goodChunks, 'the search index must be preserved');
- assert.equal(await findStagedToken(book.id), null, 'the failed staging must be discarded');
+ assert.equal(books.get(book.id)?.pendingStagedToken, null, 'the failed pending marker must be cleared');
+ assert.deepEqual(await listStagedTokens(book.id), [], 'the failed staging must be discarded');
 });
 
 test('a successful replacement promotes the new source, pages and index atomically', async () => {
@@ -441,7 +462,8 @@ test('a successful replacement promotes the new source, pages and index atomical
  assert.equal(chunks.length, 1);
  assert.equal(chunks[0].sourceId, 'book-new');
  assert.equal(books.get(book.id)?.status, 'READY');
- assert.equal(await findStagedToken(book.id), null, 'staging must be cleaned up after promotion');
+ assert.equal(books.get(book.id)?.pendingStagedToken, null, 'the pending marker must be cleared');
+ assert.deepEqual(await listStagedTokens(book.id), [], 'staging must be cleaned up after promotion');
 });
 
 test('extracting nothing from a replacement never replaces a working book', async () => {

@@ -1,9 +1,9 @@
-import { isPdfSignature, safeFileName, writeBookSource, writeStagedSource } from './storage';
+import { discardStagedSource, isPdfSignature, safeFileName, writeBookSource, writeStagedSource } from './storage';
 import type { BooksStore } from './store';
 
 export const MAX_PDF_BYTES = 100 * 1024 * 1024;
 
-export type UploadFailure = 'missing' | 'invalid_file' | 'too_large' | 'exists' | 'storage';
+export type UploadFailure = 'missing' | 'invalid_file' | 'too_large' | 'exists' | 'storage' | 'busy';
 export type UploadResult = { ok: true; bookId: string } | { ok: false; reason: UploadFailure };
 
 const ALLOWED_MIME = new Set(['application/pdf', 'application/x-pdf', 'application/octet-stream', '']);
@@ -34,33 +34,47 @@ export async function uploadBook(input: {
   const existing = await input.store.findBookBySubject(input.subjectId);
   if (existing && !input.replace) return { ok: false, reason: 'exists' };
 
-  const bookId = existing?.id ?? crypto.randomUUID();
-  // A replacement is staged: the live source.pdf and pages/ are only replaced
-  // after the worker extracts, validates and promotes the new PDF. A failed
-  // replacement therefore leaves the working book untouched.
+  const title = (input.title?.trim() || originalFileName.replace(/\.pdf$/i, '')).slice(0, 120);
+
+  if (existing) {
+    // A replacement is staged in isolated versioned storage; the live
+    // source.pdf, pages/ and index stay untouched and the book keeps its READY
+    // status, so students can still use the previous version until the new PDF
+    // is fully extracted, validated and promoted.
+    let token: string;
+    try {
+      token = await writeStagedSource(existing.id, new Uint8Array(await file.arrayBuffer()));
+    } catch {
+      return { ok: false, reason: 'storage' };
+    }
+    if (existing.pendingStagedToken) {
+      // Another replacement is already pending; do not supersede it silently.
+      await discardStagedSource(existing.id, token).catch(() => undefined);
+      return { ok: false, reason: 'busy' };
+    }
+    // Conditional claim: the row is only marked when no replacement is pending,
+    // so two concurrent uploads cannot claim the same book.
+    const claimed = await input.store
+      .stageReplacement(existing.id, token)
+      .catch((): boolean => false);
+    if (!claimed) {
+      await discardStagedSource(existing.id, token).catch(() => undefined);
+      return { ok: false, reason: 'busy' };
+    }
+    await input.store
+      .updateBook(existing.id, { title, originalFileName, errorMessage: null })
+      .catch(() => undefined);
+    return { ok: true, bookId: existing.id };
+  }
+
+  const bookId = crypto.randomUUID();
   try {
-    if (existing) await writeStagedSource(bookId, new Uint8Array(await file.arrayBuffer()));
-    else await writeBookSource(bookId, new Uint8Array(await file.arrayBuffer()));
+    await writeBookSource(bookId, new Uint8Array(await file.arrayBuffer()));
   } catch {
     return { ok: false, reason: 'storage' };
   }
 
-  const title = (input.title?.trim() || originalFileName.replace(/\.pdf$/i, '')).slice(0, 120);
   const storedFilePath = `books/${bookId}/source.pdf`;
-
-  if (existing) {
-    // Keep the previous page count and index until the new PDF is promoted, so
-    // a failed replacement can restore the last known-good state exactly.
-    await input.store.updateBook(bookId, {
-      title,
-      originalFileName,
-      storedFilePath,
-      status: 'UPLOADED',
-      errorMessage: null,
-    });
-    return { ok: true, bookId };
-  }
-
   await input.store.createBook({
     id: bookId,
     subjectId: input.subjectId,

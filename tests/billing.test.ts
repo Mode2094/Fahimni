@@ -152,7 +152,7 @@ function fakeStudents(): StudentStore {
 }
 
 function createFakeBooksStore() {
- const book: BookRecord = { id: 'book-1', subjectId: subject.id, title: 'كتاب', originalFileName: 'book.pdf', storedFilePath: 'books/x/source.pdf', sha256: 'sha', totalPages: 1, indexedPages: 1, status: 'READY', errorMessage: null, createdAt: new Date(), updatedAt: new Date() };
+ const book: BookRecord = { id: 'book-1', subjectId: subject.id, title: 'كتاب', originalFileName: 'book.pdf', storedFilePath: 'books/x/source.pdf', sha256: 'sha', totalPages: 1, indexedPages: 1, status: 'READY', errorMessage: null, pendingStagedToken: null, pendingStagedAt: null, createdAt: new Date(), updatedAt: new Date() };
  const chunk: NewChunk = { id: 'chunk-1', bookId: book.id, subjectId: subject.id, sourceId: 'src', pdfPage: 1, printedPage: 1, unit: 'المعادلات', lesson: 'حل معادلات خاصة', heading: null, text: 'حل معادلة خاصة بالتحليل إلى عوامل', equations: [], pageImagePath: '1.jpg', searchText: 'حل معادلة خاصه' };
  const store: BooksStore = {
   async findBookBySubject() { return book; },
@@ -162,9 +162,12 @@ function createFakeBooksStore() {
   async updateBook() {},
   async deleteBook() {},
   async listChunksForBook() { return [chunk]; },
-  async replaceChunks() {},
+  async replaceChunks() { return true; },
+  async stageReplacement() { return true; },
+  async clearPendingReplacement() {},
   async claimNextUploadedBook() { return null; },
   async resetStaleProcessing() { return 0; },
+  async listBookIds() { return []; },
  };
  return store;
 }

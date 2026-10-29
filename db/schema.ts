@@ -146,6 +146,15 @@ export const books = pgTable(
     indexedPages: integer('indexed_pages').notNull().default(0),
     status: bookStatus('status').notNull().default('UPLOADED'),
     errorMessage: text('error_message'),
+    // A replacement upload is tracked here, independently of the active version.
+    // While pending_staged_token is set the row's status/sha256/totalPages/
+    // indexedPages keep describing the live, working book, so
+    // findReadyBookBySubject() still serves it to students until the replacement
+    // is fully extracted, validated and promoted. NULL means "no replacement
+    // in progress". Only one replacement may be pending per book (enforced by a
+    // conditional update that requires this column to be NULL).
+    pendingStagedToken: text('pending_staged_token'),
+    pendingStagedAt: timestamp('pending_staged_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

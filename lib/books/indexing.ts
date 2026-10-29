@@ -5,13 +5,14 @@ import path from 'node:path';
 import { normalize } from '../textbook/retrieval';
 import {
   discardStagedSource,
-  findStagedToken,
+  listStagedTokens,
   pagesDir,
   promoteStagedSource,
   sha256File,
   sourcePdfPath,
   stagedPagesDir,
   stagedPdfPath,
+  stagedSourceExists,
 } from './storage';
 import type { BooksStore, NewChunk } from './store';
 
@@ -36,7 +37,6 @@ export type ExtractionResult = {
 export type Extractor = (input: { pdfPath: string; pagesDir: string }) => Promise<ExtractionResult>;
 
 export type ProcessResult = { status: 'READY' | 'FAILED'; indexedPages: number; code?: string };
-
 function extractionFailureCode(error: unknown): string {
   const message = error instanceof Error ? error.message : '';
   if (message === 'python_unavailable') return 'python_unavailable';
@@ -91,6 +91,11 @@ export function createPythonExtractor(options?: {
 // and only promoted over the live source.pdf/pages after a fully successful
 // run; a failure discards the staged files and restores the previous state, so
 // a failed replacement never destroys a working book, its pages or its index.
+//
+// The pending replacement is tracked in the database
+// (books.pending_staged_token), never by sorting random directory names. While
+// it is pending the book's status stays READY, so findReadyBookBySubject()
+// keeps serving the previous version to students until the new one is ready.
 export async function processBook(
   bookId: string,
   deps: { store: BooksStore; extractor?: Extractor; now?: () => Date },
@@ -99,9 +104,15 @@ export async function processBook(
   const book = await store.findBookById(bookId);
   if (!book) return { status: 'FAILED', indexedPages: 0, code: 'missing' };
 
+  const pendingToken = book.pendingStagedToken;
+  // The upload records a replacement by setting pending_staged_token; the token
+  // must also be present on disk. A missing token file (crash between DB write
+  // and file write, or an already-promoted version) means there is nothing to
+  // promote: fall through to normal re-indexing of the live source.
+  const isReplacement = pendingToken !== null && (await stagedSourceExists(bookId, pendingToken));
+
   // The last known-good state, used to restore the book if a replacement fails.
-  // The upload sets the status to UPLOADED before the worker runs, so a
-  // surviving index is the authoritative signal that the book already had
+  // Existing chunks are the authoritative signal that the book already had
   // working content that must be preserved.
   const existingChunks = await store.listChunksForBook(bookId).catch(() => []);
   const hadWorkingContent = existingChunks.length > 0 || book.status === 'READY';
@@ -112,22 +123,24 @@ export async function processBook(
     sha256: book.sha256,
     errorMessage: book.errorMessage,
   };
-  const stagedToken = await findStagedToken(bookId);
-  const isReplacement = stagedToken !== null;
 
-  await store.updateBook(bookId, { status: 'PROCESSING', errorMessage: null });
+  // A brand-new book (no working content, nothing staged) moves to PROCESSING.
+  // A replacement keeps its READY status so students keep the old version.
+  if (!hadWorkingContent) {
+    await store.updateBook(bookId, { status: 'PROCESSING', errorMessage: null });
+  }
 
   try {
     const extractor = deps.extractor ?? createPythonExtractor();
-    const pdfPath = stagedToken ? stagedPdfPath(bookId, stagedToken) : sourcePdfPath(bookId);
-    const outPagesDir = stagedToken ? stagedPagesDir(bookId, stagedToken) : pagesDir(bookId);
+    const pdfPath = isReplacement ? stagedPdfPath(bookId, pendingToken as string) : sourcePdfPath(bookId);
+    const outPagesDir = isReplacement ? stagedPagesDir(bookId, pendingToken as string) : pagesDir(bookId);
     const result = await extractor({ pdfPath, pagesDir: outPagesDir });
 
     // A replacement that extracts nothing usable must not be promoted: the
     // working book stays exactly as it was.
     if (!result.pages.length && previous.status === 'READY') throw new Error('empty_extraction');
 
-    if (stagedToken) await promoteStagedSource(bookId, stagedToken);
+    if (isReplacement) await promoteStagedSource(bookId, pendingToken as string);
     const localSha = await sha256File(sourcePdfPath(bookId)).catch(() => null);
     const sha256 = localSha ?? result.sha256;
 
@@ -153,18 +166,34 @@ export async function processBook(
     // flag them clearly instead of pretending the extraction succeeded.
     const textlessRatio = result.pages.length ? result.pages.filter((page) => page.text.trim().length < 20).length / result.pages.length : 0;
     const lowText = textlessRatio > 0.5;
-    await store.replaceChunks(bookId, book.subjectId, chunks, {
-      sha256,
-      totalPages: result.totalPages,
-      indexedPages: chunks.length,
-      status: 'READY',
-      errorMessage: lowText ? 'low_text' : null,
-    });
+    // The index swap and the clearing of the pending marker happen in one
+    // transaction, conditional on the token still being pending: a superseded
+    // worker commits nothing and its promoted files are cleaned up below.
+    const committed = await store.replaceChunks(
+      bookId,
+      book.subjectId,
+      chunks,
+      {
+        sha256,
+        totalPages: result.totalPages,
+        indexedPages: chunks.length,
+        status: 'READY',
+        errorMessage: lowText ? 'low_text' : null,
+      },
+      isReplacement ? (pendingToken as string) : undefined,
+    );
+    if (isReplacement && !committed) {
+      // The pending token was superseded while this run promoted its (identical
+      // layout) staging files. Drop this run's now-orphaned staging artefacts.
+      await discardStagedSource(bookId, pendingToken as string).catch(() => undefined);
+      return { status: 'READY', indexedPages: chunks.length, code: 'superseded' };
+    }
     return { status: 'READY', indexedPages: chunks.length };
   } catch (error) {
     const code = extractionFailureCode(error);
-    if (isReplacement && stagedToken) {
-      await discardStagedSource(bookId, stagedToken).catch(() => undefined);
+    if (isReplacement && pendingToken) {
+      await discardStagedSource(bookId, pendingToken).catch(() => undefined);
+      await store.clearPendingReplacement(bookId, pendingToken).catch(() => undefined);
     }
     // Restore the previous known-good state when the book had working content;
     // otherwise record the failure on the (never-promoted) book.
@@ -186,4 +215,22 @@ export async function processBook(
     console.error('[books] indexing failed', bookId, code);
     return { status: 'FAILED', indexedPages: 0, code };
   }
+}
+
+// Recovery on worker start: removes staged copies that no book is currently
+// tracking (orphaned by a crash between the file write and the database write,
+// or left behind after a supersede). The active version is never touched.
+export async function recoverOrphanedStaging(store: BooksStore, bookIds: string[]): Promise<number> {
+  let removed = 0;
+  for (const bookId of bookIds) {
+    const book = await store.findBookById(bookId).catch(() => null);
+    const keep = book?.pendingStagedToken ?? null;
+    const tokens = await listStagedTokens(bookId);
+    for (const token of tokens) {
+      if (token === keep) continue;
+      await discardStagedSource(bookId, token).catch(() => undefined);
+      removed += 1;
+    }
+  }
+  return removed;
 }

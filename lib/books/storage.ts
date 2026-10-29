@@ -117,18 +117,27 @@ export async function writeStagedSource(bookId: string, bytes: Uint8Array): Prom
   return token;
 }
 
-// The newest staged PDF for a book, or null when there is nothing pending.
-export async function findStagedToken(bookId: string): Promise<string | null> {
+// Whether a staged PDF for exactly this token is present on disk. The token is
+// always the one recorded in the database, never the result of sorting random
+// directory entries: two concurrent replacements have unrelated UUIDs whose
+// lexicographic order carries no meaning.
+export async function stagedSourceExists(bookId: string, token: string): Promise<boolean> {
+  if (!isUuid(bookId) || !isUuid(token)) return false;
+  return exists(stagedPdfPath(bookId, token));
+}
+
+// Every staged PDF token currently on disk. Used only for crash recovery and
+// cleanup of orphaned staging directories, never to choose the active version.
+export async function listStagedTokens(bookId: string): Promise<string[]> {
+  if (!isUuid(bookId)) return [];
   try {
     const entries = await readdir(stagingDir(bookId));
-    const tokens = entries
+    return entries
       .filter((name) => name.endsWith('.pdf'))
       .map((name) => name.slice(0, -4))
-      .filter((token) => isUuid(token))
-      .sort();
-    return tokens.length ? tokens[tokens.length - 1] : null;
+      .filter((token) => isUuid(token));
   } catch {
-    return null;
+    return [];
   }
 }
 

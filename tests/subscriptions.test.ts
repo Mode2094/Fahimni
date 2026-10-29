@@ -390,6 +390,8 @@ function fakeBooksWithReady(...readySubjectIds: string[]): BooksStore {
         indexedPages: 1,
         status: 'READY',
         errorMessage: null,
+        pendingStagedToken: null,
+        pendingStagedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       } satisfies BookRecord;

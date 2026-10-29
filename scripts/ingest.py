@@ -13,7 +13,7 @@ def clean(s):
  s=re.sub(r'[\u0610-\u061a\u064b-\u065f\u0670\u200e\u200f\u202a-\u202e\u0640\ufffd]','',s)
  return re.sub(r'[ \t]+',' ',s).strip()
 sha=hashlib.sha256(pdf.read_bytes()).hexdigest(); source='math10-'+sha[:12]
-out=root/'public/book';out.mkdir(parents=True,exist_ok=True)
+out=root/'assets/legacy-textbook';out.mkdir(parents=True,exist_ok=True)
 records=[]
 for i,p in enumerate(doc):
  page=i+1; text=clean(p.get_text(sort=False)); title=next((x for x in reversed(catalog) if page>=x[0]),(1,'مقدمة','مقدمة'))
