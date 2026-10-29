@@ -17,6 +17,8 @@ import { setBillingStoreForTests } from '../lib/billing/store';
 import type { BillingStore, EntitlementRecord, EntitlementUpsert, SubjectPlanInput, SubjectPlanRecord, AcademicTermInput, SubscriptionOfferInput } from '../lib/billing/store';
 import { setBooksStoreForTests } from '../lib/books/store';
 import type { BookRecord, BooksStore, NewChunk } from '../lib/books/store';
+import { setLearningProgressStoreForTests } from '../lib/learning/progress';
+import type { LearningProgressStore } from '../lib/learning/progress';
 import { CREDIT_COSTS, speechCredits } from '../lib/credits/config';
 import { ensureCreditPeriod, isCreditPeriodActive } from '../lib/credits/periods';
 import { setDeviceStoreForTests, DEFAULT_MAX_DEVICES } from '../lib/devices/store';
@@ -33,6 +35,15 @@ const student: AuthUser = { id: 'student-1', email: 'student@example.com', name:
 const admin: AuthUser = { id: 'admin-1', email: 'admin@example.com', name: 'مشرف', image: null, role: 'ADMIN' };
 const subject: CatalogSubject = { id: '11111111-1111-4111-8111-111111111111', gradeId: 'g12', academicFieldId: null, name: 'رياضيات', slug: 'math', shortDescription: null, image: null, isActive: true, isFeatured: false, sortOrder: 0 };
 const profile: StudentProfile = { userId: student.id, gradeId: 'g12', academicFieldId: null, onboardingCompleted: true };
+
+// The tutor route reads personalisation topics; without a fake this opens a real
+// database connection in CI (DATABASE_URL is set) and leaves a pending promise
+// that cancels later tests. Register an empty fake for the whole file.
+const emptyProgress: LearningProgressStore = {
+ async listForUser() { return []; },
+ async recordAssessment() { throw new Error('not used'); },
+};
+setLearningProgressStoreForTests(emptyProgress);
 
 function createFakeBillingStore() {
  const plans = new Map<string, SubjectPlanRecord>();
@@ -213,6 +224,7 @@ function reset() {
  setBillingStoreForTests(null);
  setBooksStoreForTests(null);
  setDeviceStoreForTests(null);
+ setLearningProgressStoreForTests(emptyProgress);
  setRateLimiterForTests(null);
  resetTrialTestDoubles();
 }

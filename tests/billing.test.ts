@@ -36,6 +36,8 @@ import { setBooksStoreForTests } from '../lib/books/store';
 import type { BookRecord, BooksStore, NewChunk } from '../lib/books/store';
 import { setDeviceStoreForTests } from '../lib/devices/store';
 import type { DeviceRecord, DeviceStore } from '../lib/devices/store';
+import { setLearningProgressStoreForTests } from '../lib/learning/progress';
+import type { LearningProgressStore } from '../lib/learning/progress';
 import { createMemoryLimiter, setRateLimiterForTests } from '../lib/rate-limit/limiter';
 import { setStudentStoreForTests } from '../lib/student/store';
 import type { AcademicField, CatalogSubject, Grade, StudentProfile, StudentStore } from '../lib/student/store';
@@ -46,6 +48,15 @@ import { resetTrialTestDoubles, setTrialTestDoubles } from './support/trial-doub
 const student: AuthUser = { id: 'student-1', email: 'student@example.com', name: 'طالب', image: null, role: 'STUDENT' };
 const subject: CatalogSubject = { id: '11111111-1111-4111-8111-111111111111', gradeId: 'g12', academicFieldId: null, name: 'رياضيات', slug: 'math', shortDescription: null, image: null, isActive: true, isFeatured: false, sortOrder: 0 };
 const profile: StudentProfile = { userId: student.id, gradeId: 'g12', academicFieldId: null, onboardingCompleted: true };
+
+// The tutor route reads personalisation topics; without a fake this opens a real
+// database connection in CI (DATABASE_URL is set) and leaves a pending promise
+// that cancels later tests. Registered for the whole file and restored on reset.
+const defaultProgress: LearningProgressStore = {
+ async listForUser() { return []; },
+ async recordAssessment() { throw new Error('not used'); },
+};
+setLearningProgressStoreForTests(defaultProgress);
 
 function createFakeBillingStore() {
  const plans = new Map<string, SubjectPlanRecord>();
@@ -247,6 +258,7 @@ function reset() {
  setBillingStoreForTests(null);
  setBooksStoreForTests(null);
  setDeviceStoreForTests(null);
+ setLearningProgressStoreForTests(defaultProgress);
  setRateLimiterForTests(null);
  setFreemiusClientForTests(null);
  resetTrialTestDoubles();
@@ -454,6 +466,7 @@ test('subject tutor API blocks without entitlement and passes the gate with one'
  const { store, entitlements } = createFakeBillingStore();
  setBillingStoreForTests(store);
  setDeviceStoreForTests(createFakeDeviceStore());
+ setLearningProgressStoreForTests(defaultProgress);
  setRateLimiterForTests(createMemoryLimiter());
  setTrialTestDoubles();
  await installSession(student, 'student-token');
