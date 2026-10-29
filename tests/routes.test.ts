@@ -6,6 +6,17 @@ import {POST as vision} from '../app/api/vision/route';
 import {POST as transcribe} from '../app/api/transcribe/route';
 import {POST as speech} from '../app/api/speech/route';
 import {sameOrigin} from '../lib/http';
+import {setSettingsReaderForTests} from '../lib/settings/service';
+import {createMemoryLimiter, setRateLimiterForTests} from '../lib/rate-limit/limiter';
+import {createMemoryDailyBudget, setAiBudgetForTests} from '../lib/ai/budget';
+import {createMemoryTrialBudget, setTrialBudgetForTests} from '../lib/trial/budget';
+// The AI routes read runtime config and apply rate limits / budgets. In CI a
+// real Redis or database connection would leave a pending command that cancels
+// sibling tests; use the in-memory doubles instead.
+setSettingsReaderForTests({getPlain:async()=>null,getSecret:async()=>null,getSecretPresence:async()=>false});
+setRateLimiterForTests(createMemoryLimiter());
+setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
+setTrialBudgetForTests(createMemoryTrialBudget());
 const question='حل x^3 + 4x^2 = 5x';
 const action={type:'write_latex',id:'eq1',content:'x(x+5)(x-1)=0',region:'working-area',targets:[],points:[],color:'ink',geometry:null,delayMs:0};
 const jsonRequest=(path:string,body:unknown)=>new Request('https://local/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});

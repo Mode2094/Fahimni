@@ -28,12 +28,16 @@ import { createMemoryLimiter, setRateLimiterForTests } from '../lib/rate-limit/l
 import { setStudentStoreForTests } from '../lib/student/store';
 import type { AcademicField, CatalogSubject, Grade, StudentProfile, StudentStore } from '../lib/student/store';
 import { setTrialBudgetForTests, type TrialBudget } from '../lib/trial/budget';
+import { createMemoryDailyBudget, setAiBudgetForTests } from '../lib/ai/budget';
 import { setTurnstileVerifierForTests, turnstileMode } from '../lib/trial/turnstile';
 import { resetTrialTestDoubles, setTrialTestDoubles, type FakeTrialHarness } from './support/trial-doubles';
 
 const student: AuthUser = { id: 'student-1', email: 'student@example.com', name: 'طالب', image: null, role: 'STUDENT' };
 const other: AuthUser = { id: 'student-2', email: 'other@example.com', name: 'طالب آخر', image: null, role: 'STUDENT' };
 const profile: StudentProfile = { userId: student.id, gradeId: 'g12', academicFieldId: null, onboardingCompleted: true };
+
+// See reset(): keep the AI daily budget in memory for the whole file.
+setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
 
 function makeSubject(id: string, slug: string, gradeId = 'g12'): CatalogSubject {
   return { id, gradeId, academicFieldId: null, name: slug, slug, shortDescription: null, image: null, isActive: true, isFeatured: false, sortOrder: 0 };
@@ -214,6 +218,9 @@ function reset() {
   setBillingStoreForTests(null);
   setDeviceStoreForTests(null);
   setRateLimiterForTests(null);
+  // In CI a real Redis daily budget would leave a pending command that cancels
+  // sibling tests; the in-memory budget keeps every test self-contained.
+  setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
   setTurnstileVerifierForTests(null);
   resetTrialTestDoubles();
   delete process.env.TURNSTILE_SECRET_KEY;

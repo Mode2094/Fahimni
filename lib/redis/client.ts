@@ -22,11 +22,31 @@ export function redisClient(url: string): Redis {
     // Under the node:test runner the open socket would otherwise keep the
     // process alive forever; unref lets tests exit without closing the client.
     // The socket is created on connect, so unref there (not at construction).
-    if (process.env.NODE_TEST_CONTEXT) {
+    // A test that awaits real Redis commands sets REA_REDIS_REFERENCED=1 so the
+    // socket stays referenced: an unref'd socket lets the loop drain while a
+    // command is outstanding, which the runner reports as cancelledByParent.
+    // Such a test calls closeRedisClients() when it is finished.
+    if (process.env.NODE_TEST_CONTEXT && process.env.REA_REDIS_REFERENCED !== '1') {
       const unref = () => (client as unknown as { stream?: { unref?: () => void } }).stream?.unref?.();
       client.on('connect', unref);
     }
     clients.set(url, client);
   }
   return client;
+}
+
+// Closes and forgets every cached client. Called by Redis integration tests so
+// a shared, unref'd socket never outlives the test that created it.
+export async function closeRedisClients(): Promise<void> {
+  const open = [...clients.values()];
+  clients.clear();
+  await Promise.all(
+    open.map(async (client) => {
+      try {
+        await client.quit();
+      } catch {
+        client.disconnect();
+      }
+    }),
+  );
 }

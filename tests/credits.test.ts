@@ -19,6 +19,9 @@ import { setBooksStoreForTests } from '../lib/books/store';
 import type { BookRecord, BooksStore, NewChunk } from '../lib/books/store';
 import { setLearningProgressStoreForTests } from '../lib/learning/progress';
 import type { LearningProgressStore } from '../lib/learning/progress';
+import { setSettingsReaderForTests } from '../lib/settings/service';
+import { createMemoryDailyBudget, setAiBudgetForTests } from '../lib/ai/budget';
+import { createMemoryTrialBudget, setTrialBudgetForTests } from '../lib/trial/budget';
 import { CREDIT_COSTS, speechCredits } from '../lib/credits/config';
 import { ensureCreditPeriod, isCreditPeriodActive } from '../lib/credits/periods';
 import { setDeviceStoreForTests, DEFAULT_MAX_DEVICES } from '../lib/devices/store';
@@ -44,6 +47,24 @@ const emptyProgress: LearningProgressStore = {
  async recordAssessment() { throw new Error('not used'); },
 };
 setLearningProgressStoreForTests(emptyProgress);
+
+// The AI pipeline reads runtime config from settings. Without a reader override
+// each request opens a database connection; in CI that pending promise cancels
+// sibling tests. An empty reader lets the environment govern provider config.
+const emptySettings = {
+ async getPlain() { return null; },
+ async getSecret() { return null; },
+ async getSecretPresence() { return false; },
+};
+setSettingsReaderForTests(emptySettings);
+// The AI pipeline charges against a global daily budget. Without an override a
+// Redis-backed budget is created and its commands leave a pending promise that
+// cancels sibling tests under the Node test runner (CI provides REDIS_URL).
+setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
+setTrialBudgetForTests(createMemoryTrialBudget());
+// The tutor route applies rate limits; without a memory limiter a Redis-backed
+// limiter is created in CI and its pending command cancels sibling tests.
+setRateLimiterForTests(createMemoryLimiter());
 
 function createFakeBillingStore() {
  const plans = new Map<string, SubjectPlanRecord>();
@@ -225,7 +246,10 @@ function reset() {
  setBooksStoreForTests(null);
  setDeviceStoreForTests(null);
  setLearningProgressStoreForTests(emptyProgress);
- setRateLimiterForTests(null);
+ setSettingsReaderForTests(emptySettings);
+ setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
+ setTrialBudgetForTests(createMemoryTrialBudget());
+ setRateLimiterForTests(createMemoryLimiter());
  resetTrialTestDoubles();
 }
 

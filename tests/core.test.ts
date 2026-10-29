@@ -7,6 +7,11 @@ import {runActions,validateActions,beforeSegment} from '../lib/whiteboard/engine
 import {teach,TutorInput} from '../lib/ai/tutor';
 import {AIProvider,provider} from '../lib/ai/provider';
 import {upload,boundedBody} from '../lib/http';
+import {setSettingsReaderForTests} from '../lib/settings/service';
+// The provider reads runtime config from settings. Without a reader override a
+// call opens a database connection; in CI that pending promise cancels sibling
+// tests. An empty reader lets the environment govern provider config.
+setSettingsReaderForTests({getPlain:async()=>null,getSecret:async()=>null,getSecretPresence:async()=>false});
 const action=(type:Action['type'],extra:Partial<Action>={}):Action=>({type,id:null,content:null,region:'working-area',targets:[],points:[],color:'ink',geometry:null,delayMs:0,...extra});
 const q='حل المعادلة x^3 + 4x^2 = 5x';
 // The tutor hands the provider input enriched with retrieval results; the fake

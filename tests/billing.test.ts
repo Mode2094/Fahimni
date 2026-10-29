@@ -38,6 +38,8 @@ import { setDeviceStoreForTests } from '../lib/devices/store';
 import type { DeviceRecord, DeviceStore } from '../lib/devices/store';
 import { setLearningProgressStoreForTests } from '../lib/learning/progress';
 import type { LearningProgressStore } from '../lib/learning/progress';
+import { setSettingsReaderForTests } from '../lib/settings/service';
+import { createMemoryDailyBudget, setAiBudgetForTests } from '../lib/ai/budget';
 import { createMemoryLimiter, setRateLimiterForTests } from '../lib/rate-limit/limiter';
 import { setStudentStoreForTests } from '../lib/student/store';
 import type { AcademicField, CatalogSubject, Grade, StudentProfile, StudentStore } from '../lib/student/store';
@@ -57,6 +59,19 @@ const defaultProgress: LearningProgressStore = {
  async recordAssessment() { throw new Error('not used'); },
 };
 setLearningProgressStoreForTests(defaultProgress);
+
+// The AI pipeline reads runtime config from settings. Without a reader override
+// each request opens a database connection; in CI that pending promise cancels
+// sibling tests. An empty reader lets the environment govern provider config.
+const emptySettings = {
+ async getPlain() { return null; },
+ async getSecret() { return null; },
+ async getSecretPresence() { return false; },
+};
+setSettingsReaderForTests(emptySettings);
+// The AI pipeline charges against a global daily budget; keep it in memory so a
+// real Redis connection cannot leave a pending command that cancels tests.
+setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
 
 function createFakeBillingStore() {
  const plans = new Map<string, SubjectPlanRecord>();
@@ -259,6 +274,8 @@ function reset() {
  setBooksStoreForTests(null);
  setDeviceStoreForTests(null);
  setLearningProgressStoreForTests(defaultProgress);
+ setSettingsReaderForTests(emptySettings);
+ setAiBudgetForTests(createMemoryDailyBudget('ai-test'));
  setRateLimiterForTests(null);
  setFreemiusClientForTests(null);
  resetTrialTestDoubles();

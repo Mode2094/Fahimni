@@ -6,6 +6,23 @@ import { decryptSecret, encryptSecret, encryptionConfigured, SettingsCryptoError
 
 export type SettingActor = { id: string; email: string } | null;
 
+// Test seam for the read paths. Production leaves this null and every read goes
+// to the database. Tests that exercise the AI pipeline install an in-memory
+// reader so a request never opens a database connection: in CI (real
+// PostgreSQL) an unoverridden read leaves a pending pool promise that cancels
+// sibling tests under the Node test runner.
+export type SettingsReader = {
+  getPlain(key: string): Promise<string | null>;
+  getSecret(key: string): Promise<string | null>;
+  getSecretPresence(key: string): Promise<boolean>;
+};
+
+let readerOverride: SettingsReader | null = null;
+
+export function setSettingsReaderForTests(reader: SettingsReader | null): void {
+  readerOverride = reader;
+}
+
 // Settings are always read from the database (single indexed primary-key read)
 // so an admin save is visible to every process immediately — no cache can go
 // stale, and no restart is ever required.
@@ -37,6 +54,7 @@ export async function recordSettingAudit(input: {
 }
 
 export async function getPlainSetting(key: string): Promise<string | null> {
+  if (readerOverride) return readerOverride.getPlain(key);
   const rows = await getDb().select({ value: systemSettings.value }).from(systemSettings).where(eq(systemSettings.key, key)).limit(1);
   return rows[0]?.value ?? null;
 }
@@ -52,6 +70,7 @@ export async function setPlainSetting(key: string, value: string, actor: Setting
 // Missing ciphertext → null. Undecryptable ciphertext → null plus a safe
 // warning (fail closed); the caller treats the credential as unconfigured.
 export async function getSecretSetting(key: string): Promise<string | null> {
+  if (readerOverride) return readerOverride.getSecret(key);
   const rows = await getDb().select({ ciphertext: secureSettings.ciphertext }).from(secureSettings).where(eq(secureSettings.key, key)).limit(1);
   const row = rows[0];
   if (!row) return null;
@@ -64,6 +83,7 @@ export async function getSecretSetting(key: string): Promise<string | null> {
 }
 
 export async function getSecretPresence(key: string): Promise<boolean> {
+  if (readerOverride) return readerOverride.getSecretPresence(key);
   const rows = await getDb().select({ key: secureSettings.key }).from(secureSettings).where(eq(secureSettings.key, key)).limit(1);
   return Boolean(rows[0]);
 }
