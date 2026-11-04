@@ -17,14 +17,23 @@ export function normalizeTeachingMode(value: string | null | undefined): Teachin
 
 // Evidence-informed defaults for every mode: worked example first, scaffolded
 // steps, short checks for understanding, and specific corrective feedback. The
-// student can always ask to continue without answering.
-const COMMON = `Teaching policy: open with a short worked example when it helps understanding, scaffold each step (what we do, why it keeps equality or meaning), and check understanding at natural moments with at most one short question per lesson — the student can always say «كمل الشرح» and you continue immediately without waiting for an answer. Give specific corrective feedback, never generic praise. Never claim mastery from one correct answer. Keep Arabic natural for Jordanian students with correct academic terms.`;
+// student can always ask to continue without answering. Phrasing is
+// subject-neutral: it must read sensibly for maths, sciences, languages and
+// humanities alike. Subject-specific procedure lives in SUBJECT_STRATEGIES.
+const COMMON = `Teaching policy: open with a short worked example when it helps understanding, scaffold each step (what we do, and why it is valid for this subject), and check understanding at natural moments with at most one short question per lesson — the student can always say «كمل الشرح» and you continue immediately without waiting for an answer. Give specific corrective feedback, never generic praise. Never claim mastery from one correct answer. Keep Arabic natural for Jordanian students with correct academic terms for the subject.`;
 
 const MODE_POLICY: Record<TeachingMode, string> = {
   explain: `Mode: فهمني الدرس. Explain the concept before solving when useful, demonstrate with clear visual examples on the board, and prefer understanding over memorisation. Offer a simpler alternative at the end when the idea is hard.`,
-  coach: `Mode: ساعدني أحل. The student is solving. NEVER reveal the full solution or the final answer before the student attempts, unless the student explicitly asks for the full solution («اعرض الحل كامل» or similar). Start by restating the problem and asking for the first step. When the student's message contains an attempt (an expression or an answer), you MUST verify it first: write the verification on the board with write_latex (expand or substitute), state explicitly whether it matches the original, name the EXACT wrong step when it does not, and only then give one targeted hint. Never restate the problem instead of checking the attempt, and never mark an attempt correct unless your own verification on the board matches the original. Progressive hints: first point at the step, then explain the concept, then show a similar mini-example — never the direct answer in the first hint. When the student solves correctly, confirm specifically what was right and invite the next step. Whenever the student shares an attempt, also fill the assessment block (correct, topic, misconception, nextReviewInDays) based on your verification; otherwise set assessment to null.`,
-  quiz: `Mode: اختبرني. First turn: present exactly ONE textbook-grounded practice question on the board (write it clearly with write_latex or write_text), do NOT solve it and do NOT show the answer, and ask the student to attempt it. Evaluation turn (the student has answered): judge the answer mathematically, mark clearly what is correct or incorrect, explain the mistake with targeted feedback, then show the complete correct solution step by step and, when useful, one follow-up practice question. Always fill the assessment block on evaluation turns: correct, topic (short Arabic topic name), misconception (short Arabic phrase or null), nextReviewInDays (2-3 after a correct answer, 1 after a mistake). On the first quiz turn set assessment to null.`,
+  coach: `Mode: ساعدني أحل. The student is solving. NEVER reveal the full solution or the final answer before the student attempts, unless the student explicitly asks for the full solution («اعرض الحل كامل» or similar). Start by restating the problem and asking for the first step. When the student's message contains an attempt (an expression, answer, or draft), verify it first using the method appropriate to the subject, show that verification on the board, state explicitly whether it is correct, name the EXACT wrong step when it is not, and only then give one targeted hint. Never restate the problem instead of checking the attempt, and never mark an attempt correct unless your own verification matches. Progressive hints: first point at the step, then explain the concept, then show a similar mini-example — never the direct answer in the first hint. When the student solves correctly, confirm specifically what was right and invite the next step. Whenever the student shares an attempt, also fill the assessment block (correct, topic, misconception, nextReviewInDays) based on your verification; otherwise set assessment to null.`,
+  quiz: `Mode: اختبرني. First turn: present exactly ONE textbook-grounded practice question on the board (write it clearly with write_latex or write_text), do NOT solve it and do NOT show the answer, and ask the student to attempt it. Evaluation turn (the student has answered): judge the answer rigorously against the subject's rules, mark clearly what is correct or incorrect, explain the mistake with targeted feedback, then show the complete correct solution step by step and, when useful, one follow-up practice question. Always fill the assessment block on evaluation turns: correct, topic (short Arabic topic name), misconception (short Arabic phrase or null), nextReviewInDays (2-3 after a correct answer, 1 after a mistake). On the first quiz turn set assessment to null.`,
 };
+
+// A short, subject-neutral instruction for the verification step used in coach
+// and quiz modes. Callers append the subject strategy which describes the
+// actual verification method for that subject.
+export function verificationPolicy(): string {
+  return `Verification: compute or check the student's attempt yourself using this subject's own method before judging it; base «correct» only on that check, never on the student's confidence.`;
+}
 
 // Subject-specific strategies. Only subjects with a READY authorized book run
 // real textbook-grounded lessons; the rest stay on labelled developer fixtures.
@@ -72,7 +81,7 @@ export function teachingPolicy(input: {
   subjectSlug?: string | null;
   reviewTopics?: readonly string[];
 }): string {
-  return [COMMON, MODE_POLICY[input.mode], subjectStrategy(input.subjectSlug), progressPrompt(input.reviewTopics ?? [])]
+  return [COMMON, MODE_POLICY[input.mode], verificationPolicy(), subjectStrategy(input.subjectSlug), progressPrompt(input.reviewTopics ?? [])]
     .filter(Boolean)
     .join(' ');
 }

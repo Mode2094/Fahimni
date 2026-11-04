@@ -69,8 +69,11 @@ function withinOneEdit(a: string, b: string): boolean {
 }
 
 // Builds a self-contained BM25-style retriever over any chunk set; the legacy
-// static textbook and subject books use the exact same ranking.
-export function buildRetriever(chunks: readonly RetrievalChunk[]): Retriever {
+// static textbook and subject books use the exact same ranking. Mathematics
+// synonym expansion and the `=`-implies-equations heuristic are opt-in so they
+// are never applied to a non-mathematics subject's retrieval.
+export function buildRetriever(chunks: readonly RetrievalChunk[], options: { mathSynonyms?: boolean } = {}): Retriever {
+  const useMathSynonyms = options.mathSynonyms === true;
   const docs = chunks.map((c) => ({ c, terms: tokens(c.text), title: tokens(`${c.lesson ?? ''} ${c.unit ?? ''}`) }));
   const df = new Map<string, number>();
   docs.forEach((d) => new Set(d.terms).forEach((t) => df.set(t, (df.get(t) || 0) + 1)));
@@ -88,9 +91,11 @@ export function buildRetriever(chunks: readonly RetrievalChunk[]): Retriever {
       }
     }
     let q = original;
-    if (/[=]/.test(q) && !/[\u0600-\u06ff]/.test(q)) q += ' المعادلات';
+    if (useMathSynonyms) {
+      if (/[=]/.test(q) && !/[\u0600-\u06ff]/.test(q)) q += ' المعادلات';
+      for (const [re, extra] of synonyms) if (re.test(q)) q += ' ' + normalize(extra);
+    }
     const originalTerms = new Set(tokens(q));
-    for (const [re, extra] of synonyms) if (re.test(q)) q += ' ' + normalize(extra);
     const terms = [...new Set(tokens(q))];
     if (!terms.length) return [];
 
@@ -141,8 +146,9 @@ export function buildRetriever(chunks: readonly RetrievalChunk[]): Retriever {
 export const chunks: RetrievalChunk[] = raw as unknown as RetrievalChunk[];
 export type Chunk = RetrievalChunk;
 
-// Legacy bundled textbook retriever, used by the original classroom route.
-export const retrieve: Retriever = buildRetriever(chunks);
+// Legacy bundled textbook retriever (Grade-10 mathematics), used by the
+// original classroom route. Math synonym expansion is enabled here.
+export const retrieve: Retriever = buildRetriever(chunks, { mathSynonyms: true });
 
 export function sourceFor(c: RetrievalChunk) {
   return {

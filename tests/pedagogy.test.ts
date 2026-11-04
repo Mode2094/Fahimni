@@ -95,3 +95,18 @@ test('assessment is part of the lesson contract and rejects malformed values', (
   assert.equal(generatedLessonSchema.safeParse(lesson).success, true);
   assert.equal(generatedLessonSchema.safeParse({ ...lesson, assessment: undefined }).success, false, 'assessment must be present (null when unused)');
 });
+
+test('the universal teaching policy carries no mathematics assumptions', () => {
+  // The identity + policy for chemistry must not contain mathematics procedure
+  // wording that would mislead a non-maths lesson.
+  const chemistry = teachingPolicy({ mode: 'coach', subjectSlug: 'tawjihi-chem' });
+  assert.ok(chemistry.includes('الكيمياء') || chemistry.includes('chemistry'));
+  // Universal phrasing must not hard-code algebra ("equality", "expand or substitute").
+  assert.equal(/preserve equality|expand or substitute|judge the answer mathematically/i.test(chemistry), false, 'no math-only wording in the universal policy');
+  // The math strategy itself is only present for a math slug.
+  const math = teachingPolicy({ mode: 'explain', subjectSlug: 'tawjihi-math' });
+  assert.ok(math.includes('verify each transformation algebraically'));
+  const arabic = teachingPolicy({ mode: 'explain', subjectSlug: 'tawjihi-arabic' });
+  assert.equal(/verify each transformation algebraically/.test(arabic), false, 'math strategy never leaks to Arabic');
+  assert.ok(arabic.includes('إعراب'));
+});

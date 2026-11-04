@@ -19,7 +19,7 @@ export async function POST(req:Request){
    trace({stage:'guard',guardPassed:true,visionModel:model()});
    trace({stage:'upload',mime:f.type,bytes:f.size});
    const url=`data:${f.type};base64,${Buffer.from(await f.arrayBuffer()).toString('base64')}`;
-   const result=z.object({clear:z.boolean(),question:z.string().min(1).max(4000)}).parse(await provider.vision(url,req.signal));
+   const result=z.object({clear:z.boolean(),question:z.string().min(1).max(4000)}).parse(await provider.vision(url,req.signal,access.context.subject?.name??null));
    trace({stage:'openai-reached',openaiStatus:200,clear:result.clear});
    if(!result.clear)throw new ProviderError('unclear',422);
    return Response.json({...result,credits:{balance:charge.balance}},{headers:aiResponseHeaders(access.context)});
