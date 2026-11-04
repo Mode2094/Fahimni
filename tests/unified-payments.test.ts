@@ -248,7 +248,7 @@ test('a replayed webhook grants semester credits exactly once', async () => {
   setSemesterStoreForTests(semesterStoreFake() as never);
 
   const { handleFreemiusWebhook } = await import('../lib/freemius/webhook');
-  const harness = fakeWebhookDeps({ email: student.email, planId: 'plan_semester', licenseId: 'lic-sem-1', subscriptionId: null, canceled: false, expiration: null, created: new Date('2027-08-01T00:00:00Z'), billingCycle: 'oneoff' });
+  const harness = fakeWebhookDeps({ email: student.email, planId: 'plan_semester', licenseId: 'lic-sem-1', subscriptionId: null, canceled: false, expiration: null, created: new Date('2027-08-01T00:00:00Z'), billingCycle: 'oneoff', paidAmountMinor: 29_000, paidCurrency: 'JOD', providerPaymentId: 'pay-sem-1' });
   const { semesterStore } = await import('../lib/billing/semester-store');
   const { purchaseStore } = await import('../lib/billing/purchase-store');
   const { creditWalletStore } = await import('../lib/billing/wallet-store');
@@ -323,7 +323,7 @@ test('a top-up payment grants purchased credits exactly once and survives replay
   });
 
   const { handleFreemiusWebhook } = await import('../lib/freemius/webhook');
-  const harness = fakeWebhookDeps({ email: student.email, planId: 'plan_topup', licenseId: 'lic-top-1', subscriptionId: 'tx-1', canceled: false, expiration: null, created: new Date(), billingCycle: 'oneoff' });
+  const harness = fakeWebhookDeps({ email: student.email, planId: 'plan_topup', licenseId: 'lic-top-1', subscriptionId: 'tx-1', canceled: false, expiration: null, created: new Date(), billingCycle: 'oneoff', paidAmountMinor: 5_000, paidCurrency: 'JOD', providerPaymentId: 'pay-top-1' });
   const { topupStore } = await import('../lib/billing/topup-store');
   const { creditWalletStore } = await import('../lib/billing/wallet-store');
   const { purchaseStore } = await import('../lib/billing/purchase-store');

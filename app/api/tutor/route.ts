@@ -21,7 +21,7 @@ export async function POST(req:Request){
 
   let retrieveFn;
   if(access.context.subject){
-   const retriever=await subjectRetriever(access.context.subject.id,booksStore());
+   const retriever=await subjectRetriever(access.context.subject.id,booksStore(),access.context.subject.slug);
    if(!retriever)return aiFailureResponse({code:'book_required',status:422,message:'الكتاب غير جاهز بعد.'});
    retrieveFn=retriever;
   }

@@ -14,7 +14,7 @@ export async function POST(req:Request){
   const charge=await chargeAiCredits(access.context,{operation:'speech',credits:speechCredits(text),requestId});
   if(!charge.ok)return aiFailureResponse(charge.failure,access.context);
   try{
-   const audio=await provider.speak(text,req.signal);
+   const audio=await provider.speak(text,req.signal,access.context.subject?.name??null);
    const headers=applyAiHeaders(new Headers({'Content-Type':'audio/mpeg','Cache-Control':'no-store','X-Fahimni-Credits':String(charge.balance)}),access.context);
    return new Response(audio,{headers});
   }catch(e){

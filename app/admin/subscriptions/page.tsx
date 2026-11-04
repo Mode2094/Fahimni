@@ -301,11 +301,15 @@ export default async function AdminSubscriptionsPage({
 
   let creditsSection = null;
   if (section === 'credits') {
-    const [offers, ledger] = await Promise.all([topupStore().listOffers(), creditWalletStore().listLedger('', 0).catch(() => [])]);
+    const [offers, ledger, allSemesters] = await Promise.all([
+      topupStore().listOffers(),
+      creditWalletStore().listLedger('', 0).catch(() => []),
+      semesterStore().listSemesters(),
+    ]);
     creditsSection = (
       <div className="fn-stack">
         <TopupsSection offers={offers} />
-        <CreditAdjustForm />
+        <CreditAdjustForm semesters={allSemesters.map((semester) => ({ id: semester.id, name: semester.name }))} />
         <section className="fn-section">
           <h2 className="fn-section__title">سجل الكريدت الأخير</h2>
           <LedgerTable rows={ledger} />

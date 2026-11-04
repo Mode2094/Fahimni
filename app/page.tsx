@@ -449,8 +449,12 @@ export default async function LandingPage() {
         <div className="fn-container fn-row fn-row--wrap fn-row--between">
           <span>© {new Date().getFullYear()} فهمني — مساحة للفهم.</span>
           <span className="fn-row fn-row--wrap">
-            <Link className="fn-caption" href="/privacy">سياسة الخصوصية (مسودة)</Link>
-            <Link className="fn-caption" href="/terms">الشروط والأحكام (مسودة)</Link>
+            <Link className="fn-caption" href="/terms">الشروط والأحكام</Link>
+            <Link className="fn-caption" href="/privacy">سياسة الخصوصية</Link>
+            <Link className="fn-caption" href="/subscription-terms">شروط الاشتراك</Link>
+            <Link className="fn-caption" href="/credit-policy">سياسة الرصيد والشحن</Link>
+            <Link className="fn-caption" href="/refunds">الاسترجاع والإلغاء</Link>
+            <Link className="fn-caption" href="/ai-disclaimer">إخلاء مسؤولية المحتوى</Link>
           </span>
         </div>
       </footer>

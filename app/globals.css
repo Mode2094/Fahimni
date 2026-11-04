@@ -330,6 +330,9 @@ a.teacher-action{text-decoration:none;display:inline-flex;align-items:center}
 .connection-note{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:12px;background:rgba(108,75,244,.16);color:#6a5418;font-size:13.5px}
 .amber-dot{width:8px;height:8px;border-radius:50%;background:#d9a520}
 .inline-notice{padding:10px 14px;border-radius:12px;background:rgba(108,75,244,.1);color:var(--green-dark);font-size:13.5px}
+.credit-notice{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.credit-notice a{color:inherit;font-weight:600;text-decoration:underline}
+.credit-notice[data-credit='exhausted']{background:#fdecec;color:#96302f}
 .error-message{display:flex;align-items:center;gap:11px;padding:11px 15px;border-radius:12px;background:#fdecec;color:#96302f;font-size:14px}
 .error-message button{margin-inline-start:auto;display:grid;place-items:center}
 
