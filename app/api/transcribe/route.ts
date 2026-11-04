@@ -14,7 +14,7 @@ export async function POST(req:Request){
    const question=await provider.transcribe(f,req.signal);
    return Response.json({question,credits:{balance:charge.balance}},{headers:aiResponseHeaders(access.context)});
   }catch(e){
-   await refundAiCredits(charge);
+   await refundAiCredits(charge, undefined, undefined, undefined, access.context);
    throw e;
   }
  }catch(e){return failure(e);}

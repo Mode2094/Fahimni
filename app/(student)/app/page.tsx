@@ -5,10 +5,12 @@ import { ChevronLeft } from 'lucide-react';
 import { FnBadge, FnButton, FnCard, FnLinkMore } from '@/components/fahimni';
 import { CreditBadge } from '@/components/student/credit-badge';
 import { SubjectCard } from '@/components/student/subject-card';
+import { SubscriptionWidgetCard } from '@/components/student/subscription-widget';
 import { TrialCard } from '@/components/student/trial-card';
 import { isTrialEnded, isTrialUsable, resolveSubjectAccess } from '@/lib/billing/access-map';
 import { isEntitlementActive } from '@/lib/billing/entitlements';
 import { billingStore } from '@/lib/billing/store';
+import { loadSubscriptionWidget } from '@/lib/billing/student-view';
 import { booksStore } from '@/lib/books/store';
 import { ensureCreditPeriod } from '@/lib/credits/periods';
 import { requireOnboardedStudent } from '@/lib/student/guard';
@@ -44,6 +46,7 @@ export default async function StudentDashboardPage() {
   );
   const hasPaid = activeEntitlements.length > 0;
   const paidBalance = activeEntitlements.reduce((sum, entitlement) => sum + entitlement.creditBalance, 0);
+  const subscriptionWidget = await loadSubscriptionWidget(user.id, profile.gradeId, profile.academicFieldId);
 
   const readyBooks = await Promise.all(subjects.map((subject) => booksStore().findReadyBookBySubject(subject.id)));
   const readyBookIds = new Set(subjects.filter((_, index) => readyBooks[index] !== null).map((subject) => subject.id));
@@ -116,6 +119,8 @@ export default async function StudentDashboardPage() {
           durationHours={trialSettings.durationHours}
         />
       ) : null}
+
+      <SubscriptionWidgetCard widget={subscriptionWidget} />
 
       <section className="fn-section">
         <div className="fn-section__head">

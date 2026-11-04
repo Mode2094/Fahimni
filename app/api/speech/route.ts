@@ -18,7 +18,7 @@ export async function POST(req:Request){
    const headers=applyAiHeaders(new Headers({'Content-Type':'audio/mpeg','Cache-Control':'no-store','X-Fahimni-Credits':String(charge.balance)}),access.context);
    return new Response(audio,{headers});
   }catch(e){
-   await refundAiCredits(charge);
+   await refundAiCredits(charge, undefined, undefined, undefined, access.context);
    throw e;
   }
  }catch(e){return failure(e);}

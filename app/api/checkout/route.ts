@@ -3,6 +3,10 @@ import { z } from 'zod';
 import { sessionTokenFromRequest, userFromToken } from '../../../lib/auth/request-user';
 import { isEntitlementActive } from '../../../lib/billing/entitlements';
 import { billingStore } from '../../../lib/billing/store';
+import { semesterStore, isSellableSemester } from '../../../lib/billing/semester-store';
+import { purchaseStore } from '../../../lib/billing/purchase-store';
+import { topupStore } from '../../../lib/billing/topup-store';
+import { findDuplicatePurchase } from '../../../lib/billing/subscription';
 import { termPhase } from '../../../lib/billing/terms';
 import { booksStore } from '../../../lib/books/store';
 import { FreemiusConfigError, freemiusClient } from '../../../lib/freemius/client';
@@ -16,8 +20,12 @@ import { studentStore } from '../../../lib/student/store';
 export const dynamic = 'force-dynamic';
 
 // The browser sends only a safe local identifier. Price, Freemius plan id, user
-// id, academic term and entitlement scope are always resolved server-side.
+// id, semester, credit allowance and scope are always resolved server-side.
+// The unified semester path is the only publicly offered paid subscription;
+// legacy offer/plan identifiers remain accepted only for grandfathered flows.
 const schema = z.union([
+  z.object({ kind: z.literal('semester'), semesterId: z.string().uuid() }).strict(),
+  z.object({ kind: z.literal('topup'), offerId: z.string().uuid() }).strict(),
   z.object({ offerId: z.string().uuid() }).strict(),
   z.object({ subjectId: z.string().uuid(), planType: z.enum(['MONTHLY', 'SEMESTER']) }).strict(),
 ]);
@@ -48,6 +56,15 @@ export async function POST(request: Request) {
   const profile = await students.getProfile(user.id);
   if (!profile?.onboardingCompleted) {
     return Response.json({ error: 'أكمل إعداد حسابك أولًا.', code: 'onboarding_required' }, { status: 403 });
+  }
+
+  // Unified semester subscription — the single publicly offered paid product.
+  if ('kind' in parsed.data && parsed.data.kind === 'semester') {
+    return semesterCheckout(parsed.data.semesterId, user, profile);
+  }
+  // One-time paid credit top-up.
+  if ('kind' in parsed.data && parsed.data.kind === 'topup') {
+    return topupCheckout(parsed.data.offerId, user);
   }
 
   const billing = billingStore();
@@ -160,6 +177,109 @@ export async function POST(request: Request) {
       return Response.json({ error: 'الدفع غير مُهيّأ بعد.', code: 'not_configured' }, { status: 503 });
     }
     console.error('[checkout] failed to create checkout link');
+    return Response.json({ error: 'تعذر بدء عملية الدفع. حاول لاحقًا.', code: 'checkout_failed' }, { status: 502 });
+  }
+}
+
+type CheckoutUser = { id: string; email: string; name: string | null };
+type CheckoutProfile = { gradeId: string; academicFieldId: string | null };
+
+// Unified semester checkout: one product, all ready subjects, one wallet. The
+// price is resolved from the semester row server-side and shown before payment.
+async function semesterCheckout(semesterId: string, user: CheckoutUser, profile: CheckoutProfile): Promise<Response> {
+  const semester = await semesterStore().findSemesterById(semesterId);
+  if (!semester || semester.status === 'ARCHIVED' || semester.status === 'DRAFT') {
+    return Response.json({ error: 'الاشتراك الفصلي غير متاح.', code: 'semester_unavailable' }, { status: 404 });
+  }
+  const scopeMatches =
+    semester.gradeId === profile.gradeId &&
+    (semester.academicFieldId === null || semester.academicFieldId === profile.academicFieldId);
+  if (!scopeMatches) {
+    return Response.json({ error: 'الاشتراك الفصلي غير متاح لصفك أو تخصصك.', code: 'semester_unavailable' }, { status: 404 });
+  }
+  if (!isSellableSemester(semester)) {
+    return Response.json({ error: 'الاشتراك الفصلي غير متاح للبيع حاليًا.', code: 'semester_unavailable' }, { status: 409 });
+  }
+  if (!semester.freemiusPlanId) {
+    return Response.json({ error: 'الاشتراك الفصلي غير جاهز للدفع بعد.', code: 'semester_unavailable' }, { status: 409 });
+  }
+  if (isDemoPlanId(semester.freemiusPlanId)) {
+    return Response.json({ error: 'الاشتراك الفصلي غير جاهز للدفع بعد.', code: 'semester_unavailable' }, { status: 409 });
+  }
+  // The semester plan must be a verified provider mapping before it can sell.
+  const link = await offerProviderLinkStore().findByPlanId('freemius', semester.freemiusPlanId);
+  if (!isCheckoutReady({ offerActive: true, link })) {
+    return Response.json({ error: 'الاشتراك الفصلي غير جاهز للدفع بعد.', code: 'semester_unavailable' }, { status: 409 });
+  }
+  // Duplicate guard: one live purchase per user + semester.
+  const duplicate = await findDuplicatePurchase(purchaseStore(), user.id, semester.id);
+  if (duplicate && duplicate.status !== 'EXPIRED' && duplicate.status !== 'CANCELED') {
+    return Response.json({ error: 'أنت مشترك في هذا الفصل بالفعل.', code: 'already_subscribed' }, { status: 409 });
+  }
+
+  try {
+    const url = await sdkCheckoutCreator(await freemiusClient())({
+      planId: semester.freemiusPlanId,
+      email: user.email,
+      name: user.name,
+    });
+    return Response.json({ url });
+  } catch (error) {
+    if (error instanceof FreemiusConfigError) {
+      return Response.json({ error: 'الدفع غير مُهيّأ بعد.', code: 'not_configured' }, { status: 503 });
+    }
+    console.error('[checkout] failed to create semester checkout link');
+    return Response.json({ error: 'تعذر بدء عملية الدفع. حاول لاحقًا.', code: 'checkout_failed' }, { status: 502 });
+  }
+}
+
+// One-time top-up checkout. Never grants credits here; credits are added only
+// after a verified webhook settles the payment.
+async function topupCheckout(offerId: string, user: CheckoutUser): Promise<Response> {
+  const offer = await topupStore().findOfferById(offerId);
+  if (!offer || offer.status !== 'ACTIVE') {
+    return Response.json({ error: 'عرض شحن الرصيد غير متاح.', code: 'topup_unavailable' }, { status: 409 });
+  }
+  if (!offer.freemiusPlanId || isDemoPlanId(offer.freemiusPlanId)) {
+    return Response.json({ error: 'عرض شحن الرصيد غير جاهز للدفع بعد.', code: 'topup_unavailable' }, { status: 409 });
+  }
+  const link = await offerProviderLinkStore().findByPlanId('freemius', offer.freemiusPlanId);
+  if (!isCheckoutReady({ offerActive: true, link })) {
+    return Response.json({ error: 'عرض شحن الرصيد غير جاهز للدفع بعد.', code: 'topup_unavailable' }, { status: 409 });
+  }
+  // Reuse an existing pending purchase rather than creating duplicates.
+  const purchases = topupStore();
+  const pending = await purchases.findPendingPurchaseForUser(user.id, offer.id);
+  if (!pending) {
+    await purchases.createPurchase({
+      id: crypto.randomUUID(),
+      userId: user.id,
+      offerId: offer.id,
+      offerName: offer.name,
+      credits: offer.credits,
+      priceMinor: offer.priceMinor,
+      currency: offer.currency,
+      status: 'PENDING',
+      provider: 'freemius',
+      providerTransactionId: null,
+      providerLicenseId: null,
+      providerPlanId: offer.freemiusPlanId,
+      creditsGrantedAt: null,
+    });
+  }
+
+  try {
+    const url = await sdkCheckoutCreator(await freemiusClient())({
+      planId: offer.freemiusPlanId,
+      email: user.email,
+      name: user.name,
+    });
+    return Response.json({ url });
+  } catch (error) {
+    if (error instanceof FreemiusConfigError) {
+      return Response.json({ error: 'الدفع غير مُهيّأ بعد.', code: 'not_configured' }, { status: 503 });
+    }
+    console.error('[checkout] failed to create top-up checkout link');
     return Response.json({ error: 'تعذر بدء عملية الدفع. حاول لاحقًا.', code: 'checkout_failed' }, { status: 502 });
   }
 }

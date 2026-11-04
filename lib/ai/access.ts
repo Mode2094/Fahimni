@@ -4,6 +4,7 @@ import type { AuthUser } from '../auth/store';
 import { isEntitlementActive } from '../billing/entitlements';
 import { billingStore, type BillingStore, type EntitlementRecord } from '../billing/store';
 import { ensureCreditPeriod } from '../credits/periods';
+import { creditWalletStore, type CreditWalletStore, type WalletSnapshot } from '../billing/wallet-store';
 import { deviceCookieHeader, createDeviceToken, deviceTokenFromRequest, hashDeviceToken } from '../devices/token';
 import { summarizeUserAgent } from '../devices/user-agent';
 import { deviceStore, type DeviceRecord, type DeviceStore } from '../devices/store';
@@ -52,6 +53,9 @@ export type AiAccessContext = {
   balance: number | null;
   resetAt: Date | null;
   setDeviceCookie?: string;
+  // The unified wallet snapshot when the student is on the semester model.
+  // Present only for paid entitlement contexts; trial contexts have none.
+  wallet?: WalletSnapshot | null;
 };
 
 export type AiAccessDeps = {
@@ -60,6 +64,7 @@ export type AiAccessDeps = {
   devices?: DeviceStore;
   trials?: TrialStore;
   budget?: TrialBudget;
+  wallets?: CreditWalletStore;
   nodeEnv?: string;
 };
 
@@ -263,10 +268,16 @@ export async function authorizeAiRequest(
 
   let entitlement = await billing.findAccessibleEntitlement(user.id, subject.id, new Date());
   let trial: FreeTrialRecord | null = null;
+  let wallet: WalletSnapshot | null = null;
   if (entitlement && isEntitlementActive(entitlement)) {
     // Paid access stays authoritative wherever a valid subscription covers the
     // subject; the shared trial wallet applies only to other subjects.
-    entitlement = await ensureCreditPeriod(billing, entitlement);
+    if (entitlement.subjectId === null) {
+      // Unified semester subscription: the two-bucket wallet is the balance.
+      wallet = await (deps.wallets ?? creditWalletStore()).getSnapshot(user.id);
+    } else {
+      entitlement = await ensureCreditPeriod(billing, entitlement);
+    }
   } else {
     entitlement = null;
     const resolution = await resolveTrialAccess(deps.trials ?? trialStore(), user.id, new Date());
@@ -300,9 +311,10 @@ export async function authorizeAiRequest(
       entitlement,
       trial,
       device: device.device,
-      balance: entitlement ? entitlement.creditBalance : trial ? trial.remainingCredits : null,
-      resetAt: entitlement ? entitlement.creditPeriodEndsAt : trial?.expiresAt ?? null,
+      balance: entitlement ? (wallet ? wallet.total : entitlement.creditBalance) : trial ? trial.remainingCredits : null,
+      resetAt: entitlement ? (wallet ? entitlement.expiresAt : entitlement.creditPeriodEndsAt) : trial?.expiresAt ?? null,
       setDeviceCookie: device.setDeviceCookie,
+      wallet,
     },
   };
 }
@@ -422,6 +434,25 @@ export async function chargeAiCredits(
     return { ok: true, balance: context.balance ?? 0, charged: false, requestId };
   }
 
+  // Unified semester model: a semester entitlement (all-subject, subjectId null)
+  // or a context carrying a wallet snapshot is charged through the two-bucket
+  // wallet (semester credits first, then durable top-up credits).
+  const unified = context.entitlement.subjectId === null || Boolean(context.wallet);
+  if (unified) {
+    const walletCharge = await chargeWallet(context, input.credits, requestId);
+    if (!walletCharge.ok) {
+      await releaseGlobalBudget(requestId);
+      return {
+        ok: false,
+        failure: failure('credit_required', 402, 'انتهى رصيدك. يمكنك شحن رصيد إضافي للمتابعة.', {
+          balance: walletCharge.balance,
+          resetAt: context.resetAt,
+        }),
+      };
+    }
+    return { ok: true, balance: walletCharge.balance, charged: walletCharge.charged, requestId };
+  }
+
   const result = await billing.chargeCredits({
     entitlementId: context.entitlement.id,
     userId: context.user.id,
@@ -444,6 +475,27 @@ export async function chargeAiCredits(
   return { ok: true, balance: result.balance, charged: !result.duplicate, requestId };
 }
 
+// Charges the unified wallet. Kept separate so the legacy per-entitlement path
+// above stays byte-for-byte compatible for grandfathered monthly/bundle rows.
+async function chargeWallet(
+  context: AiAccessContext,
+  credits: number,
+  requestId: string,
+): Promise<{ ok: true; balance: number; charged: boolean } | { ok: false; balance: number }> {
+  const wallets = creditWalletStore();
+  const spendableUntil = context.entitlement?.expiresAt ?? null;
+  const result = await wallets.spend({
+    userId: context.user!.id,
+    entitlementId: context.entitlement!.id,
+    subjectId: context.subject!.id,
+    requestId,
+    credits,
+    spendableUntil,
+  });
+  if (!result.ok) return { ok: false, balance: result.snapshot?.total ?? 0 };
+  return { ok: true, balance: result.snapshot.total, charged: result.charged };
+}
+
 // Refunds once when a provider request fails before a useful result. Duplicate
 // charges (retried requestIds) are never refunded. Trial refunds also release
 // the daily budget reservation.
@@ -452,11 +504,19 @@ export async function refundAiCredits(
   billing: BillingStore = billingStore(),
   trials: TrialStore = trialStore(),
   budget: TrialBudget = trialBudget(),
+  context?: AiAccessContext,
 ): Promise<void> {
   if (!charge.ok || !charge.charged) return;
   try {
     if (charge.trial) {
       await trials.refundTrialCredits(charge.requestId);
+    } else if (context?.wallet) {
+      // Unified semester wallet: restore the same buckets the charge debited.
+      await (creditWalletStore()).refund({
+        userId: context.user!.id,
+        requestId: `${charge.requestId}:refund`,
+        reversesRequestId: charge.requestId,
+      });
     } else {
       await billing.refundCredits(charge.requestId);
     }
