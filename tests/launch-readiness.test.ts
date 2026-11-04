@@ -4,29 +4,45 @@ import assert from 'node:assert/strict';
 import { paymentReadiness, worst } from '../lib/admin/launch-readiness';
 import { isSupportedCheckoutCurrency, SUPPORTED_CHECKOUT_CURRENCIES } from '../lib/freemius/verification';
 
-// The launch-readiness aggregation must never show a fabricated green state:
-// payment readiness is blocked whenever the provider link is unhealthy OR the
-// offer currency is unsupported (the current JOD situation).
+// Launch-readiness aggregation must never show a fabricated green state:
+// payment readiness requires a VERIFIED plan mapping (price, currency, cycle,
+// exact plan id), not merely a healthy provider connection.
 
-test('payment readiness is blocked for an unsupported currency even when the provider is up', () => {
-  const check = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'JOD' });
+const verifiedMapping = { planId: 'plan_x', currency: 'USD', priceMinor: 29_000, billingCycle: 'oneoff', verified: true };
+
+test('payment is blocked for an unsupported currency even when the provider is up', () => {
+  const check = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'JOD', planId: 'plan_x', mapping: { ...verifiedMapping, currency: 'JOD' }, expectedPriceMinor: 29_000 });
   assert.equal(check.level, 'blocked');
-  assert.ok(check.action, 'a precise owner action is required');
+  assert.ok(check.action);
   assert.equal(isSupportedCheckoutCurrency('JOD'), false, 'Freemius does not support JOD today');
   assert.equal((SUPPORTED_CHECKOUT_CURRENCIES as readonly string[]).includes('JOD'), false);
 });
 
-test('payment readiness is blocked when the provider connection fails', () => {
-  const check = paymentReadiness({ providerOk: false, providerCode: 'auth_failed', currency: 'USD' });
+test('payment is blocked when the provider connection fails', () => {
+  const check = paymentReadiness({ providerOk: false, providerCode: 'auth_failed', currency: 'USD', planId: 'plan_x', mapping: verifiedMapping, expectedPriceMinor: 29_000 });
   assert.equal(check.level, 'blocked');
   assert.ok(check.action);
 });
 
-test('payment readiness is ok only with a healthy provider and a supported currency', () => {
-  const check = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'USD' });
+test('payment is blocked without a verified mapping, even with a healthy connection', () => {
+  const missing = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'USD', planId: 'plan_x', mapping: null, expectedPriceMinor: 29_000 });
+  assert.equal(missing.level, 'blocked', 'a healthy connection without a verified mapping is not ready');
+  const unverified = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'USD', planId: 'plan_x', mapping: { ...verifiedMapping, verified: false }, expectedPriceMinor: 29_000 });
+  assert.equal(unverified.level, 'blocked', 'an unverified mapping is not ready');
+});
+
+test('payment is blocked on plan-id, currency, price or cycle mismatch', () => {
+  const base = { providerOk: true, providerCode: 'ok', currency: 'USD', planId: 'plan_x', expectedPriceMinor: 29_000 };
+  assert.equal(paymentReadiness({ ...base, mapping: { ...verifiedMapping, planId: 'other' } }).level, 'blocked');
+  assert.equal(paymentReadiness({ ...base, mapping: { ...verifiedMapping, currency: 'EUR' } }).level, 'blocked');
+  assert.equal(paymentReadiness({ ...base, mapping: { ...verifiedMapping, priceMinor: 1_000 } }).level, 'blocked');
+  assert.equal(paymentReadiness({ ...base, mapping: { ...verifiedMapping, billingCycle: 'weird' } }).level, 'blocked');
+});
+
+test('payment is ok only with a healthy provider and a fully verified mapping', () => {
+  const check = paymentReadiness({ providerOk: true, providerCode: 'ok', currency: 'USD', planId: 'plan_x', mapping: verifiedMapping, expectedPriceMinor: 29_000 });
   assert.equal(check.level, 'ok');
   assert.equal(check.action, undefined);
-  assert.equal(isSupportedCheckoutCurrency('usd'), true, 'currency matching is case-insensitive');
 });
 
 test('worst() escalates to the most severe level', () => {

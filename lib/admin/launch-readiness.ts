@@ -1,7 +1,7 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { getDb } from '../../db';
-import { books, creditWallets, semesterCreditGrants } from '../../db/schema';
+import { books, creditLedger, creditWallets, semesterCreditGrants } from '../../db/schema';
 import { adminStore } from './store';
 import { semesterStore, isSellableSemester } from '../billing/semester-store';
 import { topupStore } from '../billing/topup-store';
@@ -11,6 +11,7 @@ import { encryptionConfigured } from '../settings/crypto';
 import { SETTING_KEYS, SECRET_KEYS } from '../settings/keys';
 import { getPlainSetting, getSecretPresence } from '../settings/service';
 import { checkFreemiusConnection } from '../freemius/connection';
+import { offerProviderLinkStore } from '../freemius/links';
 import { isSupportedCheckoutCurrency } from '../freemius/verification';
 
 // Aggregated, evidence-backed launch readiness. Every check reads real state or
@@ -40,19 +41,59 @@ export type ReadinessReport = {
 // Pure, testable payment-readiness decision. A semester can only sell when the
 // provider connection is healthy AND the semester's currency is supported by
 // the provider. This is the primary launch blocker in the current setup.
+// Payment readiness depends on a VERIFIED mapping, not merely a healthy
+// connection: the exact plan id must be linked to the provider with a verified
+// price, the same currency as the offer, and a supported billing cycle. Any
+// missing link, unverified link, currency mismatch or unsupported currency is a
+// hard blocker.
 export function paymentReadiness(input: {
   providerOk: boolean;
   providerCode: string;
   currency: string;
+  planId: string | null;
+  mapping: {
+    planId: string | null;
+    currency: string | null;
+    priceMinor: number | null;
+    billingCycle: string | null;
+    verified: boolean;
+  } | null;
+  expectedPriceMinor: number | null;
 }): ReadinessCheck {
   const currencySupported = isSupportedCheckoutCurrency(input.currency);
-  const ready = input.providerOk && currencySupported;
+  const reasons: string[] = [];
+  if (!input.providerOk) reasons.push(`الاتصال بالمزوّد غير سليم (${input.providerCode})`);
+  if (!currencySupported) reasons.push(`عملة العرض (${input.currency || '—'}) غير مدعومة`);
+  if (!input.planId) reasons.push('لا توجد خطة دفع مرتبطة');
+  const mapping = input.mapping;
+  if (!mapping) {
+    reasons.push('لا يوجد ربط مزوّد موثّق لهذه الخطة');
+  } else {
+    if (!mapping.verified) reasons.push('الربط غير موثّق');
+    if (!mapping.planId || mapping.planId !== input.planId) reasons.push('معرّف الخطة لا يطابق الربط');
+    if (!mapping.currency || mapping.currency.toUpperCase() !== input.currency.toUpperCase()) reasons.push('عملة الربط لا تطابق العرض');
+    if (!isSupportedCheckoutCurrency(mapping.currency ?? '')) reasons.push('عملة الربط غير مدعومة');
+    if (
+      input.expectedPriceMinor !== null &&
+      (mapping.priceMinor === null || mapping.priceMinor !== input.expectedPriceMinor)
+    ) {
+      reasons.push('سعر الربط لا يطابق سعر العرض');
+    }
+    if (!mapping.billingCycle || !['oneoff', 'monthly', 'annual', 'yearly'].includes(mapping.billingCycle)) {
+      reasons.push('دورة الفوترة في الربط غير صالحة');
+    }
+  }
+  const ready = reasons.length === 0;
   return {
     id: 'payment',
     label: 'مزود الدفع',
     level: ready ? 'ok' : 'blocked',
-    detail: `الاتصال بالمزوّد: ${input.providerOk ? 'متاح' : input.providerCode} · عملة العرض (${input.currency}) مدعومة: ${currencySupported ? 'نعم' : 'لا'}`,
-    action: ready ? undefined : 'المزود لا يدعم عملة العرض الحالية أو الربط غير مكتمل. اختر عملة مدعومة أو مزوّدًا يدعم عملتك، ثم فعّل الربط بعد اعتماد المالك.',
+    detail: ready
+      ? `ربط موثّق: خطة ${input.planId} · عملة ${input.currency} · دورة ${mapping?.billingCycle}`
+      : reasons.join('؛ '),
+    action: ready
+      ? undefined
+      : 'أكمل وثّق ربط الخطة لدى المزود (المعرّف والسعر والعملة والدورة) بعملة مدعومة، ثم فعّل الربط بعد اعتماد المالك.',
   };
 }
 
@@ -136,17 +177,27 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
   const activeSemester = nowSemesters.find((semester) => semester.status === 'ACTIVE') ?? null;
   const sellable = nowSemesters.find((semester) => isSellableSemester(semester, now)) ?? null;
 
-  // 6. Payment provider readiness (real read-only connection check). Computed
-  // before the semester readiness check because it feeds the pricing verdict.
+  // 6. Payment provider readiness (real read-only connection check + verified
+  // plan mapping). A healthy connection alone is NOT readiness: the exact plan
+  // must be linked with a verified price, matching currency and valid cycle.
   let providerPricingVerified = false;
   try {
     const connection = await checkFreemiusConnection();
-    providerPricingVerified = connection.ok && isSupportedCheckoutCurrency(activeSemester?.currency ?? '');
-    checks.push(paymentReadiness({
+    const planId = activeSemester?.freemiusPlanId ?? null;
+    const link = planId ? await offerProviderLinkStore().findByPlanId('freemius', planId) : null;
+    const mapping = link
+      ? { planId: link.planId, currency: link.currency, priceMinor: link.priceMinor, billingCycle: link.billingCycle, verified: link.verified }
+      : null;
+    const paymentCheck = paymentReadiness({
       providerOk: connection.ok,
       providerCode: connection.code,
       currency: activeSemester?.currency ?? '',
-    }));
+      planId,
+      mapping,
+      expectedPriceMinor: activeSemester?.priceMinor ?? null,
+    });
+    providerPricingVerified = paymentCheck.level === 'ok';
+    checks.push(paymentCheck);
   } catch {
     checks.push({ id: 'payment', label: 'مزود الدفع', level: 'blocked', detail: 'فريميوس غير مهيأ.', action: 'أكمل بيانات الربط ثم اختبر الاتصال.' });
   }
@@ -214,41 +265,78 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
       .from(semesterCreditGrants)
       .where(sql`${semesterCreditGrants.remainingCredits} < 0`);
 
-    // Reconcile the sampled wallets: cache.semester vs ACTIVE grant sum, and
-    // cache.topup vs the TOPUP ledger sum. Do the whole sample in one query.
     const sampleIds = sample.map((row) => row.userId);
     let mismatches = 0;
     if (sampleIds.length) {
-      const rows = await db.execute<{ uid: string; mismatch: boolean }>(sql`
-        with sampled as (select unnest(${sql.raw(`ARRAY[${sampleIds.map((id) => `'${id}'`).join(',')}]::text[]`)}) as uid)
-        select s.uid::text as uid,
-          (w.semester_balance <> coalesce(g.semester_sum, 0) or w.topup_balance <> coalesce(l.topup_sum, 0)) as mismatch
-        from sampled s
-        join credit_wallets w on w.user_id = s.uid
-        left join (
-          select user_id, sum(case when status = 'ACTIVE' and starts_at <= now() and expires_at > now() then remaining_credits else 0 end)::int as semester_sum
-          from semester_credit_grants group by user_id
-        ) g on g.user_id = s.uid
-        left join (
-          select user_id, sum(delta)::int as topup_sum
-          from credit_ledger where bucket = 'TOPUP' group by user_id
-        ) l on l.user_id = s.uid
-      `);
-      mismatches = rows.rows.filter((row) => row.mismatch).length;
+      // Parameterized: the sample ids are bound, never interpolated into text.
+      const cacheRows = await db
+        .select({
+          userId: creditWallets.userId,
+          semesterBalance: creditWallets.semesterBalance,
+          topupBalance: creditWallets.topupBalance,
+          updatedAt: creditWallets.updatedAt,
+        })
+        .from(creditWallets)
+        .where(inArray(creditWallets.userId, sampleIds));
+
+      // Semester grant sum per sampled user, evaluated at the cache's OWN
+      // updated_at instant so a semester-boundary rollover (a grant becoming
+      // spendable purely by time) is not misread as a mismatch. Only ACTIVE
+      // grants and their remaining credits are summed.
+      const grantRows = await db
+        .select({
+          userId: semesterCreditGrants.userId,
+          remaining: semesterCreditGrants.remainingCredits,
+          startsAt: semesterCreditGrants.startsAt,
+          expiresAt: semesterCreditGrants.expiresAt,
+        })
+        .from(semesterCreditGrants)
+        .where(inArray(semesterCreditGrants.userId, sampleIds));
+
+      // Top-up ledger sum per sampled user (time-independent).
+      const ledgerRows = await db
+        .select({
+          userId: creditLedger.userId,
+          delta: creditLedger.delta,
+        })
+        .from(creditLedger)
+        .where(and(inArray(creditLedger.userId, sampleIds), eq(creditLedger.bucket, 'TOPUP')));
+
+      const topupByUser = new Map<string, number>();
+      for (const row of ledgerRows) topupByUser.set(row.userId, (topupByUser.get(row.userId) ?? 0) + row.delta);
+
+      for (const cache of cacheRows) {
+        // Semester: grant rows whose window contained the cache instant and that
+        // are still counted as ACTIVE, summed at that instant.
+        const at = cache.updatedAt;
+        const semesterSum = grantRows
+          .filter((grant) => grant.userId === cache.userId && grant.startsAt.getTime() <= at.getTime() && grant.expiresAt.getTime() > at.getTime())
+          .reduce((sum, grant) => sum + grant.remaining, 0);
+        const topupSum = topupByUser.get(cache.userId) ?? 0;
+        // The cache is refreshed on every mutation, so at its own updated_at it
+        // must equal the ledger/grant sums. A mismatch indicates real drift.
+        if (cache.semesterBalance !== semesterSum || cache.topupBalance !== topupSum) mismatches += 1;
+      }
     }
 
     const checked = sampleIds.length;
     const negativeCount = negative?.count ?? 0;
     // Coverage: verified when every wallet was checked; partial otherwise.
     const coverage = checked === 0 ? 'unavailable' : checked >= total ? 'verified' : 'partial';
+    // Partial coverage can NEVER be reported as verified; and a partial sample
+    // with no mismatches is still only "warn", never a clean green.
     const healthy = negativeCount === 0 && mismatches === 0;
+    const level: ReadinessLevel =
+      coverage === 'unavailable' ? 'unknown' : !healthy ? 'blocked' : coverage === 'verified' ? 'ok' : 'warn';
     checks.push({
       id: 'wallet',
       label: 'سلامة الرصيد والسجل',
-      level: coverage === 'unavailable' ? 'unknown' : healthy ? 'ok' : 'blocked',
+      level,
       detail: `تم فحص ${checked} من ${total} محفظة (تغطية: ${{ verified: 'كاملة', partial: 'جزئية', unavailable: 'غير متاحة' }[coverage]}) · عدم تطابق: ${mismatches} · أرصدة سالبة: ${negativeCount}`,
       action: healthy
-        ? undefined
+        ? coverage === 'partial'
+          ? 'التغطية جزئية (عيّنة فقط)؛ لا يمكن اعتبار السلامة مُتحقَّقة كاملةً حتى تُفحص كل المحافظ.'
+          : undefined
         : 'يوجد عدم تطابق بين ذاكرة الرصيد ودفتر الكريدت أو أرصدة سالبة. استخدم أداة المطابقة وأصلح السجل قبل الإطلاق.',
     });
   } catch {

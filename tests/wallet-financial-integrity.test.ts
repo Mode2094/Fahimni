@@ -188,3 +188,86 @@ test('wallet financial integrity: top-up idempotency, negative adjustment, time-
     await closeDb();
   }
 });
+
+// Administrative adjustments across semester states: expired, future and two
+// overlapping-in-time semesters. A negative adjustment must only touch grants of
+// the explicitly selected semester, and a positive adjustment must not create
+// credits valid beyond the selected semester's own expiry.
+test('admin adjustments only affect the selected semester and clamp to its expiry', {
+  skip: testDatabaseUrl ? false : 'set TEST_DATABASE_URL to run the PostgreSQL integration test',
+}, async () => {
+  process.env.DATABASE_URL = testDatabaseUrl as string;
+  const { sql } = await import('drizzle-orm');
+  const { migrate } = await import('drizzle-orm/node-postgres/migrator');
+  const { closeDb, getDb } = await import('../db/index');
+  const { seedCatalog } = await import('../db/seed');
+  const schema = await import('../db/schema');
+  const { creditWalletStore, reconcileWallet } = await import('../lib/billing/wallet-store');
+
+  const db = getDb();
+  await migrate(db, { migrationsFolder: './drizzle' });
+  await seedCatalog(db);
+
+  const [grade] = await db.select().from(schema.grades).limit(1);
+  assert.ok(grade);
+
+  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const userId = `adjust-${suffix}`;
+  const pastSem = crypto.randomUUID();
+  const futureSem = crypto.randomUUID();
+  const activeSem = crypto.randomUUID();
+  await db.insert(schema.users).values({ id: userId, email: `${userId}@example.com`, role: 'STUDENT' });
+
+  const mkSemester = (id: string, name: string, startsAt: string, endsAt: string) =>
+    db.insert(schema.semesters).values({
+      id, name, academicYear: '2026/2027', gradeId: grade.id,
+      startsAt: new Date(startsAt), endsAt: new Date(endsAt),
+      salesStartAt: new Date('2025-01-01T00:00:00Z'), priceMinor: 29_000, currency: 'JOD',
+      includedCredits: 300, status: 'ACTIVE', lateEnrollmentPolicy: 'FULL_PRICE', topUpEnabled: true,
+    });
+
+  try {
+    await mkSemester(pastSem, `منتهٍ ${suffix}`, '2024-09-01T00:00:00Z', '2025-01-15T00:00:00Z');
+    await mkSemester(futureSem, `مستقبلي ${suffix}`, '2099-09-01T00:00:00Z', '2100-01-15T00:00:00Z');
+    await mkSemester(activeSem, `حالي ${suffix}`, '2026-09-01T00:00:00Z', '2027-06-15T20:59:59.999Z');
+
+    const wallets = creditWalletStore();
+    // Active semester: 100 usable credits. Past: 50 (expired). Future: 40 (reserved).
+    await wallets.grantSemesterCredits({ userId, credits: 100, semesterId: activeSem, entitlementId: null, requestId: `ad-active-${suffix}`, expiresAt: new Date('2027-06-15T20:59:59.999Z') });
+    await wallets.grantSemesterCredits({ userId, credits: 50, semesterId: pastSem, entitlementId: null, requestId: `ad-past-${suffix}`, expiresAt: new Date('2025-01-15T00:00:00Z') });
+    await wallets.grantSemesterCredits({ userId, credits: 40, semesterId: futureSem, entitlementId: null, requestId: `ad-future-${suffix}`, startsAt: new Date('2099-09-01T00:00:00Z'), expiresAt: new Date('2100-01-15T00:00:00Z') });
+
+    // Negative adjustment on the ACTIVE semester only: 100 -> 80. The past and
+    // future semesters are untouched.
+    const adjusted = await wallets.adjust({ userId, bucket: 'SEMESTER', delta: -20, actorId: null, reason: 'تصحيح', requestId: `ad-neg-${suffix}`, semesterId: activeSem });
+    assert.equal(adjusted.semesterBalance, 80, 'only the active semester was reduced');
+    const grants = await wallets.listSemesterGrants(userId);
+    assert.equal(grants.find((g) => g.semesterId === futureSem)?.remainingCredits, 40, 'future semester untouched');
+    assert.equal(grants.find((g) => g.semesterId === pastSem)?.remainingCredits, 50, 'past semester untouched');
+
+    // Negative adjustment beyond the active semester's availability is rejected
+    // (50 in a past semester must not fund a deduction on the active one).
+    await assert.rejects(() => wallets.adjust({ userId, bucket: 'SEMESTER', delta: -1000, actorId: null, reason: 'اختبار', requestId: `ad-over-${suffix}`, semesterId: activeSem }));
+
+    // Positive adjustment clamped to the active semester's own expiry.
+    const billed = await wallets.adjust({ userId, bucket: 'SEMESTER', delta: 10, actorId: null, reason: 'منحة', requestId: `ad-pos-${suffix}`, semesterId: activeSem, expiresAt: new Date('2027-06-15T20:59:59.999Z') });
+    assert.equal(billed.semesterBalance, 90);
+    const adminGrant = (await wallets.listSemesterGrants(userId)).find((g) => g.semesterId === activeSem && g.grantedCredits === 10);
+    assert.ok(adminGrant, 'the positive adjustment created a grant');
+    assert.ok(
+      adminGrant!.expiresAt.getTime() <= new Date('2027-06-15T20:59:59.999Z').getTime(),
+      'the admin grant does not outlive the selected semester',
+    );
+
+    const recon = await reconcileWallet(userId);
+    assert.deepEqual(recon.mismatches, []);
+  } finally {
+    await db.execute(sql`delete from credit_grant_debits where grant_id in (select id from semester_credit_grants where user_id = ${userId})`);
+    await db.execute(sql`delete from semester_credit_grants where user_id = ${userId}`);
+    await db.execute(sql`delete from credit_ledger where user_id = ${userId}`);
+    await db.execute(sql`delete from credit_wallets where user_id = ${userId}`);
+    await db.execute(sql`delete from semesters where id in (${pastSem}, ${futureSem}, ${activeSem})`);
+    await db.execute(sql`delete from users where id = ${userId}`);
+    await closeDb();
+  }
+});

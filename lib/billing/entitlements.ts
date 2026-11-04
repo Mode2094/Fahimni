@@ -42,6 +42,12 @@ export type PurchaseLike = {
   created: Date;
   // Present on real SDK purchases; optional so older fakes stay valid.
   billingCycle?: 'monthly' | 'yearly' | 'oneoff' | null;
+  // Authoritative settlement fields, populated by the webhook route from the
+  // provider payment records (not the license alone). A one-off purchase has no
+  // subscription, so amount/currency must come from the payment API.
+  paidAmountMinor?: number | null;
+  paidCurrency?: string | null;
+  providerPaymentId?: string | null;
 };
 
 export function entitlementStatusForPurchase(purchase: PurchaseLike, now = new Date()): EntitlementStatus {

@@ -315,7 +315,10 @@ function createDrizzleWalletStore(): CreditWalletStore {
             const wallet = await lockWallet(input.userId, tx);
             return { granted: false, snapshot: snapshotOf(wallet) };
           }
-          const startsAt = input.startsAt ?? now();
+          // A grant without an explicit start is immediately usable. We use the
+          // epoch (not JS `new Date()`) so it can never miss the SQL `now()`
+          // boundary check by millisecond clock skew between app and database.
+          const startsAt = input.startsAt ?? new Date(0);
           await tx.insert(semesterCreditGrants).values({
             id: crypto.randomUUID(),
             userId: input.userId,
@@ -692,6 +695,9 @@ function createDrizzleWalletStore(): CreditWalletStore {
               // Deduct from this semester's ACTIVE grants only, deterministically:
               // newest expiry first (most-recently usable), then oldest created.
               let toRemove = -input.delta;
+              // Deduct from this semester's ACTIVE grants only, deterministically:
+              // soonest-expiring first, then oldest created. Only grants of the
+              // explicitly selected semester are touched.
               const grants = await tx
                 .select(grantColumns)
                 .from(semesterCreditGrants)
@@ -703,7 +709,7 @@ function createDrizzleWalletStore(): CreditWalletStore {
                     gt(semesterCreditGrants.remainingCredits, 0),
                   ),
                 )
-                .orderBy(desc(semesterCreditGrants.expiresAt), asc(semesterCreditGrants.createdAt))
+                .orderBy(asc(semesterCreditGrants.expiresAt), asc(semesterCreditGrants.createdAt))
                 .for('update');
               const available = grants.reduce((sum, grant) => sum + grant.remainingCredits, 0);
               if (available < toRemove) throw new Error('insufficient_semester_credits');
@@ -724,7 +730,8 @@ function createDrizzleWalletStore(): CreditWalletStore {
                 toRemove -= take;
               }
             } else {
-              // Positive adjustment: a dedicated admin grant within this semester.
+              // Positive adjustment: a dedicated admin grant within this semester,
+              // immediately usable, clamped to the semester's own expiry.
               await tx.insert(semesterCreditGrants).values({
                 id: crypto.randomUUID(),
                 userId: input.userId,
@@ -734,7 +741,7 @@ function createDrizzleWalletStore(): CreditWalletStore {
                 grantedCredits: input.delta,
                 remainingCredits: input.delta,
                 status: 'ACTIVE',
-                startsAt: at,
+                startsAt: new Date(0),
                 expiresAt: input.expiresAt ?? new Date('2100-01-01T00:00:00Z'),
                 grantRequestId: input.requestId,
               });
