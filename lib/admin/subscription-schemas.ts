@@ -61,6 +61,12 @@ export const creditAdjustmentSchema = z.object({
   // Non-zero integer delta; a mandatory reason is enforced by the handler.
   delta: z.coerce.number().int().min(-100_000).max(100_000).refine((value) => value !== 0, { message: 'delta_nonzero' }),
   reason: z.string().trim().min(3).max(500),
+  // Required for SEMESTER adjustments: the exact semester the admin is adjusting.
+  // Never defaulted to an arbitrary semester.
+  semesterId: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() ? value.trim() : null),
+    z.string().uuid().nullable(),
+  ).optional(),
 });
 export type CreditAdjustmentInput = z.infer<typeof creditAdjustmentSchema>;
 

@@ -180,12 +180,14 @@ export async function provisionSemesterPurchase(input: {
   }
 
   // Grant semester-included credits exactly once, keyed by purchase id. The
-  // grant is isolated per semester and starts when the semester's access window
-  // starts, so an early purchase reserves credits that are not yet spendable and
-  // never disturbs another semester's grant or expiry.
+  // grant amount is taken from the PURCHASE SNAPSHOT (what the student actually
+  // bought), never the live semester row, so editing the semester later cannot
+  // change what an existing purchase grants. The grant is isolated per semester
+  // and starts when the access window starts, so an early purchase reserves
+  // credits that are not yet spendable and never disturbs another grant.
   const grant = await input.wallets.grantSemesterCredits({
     userId,
-    credits: semester.includedCredits,
+    credits: purchase.includedCredits,
     semesterId: semester.id,
     entitlementId,
     purchaseId: purchase.id,

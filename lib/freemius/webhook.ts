@@ -210,41 +210,76 @@ async function settleUnified(
     }
     // Only grant credits for a settled, non-canceled one-time payment.
     if (purchase.canceled) return true;
+
+    // Settlement identity: the provider transaction id is the idempotency key.
     const transactionId = purchase.subscriptionId ?? licenseId;
-    const existing = await topups.findPurchaseByProviderTransactionId(transactionId);
-    let purchaseId = existing?.id ?? null;
-    if (!purchaseId) {
+
+    // Resolve the exact purchase to settle. Priority:
+    //   1) the purchase already bound to this provider transaction id;
+    //   2) the caller's own pending purchase for THIS offer.
+    // A pending purchase is only ever matched for the same user AND the same
+    // offer, so a provider event can never settle another user's purchase.
+    let target = await topups.findPurchaseByProviderTransactionId(transactionId);
+    if (!target) {
       const pending = await topups.findPendingPurchaseForUser(user.id, offer.id);
-      if (pending) {
-        await topups.updatePurchase(pending.id, {
-          status: 'ACTIVE',
-          providerTransactionId: transactionId,
-          providerLicenseId: licenseId,
-          providerPlanId: purchase.planId,
-        });
-        purchaseId = pending.id;
-      } else {
-        const created = await topups.createPurchase({
-          id: crypto.randomUUID(),
-          userId: user.id,
-          offerId: offer.id,
-          offerName: offer.name,
-          credits: offer.credits,
-          priceMinor: offer.priceMinor,
-          currency: offer.currency,
-          status: 'ACTIVE',
-          provider: 'freemius',
-          providerTransactionId: transactionId,
-          providerLicenseId: licenseId,
-          providerPlanId: purchase.planId,
-          creditsGrantedAt: null,
-        });
-        purchaseId = created.id;
-      }
+      if (pending) target = pending;
     }
+
+    // The credits and amount are taken from the PURCHASE SNAPSHOT, never the
+    // live catalogue: editing a top-up offer after checkout must not retro-
+    // actively change what an existing purchase grants.
+    const snapshotCredits = target ? target.credits : offer.credits;
+    const snapshotPrice = target ? target.priceMinor : offer.priceMinor;
+    const snapshotCurrency = target ? target.currency : offer.currency;
+
+    // If the provider reports a different amount/currency than the snapshot, do
+    // not grant silently: log and leave the purchase pending for manual review.
+    const reportedAmountMinor = readReportedAmountMinor(purchase);
+    if (reportedAmountMinor !== null && reportedAmountMinor !== snapshotPrice) {
+      console.error('[freemius] top-up amount mismatch; settlement withheld', { transactionId, expected: snapshotPrice, reported: reportedAmountMinor });
+      return true;
+    }
+    const reportedCurrency = readReportedCurrency(purchase);
+    if (reportedCurrency && reportedCurrency.toUpperCase() !== snapshotCurrency.toUpperCase()) {
+      console.error('[freemius] top-up currency mismatch; settlement withheld', { transactionId, expected: snapshotCurrency, reported: reportedCurrency });
+      return true;
+    }
+
+    let purchaseId = target?.id ?? null;
+    if (!purchaseId) {
+      const created = await topups.createPurchase({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        offerId: offer.id,
+        offerName: offer.name,
+        credits: snapshotCredits,
+        priceMinor: snapshotPrice,
+        currency: snapshotCurrency,
+        status: 'ACTIVE',
+        provider: 'freemius',
+        providerTransactionId: transactionId,
+        providerLicenseId: licenseId,
+        providerPlanId: purchase.planId,
+        creditsGrantedAt: null,
+      });
+      purchaseId = created.id;
+    } else if (target && target.userId === user.id) {
+      // Bind the provider identity and mark settled using the snapshot values.
+      await topups.updatePurchase(purchaseId, {
+        status: 'ACTIVE',
+        providerTransactionId: transactionId,
+        providerLicenseId: licenseId,
+        providerPlanId: purchase.planId,
+      });
+    } else {
+      // The transaction id belongs to a purchase for a different user: refuse.
+      console.error('[freemius] top-up settlement refused: transaction bound to another user');
+      return true;
+    }
+
     const grant = await wallets.grantTopupCredits({
       userId: user.id,
-      credits: offer.credits,
+      credits: snapshotCredits,
       topupPurchaseId: purchaseId,
       requestId: `topup-grant:${transactionId}`,
     });
@@ -255,4 +290,17 @@ async function settleUnified(
   }
 
   return false;
+}
+
+// Reads a reported amount in minor units if the provider purchase carries one.
+function readReportedAmountMinor(purchase: PurchaseLike): number | null {
+  const raw = (purchase as unknown as { amountMinor?: number | null; amount?: number | null }).amountMinor;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  return null;
+}
+
+// Reads a reported currency if the provider purchase carries one.
+function readReportedCurrency(purchase: PurchaseLike): string | null {
+  const raw = (purchase as unknown as { currency?: string | null }).currency;
+  return typeof raw === 'string' && raw.trim() ? raw.trim() : null;
 }

@@ -4,6 +4,7 @@ import { getDb } from '../../db';
 import {
   creditGrantDebits,
   creditLedger,
+  creditOperations,
   creditWallets,
   entitlements,
   semesterCreditGrants,
@@ -48,7 +49,9 @@ export type CreditLedgerRecord = {
 };
 
 // A wallet view the rest of the app reads. `total` is the spendable sum.
-export type WalletSnapshot = CreditWalletRecord & { total: number };
+// `nextSemesterActivationAt` is the nearest future semester grant start (or
+// null), so the UI can explain reserved-but-not-yet-spendable credits.
+export type WalletSnapshot = CreditWalletRecord & { total: number; nextSemesterActivationAt?: Date | null };
 
 export type SpendRequest = {
   userId: string;
@@ -116,7 +119,8 @@ export type CreditWalletStore = {
     actorId: string | null;
     reason: string;
     requestId: string;
-    // Required when bucket is SEMESTER (the grant is tied to a semester).
+    // REQUIRED when bucket is SEMESTER: the adjustment is applied to exactly
+    // this semester's grants. Never defaulted to an arbitrary semester.
     semesterId?: string | null;
     expiresAt?: Date | null;
   }): Promise<WalletSnapshot>;
@@ -271,7 +275,30 @@ function createDrizzleWalletStore(): CreditWalletStore {
     },
 
     async getSnapshot(userId) {
-      return snapshotOf(await this.getWallet(userId));
+      // Time-correct read: the persisted cache can be stale at a semester
+      // boundary because a reserved (future) grant becomes spendable purely by
+      // the passage of time, with no intervening mutation. Recompute the
+      // spendable semester balance live from the grants in ONE bounded
+      // aggregate query — no mutation of financial history.
+      const dbc = db();
+      const [wallet] = await dbc.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, userId)).limit(1);
+      if (!wallet) return snapshotOf(null);
+      const [agg] = await dbc
+        .select({
+          balance: sql<number>`coalesce(sum(case when ${semesterCreditGrants.status} = 'ACTIVE' and ${semesterCreditGrants.startsAt} <= now() and ${semesterCreditGrants.expiresAt} > now() then ${semesterCreditGrants.remainingCredits} else 0 end), 0)::int`,
+          // The nearest future grant start, so the UI can show "activates on".
+          nextStart: sql<string | null>`(min(case when ${semesterCreditGrants.status} = 'ACTIVE' and ${semesterCreditGrants.startsAt} > now() then ${semesterCreditGrants.startsAt} else null end))::timestamptz`,
+        })
+        .from(semesterCreditGrants)
+        .where(eq(semesterCreditGrants.userId, userId));
+      const liveSemester = agg?.balance ?? 0;
+      const nextActivation = agg?.nextStart ? new Date(agg.nextStart) : null;
+      return {
+        ...wallet,
+        semesterBalance: liveSemester,
+        total: liveSemester + wallet.topupBalance,
+        nextSemesterActivationAt: nextActivation,
+      };
     },
 
     async grantSemesterCredits(input) {
@@ -364,13 +391,16 @@ function createDrizzleWalletStore(): CreditWalletStore {
         return await inRetryingTransaction(() =>
           db().transaction(async (tx) => {
             const wallet = await lockWallet(input.userId, tx);
-            // Duplicate detection on the primary request id.
-            const [dup] = await tx
-              .select({ id: creditLedger.id })
-              .from(creditLedger)
-              .where(eq(creditLedger.requestId, input.requestId))
+            // Canonical operation-level idempotency: the request id is the
+            // primary key of credit_operations. This catches a replay whether
+            // the charge was funded by semester credits, top-up credits, or
+            // both — the top-up-only case previously had no bare-id ledger row.
+            const [existingOperation] = await tx
+              .select({ requestId: creditOperations.requestId })
+              .from(creditOperations)
+              .where(eq(creditOperations.requestId, input.requestId))
               .limit(1);
-            if (dup) {
+            if (existingOperation) {
               return { ok: true as const, charged: false, duplicate: true, snapshot: snapshotOf(wallet) };
             }
 
@@ -414,13 +444,6 @@ function createDrizzleWalletStore(): CreditWalletStore {
               remaining -= take;
             }
 
-            const lastConfirmed = await tx
-              .select(grantColumns)
-              .from(semesterCreditGrants)
-              .where(and(eq(semesterCreditGrants.userId, input.userId), eq(semesterCreditGrants.grantRequestId, input.requestId)))
-              .limit(1);
-            void lastConfirmed;
-
             const fromTopup = remaining;
             if (fromTopup > wallet.topupBalance) {
               // Not enough total credit: abort so nothing is debited.
@@ -432,6 +455,21 @@ function createDrizzleWalletStore(): CreditWalletStore {
             const [finalWallet] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, input.userId)).limit(1);
 
             const semesterSpent = input.credits - fromTopup;
+            // Record the canonical operation AFTER the balance mutations are
+            // staged but inside the same transaction: a concurrent replay either
+            // sees this row (duplicate) or its own insert violates the primary
+            // key and retries into the duplicate branch.
+            await tx.insert(creditOperations).values({
+              requestId: input.requestId,
+              userId: input.userId,
+              kind: 'SPEND',
+              credits: input.credits,
+              semesterCredits: semesterSpent,
+              topupCredits: fromTopup,
+              subjectId: input.subjectId,
+              entitlementId: input.entitlementId,
+              createdAt: at,
+            });
             if (semesterSpent > 0) {
               await tx.insert(creditLedger).values({
                 id: crypto.randomUUID(),
@@ -478,12 +516,35 @@ function createDrizzleWalletStore(): CreditWalletStore {
       return inRetryingTransaction(() =>
         db().transaction(async (tx) => {
           await lockWallet(input.userId, tx);
-          const [existingRefund] = await tx
-            .select({ id: creditLedger.id })
-            .from(creditLedger)
-            .where(and(eq(creditLedger.kind, 'REFUND'), eq(creditLedger.reversesRequestId, input.reversesRequestId)))
+          // Canonical refund anchor: the operation row identified by the
+          // original request id. Marking refunded_at is the exactly-once guard
+          // and works whether the charge came from semester, top-up, or both.
+          const [operation] = await tx
+            .select({
+              requestId: creditOperations.requestId,
+              userId: creditOperations.userId,
+              semesterCredits: creditOperations.semesterCredits,
+              topupCredits: creditOperations.topupCredits,
+              refundedAt: creditOperations.refundedAt,
+            })
+            .from(creditOperations)
+            .where(eq(creditOperations.requestId, input.reversesRequestId))
+            .for('update')
             .limit(1);
-          if (existingRefund) return { ok: false as const, reason: 'already_refunded' as const };
+
+          // Backwards compatibility: a charge made before the operation table
+          // existed has no row; fall back to the legacy per-bucket markers.
+          if (!operation) {
+            const [existingRefund] = await tx
+              .select({ id: creditLedger.id })
+              .from(creditLedger)
+              .where(and(eq(creditLedger.kind, 'REFUND'), eq(creditLedger.reversesRequestId, input.reversesRequestId)))
+              .limit(1);
+            if (existingRefund) return { ok: false as const, reason: 'already_refunded' as const };
+          } else {
+            if (operation.refundedAt) return { ok: false as const, reason: 'already_refunded' as const };
+            if (operation.userId !== input.userId) return { ok: false as const, reason: 'not_found' as const };
+          }
 
           // Restore the exact grants this spend debited (via the per-grant debits).
           const grantDebits = await tx
@@ -522,6 +583,11 @@ function createDrizzleWalletStore(): CreditWalletStore {
             .set({ topupBalance: nextTopup, updatedAt: now() })
             .where(eq(creditWallets.userId, input.userId))
             .returning(walletColumns);
+
+          // Mark the canonical operation refunded (exactly once).
+          if (operation) {
+            await tx.update(creditOperations).set({ refundedAt: now() }).where(eq(creditOperations.requestId, operation.requestId));
+          }
 
           if (semesterRefund > 0) {
             await tx.insert(creditLedger).values({
@@ -617,31 +683,63 @@ function createDrizzleWalletStore(): CreditWalletStore {
           if (existing) return snapshotOf(wallet);
 
           if (input.bucket === 'SEMESTER') {
-            // A semester adjustment is held in a dedicated admin grant so it can
-            // never corrupt a purchased semester's grant. Requires a semesterId,
-            // which the caller supplies via reason-encoded metadata when needed;
-            // otherwise it is placed in a synthetic admin grant that expires far
-            // in the future.
-            const next = wallet.semesterBalance + input.delta;
-            if (next < 0) throw new Error('negative_balance');
-            // Apply to the newest active grant's remaining if reducing, else
-            // create/extend an admin grant.
-            await tx.insert(semesterCreditGrants).values({
-              id: crypto.randomUUID(),
-              userId: input.userId,
-              // Admin adjustments without a semester live under a fixed sentinel
-              // semester row is required by the FK; the admin UI always passes a
-              // real semester. The API route resolves it before calling.
-              semesterId: input.semesterId ?? (await firstSemesterId(tx)),
-              purchaseId: null,
-              entitlementId: null,
-              grantedCredits: Math.max(0, input.delta),
-              remainingCredits: Math.max(0, input.delta),
-              status: 'ACTIVE',
-              startsAt: now(),
-              expiresAt: input.expiresAt ?? new Date('2100-01-01T00:00:00Z'),
-              grantRequestId: input.requestId,
-            });
+            // A semester adjustment requires an explicit semester context; we
+            // never silently pick an arbitrary semester.
+            if (!input.semesterId) throw new Error('semester_required');
+            const at = now();
+
+            if (input.delta < 0) {
+              // Deduct from this semester's ACTIVE grants only, deterministically:
+              // newest expiry first (most-recently usable), then oldest created.
+              let toRemove = -input.delta;
+              const grants = await tx
+                .select(grantColumns)
+                .from(semesterCreditGrants)
+                .where(
+                  and(
+                    eq(semesterCreditGrants.userId, input.userId),
+                    eq(semesterCreditGrants.semesterId, input.semesterId),
+                    eq(semesterCreditGrants.status, 'ACTIVE'),
+                    gt(semesterCreditGrants.remainingCredits, 0),
+                  ),
+                )
+                .orderBy(desc(semesterCreditGrants.expiresAt), asc(semesterCreditGrants.createdAt))
+                .for('update');
+              const available = grants.reduce((sum, grant) => sum + grant.remainingCredits, 0);
+              if (available < toRemove) throw new Error('insufficient_semester_credits');
+              for (const grant of grants) {
+                if (toRemove <= 0) break;
+                const take = Math.min(grant.remainingCredits, toRemove);
+                if (take <= 0) continue;
+                await tx
+                  .update(semesterCreditGrants)
+                  .set({ remainingCredits: grant.remainingCredits - take, updatedAt: at })
+                  .where(and(eq(semesterCreditGrants.id, grant.id), eq(semesterCreditGrants.remainingCredits, grant.remainingCredits)));
+                await tx.insert(creditGrantDebits).values({
+                  id: crypto.randomUUID(),
+                  grantId: grant.id,
+                  requestId: `${input.requestId}:adjust`,
+                  amount: take,
+                });
+                toRemove -= take;
+              }
+            } else {
+              // Positive adjustment: a dedicated admin grant within this semester.
+              await tx.insert(semesterCreditGrants).values({
+                id: crypto.randomUUID(),
+                userId: input.userId,
+                semesterId: input.semesterId,
+                purchaseId: null,
+                entitlementId: null,
+                grantedCredits: input.delta,
+                remainingCredits: input.delta,
+                status: 'ACTIVE',
+                startsAt: at,
+                expiresAt: input.expiresAt ?? new Date('2100-01-01T00:00:00Z'),
+                grantRequestId: input.requestId,
+              });
+            }
+
             const agg = await syncSemesterCache(input.userId, tx);
             const [updated] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, input.userId)).limit(1);
             await tx.insert(creditLedger).values({
@@ -651,10 +749,11 @@ function createDrizzleWalletStore(): CreditWalletStore {
               kind: 'ADMIN_ADJUSTMENT',
               delta: input.delta,
               balanceAfter: agg.semesterBalance,
+              semesterId: input.semesterId,
               requestId: input.requestId,
               note: input.reason,
               actorId: input.actorId,
-              createdAt: now(),
+              createdAt: at,
             });
             return snapshotOf(updated ?? wallet);
           }
@@ -706,16 +805,6 @@ function createDrizzleWalletStore(): CreditWalletStore {
       return row ?? null;
     },
   };
-}
-
-// Fallback semester id for an admin adjustment when none is supplied: use any
-// existing semester (the schema requires a non-null FK). The admin API always
-// resolves a real semester before calling, so this is only a safety net.
-async function firstSemesterId(tx: ReturnType<typeof getDb>): Promise<string> {
-  const { semesters } = await import('../../db/schema');
-  const [row] = await tx.select({ id: semesters.id }).from(semesters).limit(1);
-  if (!row) throw new Error('no_semester');
-  return row.id;
 }
 
 let override: CreditWalletStore | null = null;

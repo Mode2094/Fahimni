@@ -173,7 +173,7 @@ export function LedgerTable({ rows }: { rows: CreditLedgerRecord[] }) {
   );
 }
 
-export function CreditAdjustForm() {
+export function CreditAdjustForm({ semesters = [] }: { semesters?: { id: string; name: string }[] }) {
   return (
     <form className="fn-card" action="/api/admin/subscriptions/credits/adjust" method="post">
       <div className="fn-card__head">
@@ -194,6 +194,17 @@ export function CreditAdjustForm() {
         <label className="fn-field">
           <span className="fn-field__label">المقدار (±)</span>
           <input className="fn-input" name="delta" type="number" required dir="ltr" placeholder="10 أو -10" />
+        </label>
+        <label className="fn-field">
+          <span className="fn-field__label">الفصل (مطلوب لتعديل الرصيد الفصلي)</span>
+          <select className="fn-select" name="semesterId" defaultValue="">
+            <option value="">— اختر الفصل —</option>
+            {semesters.map((semester) => (
+              <option key={semester.id} value={semester.id}>
+                {semester.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="fn-field">
           <span className="fn-field__label">السبب (إلزامي)</span>

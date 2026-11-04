@@ -1,7 +1,7 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 import { getDb } from '../../db';
-import { books, semesterCreditGrants } from '../../db/schema';
+import { books, creditWallets, semesterCreditGrants } from '../../db/schema';
 import { adminStore } from './store';
 import { semesterStore, isSellableSemester } from '../billing/semester-store';
 import { topupStore } from '../billing/topup-store';
@@ -66,15 +66,24 @@ export function worst(levels: ReadinessLevel[]): ReadinessLevel {
 export async function launchReadiness(now = new Date()): Promise<ReadinessReport> {
   const checks: ReadinessCheck[] = [];
 
-  // 1. Infrastructure health (real read).
+  // 1. Infrastructure health (real read). Redis is REQUIRED in production: a
+  // missing Redis in production is a blocker (rate limits and budgets would
+  // silently fall back to per-process memory), not a tolerable warning.
   try {
     const health = await checkHealth();
+    const production = process.env.NODE_ENV === 'production';
+    const redisRequired = production && health.checks.redis === 'not_configured';
+    const infraOk = health.checks.database === 'ok' && health.checks.redis !== 'down' && !redisRequired;
     checks.push({
       id: 'infra',
       label: 'قاعدة البيانات و Redis',
-      level: health.checks.database === 'ok' && health.checks.redis !== 'down' ? 'ok' : 'blocked',
-      detail: `database=${health.checks.database} · redis=${health.checks.redis}`,
-      action: health.checks.database !== 'ok' || health.checks.redis === 'down' ? 'تحقق من تشغيل PostgreSQL و Redis وسلامة متغيرات الاتصال.' : undefined,
+      level: infraOk ? 'ok' : 'blocked',
+      detail: `database=${health.checks.database} · redis=${health.checks.redis}${production ? ' (مطلوب في الإنتاج)' : ''}`,
+      action: infraOk
+        ? undefined
+        : redisRequired
+          ? 'Redis إلزامي في بيئة الإنتاج. عيّن REDIS_URL وشغّل Redis.'
+          : 'تحقق من تشغيل PostgreSQL و Redis وسلامة متغيرات الاتصال.',
     });
   } catch {
     checks.push({ id: 'infra', label: 'قاعدة البيانات و Redis', level: 'blocked', detail: 'تعذر إجراء فحص الصحة.', action: 'تحقق من الخدمات والاتصال.' });
@@ -127,9 +136,12 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
   const activeSemester = nowSemesters.find((semester) => semester.status === 'ACTIVE') ?? null;
   const sellable = nowSemesters.find((semester) => isSellableSemester(semester, now)) ?? null;
 
-  // 6. Payment provider readiness (real read-only connection check).
+  // 6. Payment provider readiness (real read-only connection check). Computed
+  // before the semester readiness check because it feeds the pricing verdict.
+  let providerPricingVerified = false;
   try {
     const connection = await checkFreemiusConnection();
+    providerPricingVerified = connection.ok && isSupportedCheckoutCurrency(activeSemester?.currency ?? '');
     checks.push(paymentReadiness({
       providerOk: connection.ok,
       providerCode: connection.code,
@@ -139,19 +151,23 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
     checks.push({ id: 'payment', label: 'مزود الدفع', level: 'blocked', detail: 'فريميوس غير مهيأ.', action: 'أكمل بيانات الربط ثم اختبر الاتصال.' });
   }
 
-  // 7. Semester sellability (depends on the semester read above).
+  // 7. Semester readiness: an active semester is only "ready" when it is
+  // actually sellable now AND its provider pricing is verified. A configured
+  // plan id alone is not readiness.
   checks.push({
     id: 'semester',
     label: 'الفصل الدراسي',
-    level: activeSemester ? (activeSemester.freemiusPlanId ? 'ok' : 'warn') : 'blocked',
+    level: activeSemester ? (sellable && providerPricingVerified ? 'ok' : 'blocked') : 'blocked',
     detail: activeSemester
-      ? `${activeSemester.name} · قابل للبيع الآن: ${sellable ? 'نعم' : 'لا'} · خطة الدفع: ${activeSemester.freemiusPlanId ? 'مربوطة' : 'غير مربوطة'}`
+      ? `${activeSemester.name} · قابل للبيع الآن: ${sellable ? 'نعم' : 'لا'} · خطة الدفع: ${activeSemester.freemiusPlanId ? 'مربوطة' : 'غير مربوطة'} · تسعير المزود موثّق: ${providerPricingVerified ? 'نعم' : 'لا'}`
       : 'لا يوجد فصل نشط.',
     action: !activeSemester
       ? 'أنشئ فصلًا دراسيًا وفعّله.'
-      : activeSemester.freemiusPlanId
-        ? undefined
-        : 'اربط خطة الدفع بالفصل ثم تحقق من مطابقتها لدى المزود.',
+      : !sellable
+        ? 'الفصل النشط غير قابل للبيع في الوقت الحالي؛ تحقق من نافذة البيع وتواريخ الفصل وحالته.'
+        : !providerPricingVerified
+          ? 'تسعير المزود للفصل غير موثّق؛ اربط الخطة بعملة مدعومة وتحقق من المطابقة قبل الإطلاق.'
+          : undefined,
   });
 
   // 7. READY subjects (real reads).
@@ -162,7 +178,7 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
   const readyRows = await db
     .select({ subjectId: books.subjectId })
     .from(books)
-    .where(and(eq(books.status, 'READY'), eq(books.subjectId, books.subjectId)));
+    .where(eq(books.status, 'READY'));
   const readySubjectIds = new Set(readyRows.map((row) => row.subjectId));
   const activeReady = activeSubjects.filter((subject) => readySubjectIds.has(subject.id));
   const activeWithoutBook = activeSubjects.filter((subject) => !readySubjectIds.has(subject.id));
@@ -178,21 +194,65 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
         : undefined,
   });
 
-  // 8. Wallet / ledger integrity (real reconciliation sample).
+  // 8. Wallet / ledger integrity: a REAL bounded reconciliation over a sample
+  // of wallets, comparing the persisted cache against the grant sum and the
+  // top-up ledger sum. It must never report green merely because no balance is
+  // negative. Coverage is reported explicitly (verified / partial / unavailable).
   try {
-    const [mismatch] = await db
+    const sampleSize = 200;
+    const sample = await db
+      .select({ userId: creditWallets.userId })
+      .from(creditWallets)
+      .orderBy(desc(creditWallets.updatedAt))
+      .limit(sampleSize);
+    const [totalRow] = await db.select({ count: sql<number>`count(*)::int` }).from(creditWallets);
+    const total = totalRow?.count ?? 0;
+
+    // Any negative grant balance is an immediate hard failure.
+    const [negative] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(semesterCreditGrants)
-      .where(and(eq(semesterCreditGrants.status, 'ACTIVE'), sql`${semesterCreditGrants.remainingCredits} < 0`));
+      .where(sql`${semesterCreditGrants.remainingCredits} < 0`);
+
+    // Reconcile the sampled wallets: cache.semester vs ACTIVE grant sum, and
+    // cache.topup vs the TOPUP ledger sum. Do the whole sample in one query.
+    const sampleIds = sample.map((row) => row.userId);
+    let mismatches = 0;
+    if (sampleIds.length) {
+      const rows = await db.execute<{ uid: string; mismatch: boolean }>(sql`
+        with sampled as (select unnest(${sql.raw(`ARRAY[${sampleIds.map((id) => `'${id}'`).join(',')}]::text[]`)}) as uid)
+        select s.uid::text as uid,
+          (w.semester_balance <> coalesce(g.semester_sum, 0) or w.topup_balance <> coalesce(l.topup_sum, 0)) as mismatch
+        from sampled s
+        join credit_wallets w on w.user_id = s.uid
+        left join (
+          select user_id, sum(case when status = 'ACTIVE' and starts_at <= now() and expires_at > now() then remaining_credits else 0 end)::int as semester_sum
+          from semester_credit_grants group by user_id
+        ) g on g.user_id = s.uid
+        left join (
+          select user_id, sum(delta)::int as topup_sum
+          from credit_ledger where bucket = 'TOPUP' group by user_id
+        ) l on l.user_id = s.uid
+      `);
+      mismatches = rows.rows.filter((row) => row.mismatch).length;
+    }
+
+    const checked = sampleIds.length;
+    const negativeCount = negative?.count ?? 0;
+    // Coverage: verified when every wallet was checked; partial otherwise.
+    const coverage = checked === 0 ? 'unavailable' : checked >= total ? 'verified' : 'partial';
+    const healthy = negativeCount === 0 && mismatches === 0;
     checks.push({
       id: 'wallet',
       label: 'سلامة الرصيد والسجل',
-      level: (mismatch?.count ?? 0) === 0 ? 'ok' : 'blocked',
-      detail: (mismatch?.count ?? 0) === 0 ? 'لا توجد أرصدة سالبة في منح الفصول.' : `${mismatch?.count} منحة برصيد سالب.`,
-      action: (mismatch?.count ?? 0) === 0 ? undefined : 'راجع سجل الكريدت وأصلح الأرصدة قبل الإطلاق.',
+      level: coverage === 'unavailable' ? 'unknown' : healthy ? 'ok' : 'blocked',
+      detail: `تم فحص ${checked} من ${total} محفظة (تغطية: ${{ verified: 'كاملة', partial: 'جزئية', unavailable: 'غير متاحة' }[coverage]}) · عدم تطابق: ${mismatches} · أرصدة سالبة: ${negativeCount}`,
+      action: healthy
+        ? undefined
+        : 'يوجد عدم تطابق بين ذاكرة الرصيد ودفتر الكريدت أو أرصدة سالبة. استخدم أداة المطابقة وأصلح السجل قبل الإطلاق.',
     });
   } catch {
-    checks.push({ id: 'wallet', label: 'سلامة الرصيد والسجل', level: 'unknown', detail: 'تعذر فحص أرصدة المنح.' });
+    checks.push({ id: 'wallet', label: 'سلامة الرصيد والسجل', level: 'unknown', detail: 'تعذر إجراء مطابقة الرصيد.', action: 'تحقق من اتصال قاعدة البيانات.' });
   }
 
   // 9. Top-up catalog (informational; not a blocker).
@@ -217,14 +277,19 @@ export async function launchReadiness(now = new Date()): Promise<ReadinessReport
     action: adminConfigured ? undefined : 'عيّن ADMIN_EMAILS لضمان وصول مشرف موثوق.',
   });
 
-  // 11. Legal documents reviewed (owner-tracked; defaults to a warning).
+  // 11. Legal documents. A stored timestamp is only an owner self-attestation;
+  // it is NEVER independent legal approval. This check can therefore never be
+  // green — it stays a warning with clear wording, and the final acceptance
+  // report gates legal approval separately.
   const legalReviewed = await getPlainSetting('legalReviewedAt').catch(() => null);
   checks.push({
     id: 'legal',
-    label: 'مراجعة المستندات القانونية',
-    level: legalReviewed ? 'ok' : 'warn',
-    detail: legalReviewed ? `تم تعليم المراجعة في ${legalReviewed}.` : 'لم يتم تعليم المستندات القانونية كمراجَعة.',
-    action: legalReviewed ? undefined : 'راجع الشروط وسياسة الخصوصية وسياسات الاشتراك والرصيد مع مستشار قانوني مؤهل.',
+    label: 'المستندات القانونية (اعتماد خارجي)',
+    level: 'warn',
+    detail: legalReviewed
+      ? `إقرار المالك مسجّل في ${legalReviewed} — هذا إقرار ذاتي وليس اعتمادًا قانونيًا مستقلًا.`
+      : 'لا يوجد إقرار من المالك بعد. المستندات مسودات معلّمة.',
+    action: 'مطلوب مراجعة قانونية مؤهّلة واعتماد المالك قبل الإطلاق التجاري؛ لا يمكن اعتبار هذه البند «جاهزًا» آليًا.',
   });
 
   const overall = worst(checks.map((check) => check.level));

@@ -21,6 +21,11 @@ export async function POST(request: Request) {
   const parsed = creditAdjustmentSchema.safeParse(formValuesGuard(form));
   if (!parsed.success) return withQuery(auth.origin, back, { error: 'credit_adjust_invalid' });
 
+  // A semester adjustment must name the exact semester; never an arbitrary one.
+  if (parsed.data.bucket === 'SEMESTER' && !parsed.data.semesterId) {
+    return withQuery(auth.origin, back, { error: 'credit_adjust_invalid' });
+  }
+
   try {
     await creditWalletStore().adjust({
       userId: parsed.data.userId,
@@ -28,6 +33,7 @@ export async function POST(request: Request) {
       delta: parsed.data.delta,
       actorId: auth.user.id,
       reason: parsed.data.reason,
+      semesterId: parsed.data.semesterId ?? null,
       requestId: `admin-adjust:${crypto.randomUUID()}`,
     });
   } catch {

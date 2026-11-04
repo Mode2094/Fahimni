@@ -877,3 +877,36 @@ export const creditGrantDebits = pgTable(
 
 export type SemesterCreditGrant = typeof semesterCreditGrants.$inferSelect;
 export type CreditGrantDebit = typeof creditGrantDebits.$inferSelect;
+
+// Canonical, operation-level idempotency for credit spends. One immutable row
+// per logical charge, keyed by the caller's request id, regardless of which
+// buckets fund it. This guarantees a replayed request is charged at most once
+// even when the charge is funded entirely by purchased top-up credits (where no
+// primary ledger row would otherwise carry the bare request id). The per-bucket
+// ledger rows remain for detail; this table is the single source of truth for
+// "has this logical operation already happened".
+export const creditOperationKind = pgEnum('credit_operation_kind', ['SPEND']);
+
+export const creditOperations = pgTable(
+  'credit_operations',
+  {
+    // The caller's request id is the primary key: exactly one logical op.
+    requestId: text('request_id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    kind: creditOperationKind('kind').notNull().default('SPEND'),
+    credits: integer('credits').notNull(),
+    semesterCredits: integer('semester_credits').notNull().default(0),
+    topupCredits: integer('topup_credits').notNull().default(0),
+    subjectId: text('subject_id').references(() => subjects.id, { onDelete: 'set null' }),
+    entitlementId: text('entitlement_id').references(() => entitlements.id, { onDelete: 'set null' }),
+    refundedAt: timestamp('refunded_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('credit_operations_user_idx').on(table.userId, table.createdAt),
+  ],
+);
+
+export type CreditOperation = typeof creditOperations.$inferSelect;
