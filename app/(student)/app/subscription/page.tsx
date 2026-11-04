@@ -147,6 +147,17 @@ export default async function SubscriptionPage() {
                   : `ينتهي الوصول في ${formatTermDate(semester.endsAt)}.`}
               </span>
             </li>
+            <li className="fn-row">
+              <Coins size={16} aria-hidden />
+              <span>
+                {semester.includedCredits} كريدت مُضمّن، يُستخدم على الشرح النصي وتعرّف الصور وتحويل الصوت والشرح
+                الصوتي — تُخصم أولًا، ثم يُستخدم الرصيد المشترى.
+              </span>
+            </li>
+            <li className="fn-row">
+              <Sparkles size={16} aria-hidden />
+              <span>ينتهي رصيد الفصل بانتهاء الفصل، أما الرصيد المشترى فيبقى في حسابك.</span>
+            </li>
           </ul>
 
           {view.status === 'active' ? (

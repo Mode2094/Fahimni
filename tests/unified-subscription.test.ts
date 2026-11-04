@@ -240,6 +240,7 @@ function createMemoryWallets() {
     },
     async listLedger(userId) { return ledgerRows.filter((row) => row.userId === userId); },
     async findLedgerByRequestId(requestId) { return ledgerRows.find((row) => row.requestId === requestId) ?? null; },
+    async listSemesterGrants() { return []; },
   };
   return { store, wallets, ledgerRows };
 }

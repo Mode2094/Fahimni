@@ -808,3 +808,72 @@ export type CreditWallet = typeof creditWallets.$inferSelect;
 export type CreditLedgerEntry = typeof creditLedger.$inferSelect;
 export type SubscriptionPurchase = typeof subscriptionPurchases.$inferSelect;
 export type TopupPurchase = typeof topupPurchases.$inferSelect;
+
+/* ============================================================================
+ * Isolated semester credit grants (production-readiness hardening)
+ *
+ * A semester's included credits are held in their own grant row keyed by the
+ * purchase that created them. This keeps each semester's balance and expiry
+ * isolated: buying the next semester before the current one ends never merges
+ * balances or moves the expiry of already-granted credits. The aggregate
+ * credit_wallets.semester_balance remains as a derived cache for display, but
+ * every spend/grant/expire/adjust/refund is reconciled against these rows.
+ * ========================================================================== */
+
+export const semesterGrantStatus = pgEnum('semester_grant_status', ['ACTIVE', 'EXPIRED', 'REVOKED']);
+
+export const semesterCreditGrants = pgTable(
+  'semester_credit_grants',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    semesterId: text('semester_id')
+      .notNull()
+      .references(() => semesters.id, { onDelete: 'restrict' }),
+    // The purchase (or admin grant) that created this credit grant.
+    purchaseId: text('purchase_id').references(() => subscriptionPurchases.id, { onDelete: 'set null' }),
+    entitlementId: text('entitlement_id').references(() => entitlements.id, { onDelete: 'set null' }),
+    grantedCredits: integer('granted_credits').notNull(),
+    remainingCredits: integer('remaining_credits').notNull(),
+    status: semesterGrantStatus('status').notNull().default('ACTIVE'),
+    // Credits in this grant become usable only once its semester is active.
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    // Idempotency for the grant: unique per purchase (or per admin request).
+    grantRequestId: text('grant_request_id').notNull().unique(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('semester_credit_grants_user_idx').on(table.userId),
+    index('semester_credit_grants_semester_idx').on(table.semesterId),
+    index('semester_credit_grants_user_status_idx').on(table.userId, table.status),
+    index('semester_credit_grants_purchase_idx').on(table.purchaseId),
+  ],
+);
+
+// A spend may draw from more than one grant; this records exactly how much each
+// grant contributed so a refund can restore the same grants precisely.
+export const creditGrantDebits = pgTable(
+  'credit_grant_debits',
+  {
+    id: text('id').primaryKey(),
+    grantId: text('grant_id')
+      .notNull()
+      .references(() => semesterCreditGrants.id, { onDelete: 'cascade' }),
+    requestId: text('request_id').notNull(),
+    amount: integer('amount').notNull(),
+    refundedAt: timestamp('refunded_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('credit_grant_debits_grant_idx').on(table.grantId),
+    index('credit_grant_debits_request_idx').on(table.requestId),
+    uniqueIndex('credit_grant_debits_request_grant_unique').on(table.requestId, table.grantId),
+  ],
+);
+
+export type SemesterCreditGrant = typeof semesterCreditGrants.$inferSelect;
+export type CreditGrantDebit = typeof creditGrantDebits.$inferSelect;

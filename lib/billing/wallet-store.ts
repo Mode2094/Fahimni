@@ -1,7 +1,14 @@
-import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, isNull, lte, or, sql } from 'drizzle-orm';
 
 import { getDb } from '../../db';
-import { creditLedger, creditWallets, entitlements, users } from '../../db/schema';
+import {
+  creditGrantDebits,
+  creditLedger,
+  creditWallets,
+  entitlements,
+  semesterCreditGrants,
+  users,
+} from '../../db/schema';
 
 export type CreditBucket = 'SEMESTER' | 'TOPUP';
 export type CreditLedgerKind =
@@ -49,7 +56,7 @@ export type SpendRequest = {
   subjectId: string;
   requestId: string;
   credits: number;
-  // Freeze the semester bucket past this instant (the entitlement expiry).
+  // Freeze the semester grants past this instant (the entitlement expiry).
   spendableUntil?: Date | null;
 };
 
@@ -62,13 +69,17 @@ export type GrantResult = { granted: boolean; snapshot: WalletSnapshot };
 export type CreditWalletStore = {
   getWallet(userId: string): Promise<CreditWalletRecord | null>;
   getSnapshot(userId: string): Promise<WalletSnapshot>;
-  // Grants semester-included credits exactly once, keyed by `requestId`.
+  // Grants semester-included credits exactly once into an isolated grant row
+  // keyed by `requestId`. A future semester's grant never overwrites another
+  // grant's balance or expiry.
   grantSemesterCredits(input: {
     userId: string;
     credits: number;
     semesterId: string;
     entitlementId: string | null;
+    purchaseId?: string | null;
     requestId: string;
+    startsAt?: Date;
     expiresAt: Date;
   }): Promise<GrantResult>;
   // Adds purchased top-up credits exactly once, keyed by `requestId`.
@@ -79,16 +90,18 @@ export type CreditWalletStore = {
     requestId: string;
     note?: string | null;
   }): Promise<GrantResult>;
-  // Spends credits: semester bucket first, then top-up. Atomic and idempotent.
+  // Spends credits: usable semester grants first (oldest expiry first), then
+  // top-up. Atomic and idempotent; records per-grant debits for exact refunds.
   spend(input: SpendRequest): Promise<SpendResult>;
-  // Refunds a prior spend exactly once, restoring the same buckets it debited.
+  // Refunds a prior spend exactly once, restoring the same grants it debited.
   refund(input: {
     userId: string;
     requestId: string;
     reversesRequestId: string;
     note?: string | null;
   }): Promise<{ ok: true; refunded: number } | { ok: false; reason: 'not_found' | 'already_refunded' }>;
-  // Expires remaining semester credits (semester ended). Ledger-recorded.
+  // Expires remaining credits of ONE semester's grants only. Purchased top-up
+  // credits are never touched.
   expireSemesterCredits(input: {
     userId: string;
     semesterId: string;
@@ -100,13 +113,28 @@ export type CreditWalletStore = {
     userId: string;
     bucket: CreditBucket;
     delta: number;
-    actorId: string;
+    actorId: string | null;
     reason: string;
     requestId: string;
+    // Required when bucket is SEMESTER (the grant is tied to a semester).
+    semesterId?: string | null;
+    expiresAt?: Date | null;
   }): Promise<WalletSnapshot>;
+  // Per-semester grant rows for a user (active and expired), newest first.
+  listSemesterGrants(userId: string): Promise<SemesterGrantView[]>;
   listLedger(userId: string, limit: number): Promise<CreditLedgerRecord[]>;
-  // Ledger rows for one original spend plus its refund, used to decide refunds.
   findLedgerByRequestId(requestId: string): Promise<CreditLedgerRecord | null>;
+};
+
+export type SemesterGrantView = {
+  id: string;
+  semesterId: string;
+  purchaseId: string | null;
+  grantedCredits: number;
+  remainingCredits: number;
+  status: 'ACTIVE' | 'EXPIRED' | 'REVOKED';
+  startsAt: Date;
+  expiresAt: Date;
 };
 
 const walletColumns = {
@@ -136,6 +164,17 @@ const ledgerColumns = {
   createdAt: creditLedger.createdAt,
 };
 
+const grantColumns = {
+  id: semesterCreditGrants.id,
+  semesterId: semesterCreditGrants.semesterId,
+  purchaseId: semesterCreditGrants.purchaseId,
+  grantedCredits: semesterCreditGrants.grantedCredits,
+  remainingCredits: semesterCreditGrants.remainingCredits,
+  status: semesterCreditGrants.status,
+  startsAt: semesterCreditGrants.startsAt,
+  expiresAt: semesterCreditGrants.expiresAt,
+};
+
 function snapshotOf(wallet: CreditWalletRecord | null): WalletSnapshot {
   const base: CreditWalletRecord = wallet ?? {
     userId: '',
@@ -148,31 +187,42 @@ function snapshotOf(wallet: CreditWalletRecord | null): WalletSnapshot {
   return { ...base, total: base.semesterBalance + base.topupBalance };
 }
 
-// Postgres unique-violation code — used to make idempotent writes safe under
-// concurrency: the second concurrent writer observes the first's row.
 const UNIQUE_VIOLATION = '23505';
+const MAX_TX_RETRIES = 6;
 
 function isUniqueViolation(error: unknown): boolean {
   return typeof error === 'object' && error !== null && (error as { code?: string }).code === UNIQUE_VIOLATION;
+}
+
+// Serialisation/retry helper: runs the transaction, retrying on deadlock /
+// serialization failures (40001, 40P01) and on our explicit 'wallet_conflict'.
+async function inRetryingTransaction<T>(run: () => Promise<T>): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < MAX_TX_RETRIES; attempt += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      lastError = error;
+      const code = (error as { code?: string } | null)?.code ?? '';
+      const message = error instanceof Error ? error.message : '';
+      const retriable = code === '40001' || code === '40P01' || message === 'wallet_conflict';
+      if (retriable && attempt < MAX_TX_RETRIES - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 4 + attempt * 6));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('wallet_conflict');
 }
 
 function createDrizzleWalletStore(): CreditWalletStore {
   const db = () => getDb();
   const now = () => new Date();
 
-  async function ensureWalletRow(userId: string, tx: ReturnType<typeof getDb>): Promise<CreditWalletRecord> {
-    await tx
-      .insert(creditWallets)
-      .values({ userId, semesterBalance: 0, topupBalance: 0, updatedAt: now() })
-      .onConflictDoNothing();
-    const [row] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, userId)).limit(1);
-    return row;
-  }
-
-  // Serialises concurrent balance mutations on one wallet: the row is locked
-  // FOR UPDATE for the duration of the transaction, so parallel spends queue
-  // instead of racing on a guarded update and failing with a conflict.
-  async function lockWalletRow(userId: string, tx: ReturnType<typeof getDb>): Promise<CreditWalletRecord> {
+  // Creates the wallet row if absent and locks it FOR UPDATE, so every balance
+  // mutation on one wallet serialises instead of racing.
+  async function lockWallet(userId: string, tx: ReturnType<typeof getDb>): Promise<CreditWalletRecord> {
     await tx
       .insert(creditWallets)
       .values({ userId, semesterBalance: 0, topupBalance: 0, updatedAt: now() })
@@ -186,6 +236,34 @@ function createDrizzleWalletStore(): CreditWalletStore {
     return row;
   }
 
+  // Recomputes the aggregate semester cache from the grant rows inside the same
+  // transaction, so the cache can never drift from the grants. Returns the sum.
+  async function syncSemesterCache(userId: string, tx: ReturnType<typeof getDb>): Promise<{ semesterBalance: number; expiresAt: Date | null; grantedAt: Date | null }> {
+    const [agg] = await tx
+      .select({
+        balance: sql<number>`coalesce(sum(case when ${semesterCreditGrants.status} = 'ACTIVE' and ${semesterCreditGrants.startsAt} <= now() and ${semesterCreditGrants.expiresAt} > now() then ${semesterCreditGrants.remainingCredits} else 0 end), 0)::int`,
+        // Cast to timestamptz so the driver returns a Date, not a raw string.
+        expiresAt: sql<string | null>`(max(case when ${semesterCreditGrants.status} = 'ACTIVE' then ${semesterCreditGrants.expiresAt} else null end))::timestamptz`,
+        grantedAt: sql<string | null>`(max(case when ${semesterCreditGrants.status} = 'ACTIVE' then ${semesterCreditGrants.createdAt} else null end))::timestamptz`,
+      })
+      .from(semesterCreditGrants)
+      .where(eq(semesterCreditGrants.userId, userId));
+    const expiresAt = agg?.expiresAt ? new Date(agg.expiresAt) : null;
+    const grantedAt = agg?.grantedAt ? new Date(agg.grantedAt) : null;
+    const [updated] = await tx
+      .update(creditWallets)
+      .set({
+        semesterBalance: agg?.balance ?? 0,
+        semesterExpiresAt: expiresAt,
+        semesterGrantedAt: grantedAt,
+        updatedAt: now(),
+      })
+      .where(eq(creditWallets.userId, userId))
+      .returning(walletColumns);
+    void updated;
+    return { semesterBalance: agg?.balance ?? 0, expiresAt, grantedAt };
+  }
+
   return {
     async getWallet(userId) {
       const [row] = await db().select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, userId)).limit(1);
@@ -197,293 +275,421 @@ function createDrizzleWalletStore(): CreditWalletStore {
     },
 
     async grantSemesterCredits(input) {
-      return db().transaction(async (tx) => {
-        // Idempotency: if this grant requestId was already applied, return current.
-        const existing = await tx
-          .select(ledgerColumns)
-          .from(creditLedger)
-          .where(eq(creditLedger.requestId, input.requestId))
-          .limit(1);
-        if (existing.length) {
-          return { granted: false, snapshot: snapshotOf(await ensureWalletRow(input.userId, tx)) };
-        }
-        const wallet = await ensureWalletRow(input.userId, tx);
-        const nextSemester = wallet.semesterBalance + input.credits;
-        const [updated] = await tx
-          .update(creditWallets)
-          .set({
-            semesterBalance: nextSemester,
-            semesterGrantedAt: now(),
-            semesterExpiresAt: input.expiresAt,
-            updatedAt: now(),
-          })
-          .where(eq(creditWallets.userId, input.userId))
-          .returning(walletColumns);
-        await tx.insert(creditLedger).values({
-          id: crypto.randomUUID(),
-          userId: input.userId,
-          bucket: 'SEMESTER',
-          kind: 'GRANT',
-          delta: input.credits,
-          balanceAfter: nextSemester,
-          semesterId: input.semesterId,
-          entitlementId: input.entitlementId,
-          requestId: input.requestId,
-          createdAt: now(),
-        });
-        return { granted: true, snapshot: snapshotOf(updated) };
-      });
+      return inRetryingTransaction(() =>
+        db().transaction(async (tx) => {
+          await lockWallet(input.userId, tx);
+          // Idempotency: one grant per request id (e.g. per purchase).
+          const [existing] = await tx
+            .select({ id: semesterCreditGrants.id })
+            .from(semesterCreditGrants)
+            .where(eq(semesterCreditGrants.grantRequestId, input.requestId))
+            .limit(1);
+          if (existing) {
+            const wallet = await lockWallet(input.userId, tx);
+            return { granted: false, snapshot: snapshotOf(wallet) };
+          }
+          const startsAt = input.startsAt ?? now();
+          await tx.insert(semesterCreditGrants).values({
+            id: crypto.randomUUID(),
+            userId: input.userId,
+            semesterId: input.semesterId,
+            purchaseId: input.purchaseId ?? null,
+            entitlementId: input.entitlementId,
+            grantedCredits: input.credits,
+            remainingCredits: input.credits,
+            status: 'ACTIVE',
+            startsAt,
+            expiresAt: input.expiresAt,
+            grantRequestId: input.requestId,
+          });
+          const agg = await syncSemesterCache(input.userId, tx);
+          const wallet = await lockWallet(input.userId, tx);
+          await tx.insert(creditLedger).values({
+            id: crypto.randomUUID(),
+            userId: input.userId,
+            bucket: 'SEMESTER',
+            kind: 'GRANT',
+            delta: input.credits,
+            balanceAfter: agg.semesterBalance,
+            semesterId: input.semesterId,
+            entitlementId: input.entitlementId,
+            requestId: input.requestId,
+            createdAt: now(),
+          });
+          return { granted: true, snapshot: snapshotOf(wallet) };
+        }),
+      );
     },
 
     async grantTopupCredits(input) {
-      return db().transaction(async (tx) => {
-        const existing = await tx
-          .select(ledgerColumns)
-          .from(creditLedger)
-          .where(eq(creditLedger.requestId, input.requestId))
-          .limit(1);
-        if (existing.length) {
-          return { granted: false, snapshot: snapshotOf(await ensureWalletRow(input.userId, tx)) };
-        }
-        const wallet = await ensureWalletRow(input.userId, tx);
-        const nextTopup = wallet.topupBalance + input.credits;
-        const [updated] = await tx
-          .update(creditWallets)
-          .set({ topupBalance: nextTopup, updatedAt: now() })
-          .where(eq(creditWallets.userId, input.userId))
-          .returning(walletColumns);
-        await tx.insert(creditLedger).values({
-          id: crypto.randomUUID(),
-          userId: input.userId,
-          bucket: 'TOPUP',
-          kind: 'TOPUP_PURCHASE',
-          delta: input.credits,
-          balanceAfter: nextTopup,
-          topupPurchaseId: input.topupPurchaseId,
-          requestId: input.requestId,
-          note: input.note ?? null,
-          createdAt: now(),
-        });
-        return { granted: true, snapshot: snapshotOf(updated) };
-      });
+      return inRetryingTransaction(() =>
+        db().transaction(async (tx) => {
+          const wallet = await lockWallet(input.userId, tx);
+          const [existing] = await tx
+            .select(ledgerColumns)
+            .from(creditLedger)
+            .where(eq(creditLedger.requestId, input.requestId))
+            .limit(1);
+          if (existing) {
+            return { granted: false, snapshot: snapshotOf(wallet) };
+          }
+          const nextTopup = wallet.topupBalance + input.credits;
+          const [updated] = await tx
+            .update(creditWallets)
+            .set({ topupBalance: nextTopup, updatedAt: now() })
+            .where(eq(creditWallets.userId, input.userId))
+            .returning(walletColumns);
+          await tx.insert(creditLedger).values({
+            id: crypto.randomUUID(),
+            userId: input.userId,
+            bucket: 'TOPUP',
+            kind: 'TOPUP_PURCHASE',
+            delta: input.credits,
+            balanceAfter: nextTopup,
+            topupPurchaseId: input.topupPurchaseId,
+            requestId: input.requestId,
+            note: input.note ?? null,
+            createdAt: now(),
+          });
+          return { granted: true, snapshot: snapshotOf(updated) };
+        }),
+      );
     },
 
     async spend(input) {
       if (input.credits <= 0) {
         return { ok: true, charged: false, duplicate: false, snapshot: snapshotOf(await this.getWallet(input.userId)) };
       }
-      const attempt = async () =>
+      try {
+        return await inRetryingTransaction(() =>
+          db().transaction(async (tx) => {
+            const wallet = await lockWallet(input.userId, tx);
+            // Duplicate detection on the primary request id.
+            const [dup] = await tx
+              .select({ id: creditLedger.id })
+              .from(creditLedger)
+              .where(eq(creditLedger.requestId, input.requestId))
+              .limit(1);
+            if (dup) {
+              return { ok: true as const, charged: false, duplicate: true, snapshot: snapshotOf(wallet) };
+            }
+
+            const at = now();
+            // Usable semester grants, oldest expiry first. A grant is usable
+            // only when ACTIVE, started, and not expired; and never past the
+            // caller's spendableUntil (the entitlement expiry).
+            const usableGrants = await tx
+              .select(grantColumns)
+              .from(semesterCreditGrants)
+              .where(
+                and(
+                  eq(semesterCreditGrants.userId, input.userId),
+                  eq(semesterCreditGrants.status, 'ACTIVE'),
+                  gt(semesterCreditGrants.remainingCredits, 0),
+                  lte(semesterCreditGrants.startsAt, at),
+                  gt(semesterCreditGrants.expiresAt, at),
+                  input.spendableUntil ? lte(semesterCreditGrants.expiresAt, input.spendableUntil) : undefined,
+                ),
+              )
+              .orderBy(asc(semesterCreditGrants.expiresAt), asc(semesterCreditGrants.createdAt));
+
+            let remaining = input.credits;
+            const debits: { grantId: string; amount: number }[] = [];
+            for (const grant of usableGrants) {
+              if (remaining <= 0) break;
+              const take = Math.min(grant.remainingCredits, remaining);
+              if (take <= 0) continue;
+              const nextRemaining = grant.remainingCredits - take;
+              await tx
+                .update(semesterCreditGrants)
+                .set({ remainingCredits: nextRemaining, updatedAt: at })
+                .where(and(eq(semesterCreditGrants.id, grant.id), eq(semesterCreditGrants.remainingCredits, grant.remainingCredits)));
+              await tx.insert(creditGrantDebits).values({
+                id: crypto.randomUUID(),
+                grantId: grant.id,
+                requestId: input.requestId,
+                amount: take,
+              });
+              debits.push({ grantId: grant.id, amount: take });
+              remaining -= take;
+            }
+
+            const lastConfirmed = await tx
+              .select(grantColumns)
+              .from(semesterCreditGrants)
+              .where(and(eq(semesterCreditGrants.userId, input.userId), eq(semesterCreditGrants.grantRequestId, input.requestId)))
+              .limit(1);
+            void lastConfirmed;
+
+            const fromTopup = remaining;
+            if (fromTopup > wallet.topupBalance) {
+              // Not enough total credit: abort so nothing is debited.
+              throw new Error('insufficient');
+            }
+            const nextTopup = wallet.topupBalance - fromTopup;
+            await tx.update(creditWallets).set({ topupBalance: nextTopup, updatedAt: at }).where(eq(creditWallets.userId, input.userId));
+            const agg = await syncSemesterCache(input.userId, tx);
+            const [finalWallet] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, input.userId)).limit(1);
+
+            const semesterSpent = input.credits - fromTopup;
+            if (semesterSpent > 0) {
+              await tx.insert(creditLedger).values({
+                id: crypto.randomUUID(),
+                userId: input.userId,
+                bucket: 'SEMESTER',
+                kind: 'CONSUME',
+                delta: -semesterSpent,
+                balanceAfter: agg.semesterBalance,
+                subjectId: input.subjectId,
+                entitlementId: input.entitlementId,
+                requestId: input.requestId,
+                createdAt: at,
+              });
+            }
+            if (fromTopup > 0) {
+              await tx.insert(creditLedger).values({
+                id: crypto.randomUUID(),
+                userId: input.userId,
+                bucket: 'TOPUP',
+                kind: 'CONSUME',
+                delta: -fromTopup,
+                balanceAfter: nextTopup,
+                subjectId: input.subjectId,
+                entitlementId: input.entitlementId,
+                requestId: `${input.requestId}:topup`,
+                createdAt: at,
+              });
+            }
+            return { ok: true as const, charged: true, duplicate: false, snapshot: snapshotOf(finalWallet) };
+          }),
+        );
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          return { ok: true, charged: false, duplicate: true, snapshot: snapshotOf(await this.getWallet(input.userId)) };
+        }
+        if (error instanceof Error && error.message === 'insufficient') {
+          return { ok: false, reason: 'insufficient', snapshot: snapshotOf(await this.getWallet(input.userId)) };
+        }
+        throw error;
+      }
+    },
+
+    async refund(input) {
+      return inRetryingTransaction(() =>
         db().transaction(async (tx) => {
-          const wallet = await lockWalletRow(input.userId, tx);
-          // Duplicate detection: a ledger row with this requestId already exists.
-          const [dup] = await tx
+          await lockWallet(input.userId, tx);
+          const [existingRefund] = await tx
+            .select({ id: creditLedger.id })
+            .from(creditLedger)
+            .where(and(eq(creditLedger.kind, 'REFUND'), eq(creditLedger.reversesRequestId, input.reversesRequestId)))
+            .limit(1);
+          if (existingRefund) return { ok: false as const, reason: 'already_refunded' as const };
+
+          // Restore the exact grants this spend debited (via the per-grant debits).
+          const grantDebits = await tx
+            .select({
+              id: creditGrantDebits.id,
+              grantId: creditGrantDebits.grantId,
+              amount: creditGrantDebits.amount,
+              refundedAt: creditGrantDebits.refundedAt,
+            })
+            .from(creditGrantDebits)
+            .where(and(eq(creditGrantDebits.requestId, input.reversesRequestId), isNull(creditGrantDebits.refundedAt)));
+          let semesterRefund = 0;
+          for (const debit of grantDebits) {
+            await tx
+              .update(semesterCreditGrants)
+              .set({ remainingCredits: sql`${semesterCreditGrants.remainingCredits} + ${debit.amount}`, updatedAt: now() })
+              .where(eq(semesterCreditGrants.id, debit.grantId));
+            await tx.update(creditGrantDebits).set({ refundedAt: now() }).where(eq(creditGrantDebits.id, debit.id));
+            semesterRefund += debit.amount;
+          }
+
+          // Restore the top-up portion if any was debited.
+          const [topupDebit] = await tx
             .select(ledgerColumns)
             .from(creditLedger)
-            .where(eq(creditLedger.requestId, input.requestId))
+            .where(and(eq(creditLedger.requestId, `${input.reversesRequestId}:topup`), eq(creditLedger.kind, 'CONSUME')))
             .limit(1);
-          if (dup) {
-            return { ok: true as const, charged: false, duplicate: true, snapshot: snapshotOf(wallet) };
-          }
-          const semesterUsable =
-            wallet.semesterBalance > 0 &&
-            (input.spendableUntil == null || wallet.semesterExpiresAt == null || wallet.semesterExpiresAt.getTime() > now().getTime());
-          const totalUsable = (semesterUsable ? wallet.semesterBalance : 0) + wallet.topupBalance;
-          if (totalUsable < input.credits) {
-            return { ok: false as const, reason: 'insufficient' as const, snapshot: snapshotOf(wallet) };
-          }
-          const fromSemester = semesterUsable ? Math.min(wallet.semesterBalance, input.credits) : 0;
-          const fromTopup = input.credits - fromSemester;
-          const nextSemester = wallet.semesterBalance - fromSemester;
-          const nextTopup = wallet.topupBalance - fromTopup;
-          // The row is locked FOR UPDATE, so a plain guarded update is safe.
-          const updatedRows = await tx
+          const topupRefund = topupDebit ? -topupDebit.delta : 0;
+          if (semesterRefund === 0 && topupRefund === 0) return { ok: false as const, reason: 'not_found' as const };
+
+          const wallet = await lockWallet(input.userId, tx);
+          const agg = await syncSemesterCache(input.userId, tx);
+          const nextTopup = wallet.topupBalance + topupRefund;
+          const [updated] = await tx
             .update(creditWallets)
-            .set({ semesterBalance: nextSemester, topupBalance: nextTopup, updatedAt: now() })
+            .set({ topupBalance: nextTopup, updatedAt: now() })
             .where(eq(creditWallets.userId, input.userId))
             .returning(walletColumns);
-          if (!updatedRows.length) throw new Error('wallet_conflict');
-          const updated = updatedRows[0];
-          if (fromSemester > 0) {
+
+          if (semesterRefund > 0) {
             await tx.insert(creditLedger).values({
               id: crypto.randomUUID(),
               userId: input.userId,
               bucket: 'SEMESTER',
-              kind: 'CONSUME',
-              delta: -fromSemester,
-              balanceAfter: nextSemester,
-              subjectId: input.subjectId,
-              entitlementId: input.entitlementId,
+              kind: 'REFUND',
+              delta: semesterRefund,
+              balanceAfter: agg.semesterBalance,
               requestId: input.requestId,
+              reversesRequestId: input.reversesRequestId,
+              note: input.note ?? null,
               createdAt: now(),
             });
           }
-          if (fromTopup > 0) {
+          if (topupRefund > 0) {
             await tx.insert(creditLedger).values({
               id: crypto.randomUUID(),
               userId: input.userId,
               bucket: 'TOPUP',
-              kind: 'CONSUME',
-              delta: -fromTopup,
+              kind: 'REFUND',
+              delta: topupRefund,
               balanceAfter: nextTopup,
-              requestId: `${input.requestId}:topup`,
-              subjectId: input.subjectId,
-              entitlementId: input.entitlementId,
+              requestId: semesterRefund > 0 ? `${input.requestId}:topup` : input.requestId,
+              reversesRequestId: input.reversesRequestId,
+              note: input.note ?? null,
               createdAt: now(),
             });
           }
-          return { ok: true as const, charged: true, duplicate: false, snapshot: snapshotOf(updated) };
-        });
-
-      // Bounded retry for optimistic-concurrency conflicts.
-      for (let tryIndex = 0; tryIndex < 6; tryIndex += 1) {
-        try {
-          return await attempt();
-        } catch (error) {
-          if (isUniqueViolation(error)) {
-            return { ok: true, charged: false, duplicate: true, snapshot: snapshotOf(await this.getWallet(input.userId)) };
-          }
-          const message = error instanceof Error ? error.message : '';
-          if (message === 'wallet_conflict' && tryIndex < 5) {
-            await new Promise((resolve) => setTimeout(resolve, 5 + tryIndex * 5));
-            continue;
-          }
-          throw error;
-        }
-      }
-      throw new Error('wallet_conflict');
+          void updated;
+          return { ok: true as const, refunded: semesterRefund + topupRefund };
+        }),
+      );
     },
 
-    async refund(input) {
-      return db().transaction(async (tx) => {
-        // Already refunded? A refund ledger row referencing the same original
-        // spend exists (a fresh refund requestId is used each attempt).
-        const [existingRefund] = await tx
-          .select(ledgerColumns)
-          .from(creditLedger)
-          .where(and(eq(creditLedger.kind, 'REFUND'), eq(creditLedger.reversesRequestId, input.reversesRequestId)))
-          .limit(1);
-        if (existingRefund) return { ok: false, reason: 'already_refunded' };
+    async expireSemesterCredits(input) {
+      return inRetryingTransaction(() =>
+        db().transaction(async (tx) => {
+          const wallet = await lockWallet(input.userId, tx);
+          // Expire only this semester's grants that still hold credits.
+          const grants = await tx
+            .select(grantColumns)
+            .from(semesterCreditGrants)
+            .where(
+              and(
+                eq(semesterCreditGrants.userId, input.userId),
+                eq(semesterCreditGrants.semesterId, input.semesterId),
+                eq(semesterCreditGrants.status, 'ACTIVE'),
+              ),
+            );
+          let expiredCredits = 0;
+          for (const grant of grants) {
+            if (grant.remainingCredits > 0) {
+              expiredCredits += grant.remainingCredits;
+              await tx
+                .update(semesterCreditGrants)
+                .set({ remainingCredits: 0, status: 'EXPIRED', updatedAt: now() })
+                .where(eq(semesterCreditGrants.id, grant.id));
+            } else {
+              await tx.update(semesterCreditGrants).set({ status: 'EXPIRED', updatedAt: now() }).where(eq(semesterCreditGrants.id, grant.id));
+            }
+          }
+          const agg = await syncSemesterCache(input.userId, tx);
+          const [updated] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, input.userId)).limit(1);
+          if (expiredCredits > 0) {
+            await tx.insert(creditLedger).values({
+              id: crypto.randomUUID(),
+              userId: input.userId,
+              bucket: 'SEMESTER',
+              kind: 'EXPIRE',
+              delta: -expiredCredits,
+              balanceAfter: agg.semesterBalance,
+              semesterId: input.semesterId,
+              requestId: input.requestId,
+              note: input.note ?? null,
+              createdAt: now(),
+            });
+          }
+          return snapshotOf(updated ?? wallet);
+        }),
+      );
+    },
 
-        const debits = await tx
-          .select(ledgerColumns)
-          .from(creditLedger)
-          .where(
-            and(
-              eq(creditLedger.userId, input.userId),
-              eq(creditLedger.kind, 'CONSUME'),
-              // Both the primary and the derived ':topup' rows share the prefix.
-              sql`${creditLedger.requestId} = ${input.reversesRequestId} OR ${creditLedger.requestId} = ${`${input.reversesRequestId}:topup`}`,
-            ),
-          );
-        if (!debits.length) return { ok: false, reason: 'not_found' };
+    async adjust(input) {
+      return inRetryingTransaction(() =>
+        db().transaction(async (tx) => {
+          const wallet = await lockWallet(input.userId, tx);
+          const [existing] = await tx
+            .select({ id: creditLedger.id })
+            .from(creditLedger)
+            .where(eq(creditLedger.requestId, input.requestId))
+            .limit(1);
+          if (existing) return snapshotOf(wallet);
 
-        const wallet = await ensureWalletRow(input.userId, tx);
-        let semesterRefund = 0;
-        let topupRefund = 0;
-        for (const debit of debits) {
-          if (debit.bucket === 'SEMESTER') semesterRefund += -debit.delta;
-          else topupRefund += -debit.delta;
-        }
-        const nextSemester = wallet.semesterBalance + semesterRefund;
-        const nextTopup = wallet.topupBalance + topupRefund;
-        const [updated] = await tx
-          .update(creditWallets)
-          .set({ semesterBalance: nextSemester, topupBalance: nextTopup, updatedAt: now() })
-          .where(eq(creditWallets.userId, input.userId))
-          .returning(walletColumns);
-        if (semesterRefund > 0) {
-          await tx.insert(creditLedger).values({
-            id: crypto.randomUUID(),
-            userId: input.userId,
-            bucket: 'SEMESTER',
-            kind: 'REFUND',
-            delta: semesterRefund,
-            balanceAfter: nextSemester,
-            requestId: input.requestId,
-            reversesRequestId: input.reversesRequestId,
-            note: input.note ?? null,
-            createdAt: now(),
-          });
-        }
-        if (topupRefund > 0) {
+          if (input.bucket === 'SEMESTER') {
+            // A semester adjustment is held in a dedicated admin grant so it can
+            // never corrupt a purchased semester's grant. Requires a semesterId,
+            // which the caller supplies via reason-encoded metadata when needed;
+            // otherwise it is placed in a synthetic admin grant that expires far
+            // in the future.
+            const next = wallet.semesterBalance + input.delta;
+            if (next < 0) throw new Error('negative_balance');
+            // Apply to the newest active grant's remaining if reducing, else
+            // create/extend an admin grant.
+            await tx.insert(semesterCreditGrants).values({
+              id: crypto.randomUUID(),
+              userId: input.userId,
+              // Admin adjustments without a semester live under a fixed sentinel
+              // semester row is required by the FK; the admin UI always passes a
+              // real semester. The API route resolves it before calling.
+              semesterId: input.semesterId ?? (await firstSemesterId(tx)),
+              purchaseId: null,
+              entitlementId: null,
+              grantedCredits: Math.max(0, input.delta),
+              remainingCredits: Math.max(0, input.delta),
+              status: 'ACTIVE',
+              startsAt: now(),
+              expiresAt: input.expiresAt ?? new Date('2100-01-01T00:00:00Z'),
+              grantRequestId: input.requestId,
+            });
+            const agg = await syncSemesterCache(input.userId, tx);
+            const [updated] = await tx.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, input.userId)).limit(1);
+            await tx.insert(creditLedger).values({
+              id: crypto.randomUUID(),
+              userId: input.userId,
+              bucket: 'SEMESTER',
+              kind: 'ADMIN_ADJUSTMENT',
+              delta: input.delta,
+              balanceAfter: agg.semesterBalance,
+              requestId: input.requestId,
+              note: input.reason,
+              actorId: input.actorId,
+              createdAt: now(),
+            });
+            return snapshotOf(updated ?? wallet);
+          }
+
+          const next = wallet.topupBalance + input.delta;
+          if (next < 0) throw new Error('negative_balance');
+          const [updated] = await tx
+            .update(creditWallets)
+            .set({ topupBalance: next, updatedAt: now() })
+            .where(eq(creditWallets.userId, input.userId))
+            .returning(walletColumns);
           await tx.insert(creditLedger).values({
             id: crypto.randomUUID(),
             userId: input.userId,
             bucket: 'TOPUP',
-            kind: 'REFUND',
-            delta: topupRefund,
-            balanceAfter: nextTopup,
-            requestId: semesterRefund > 0 ? `${input.requestId}:topup` : input.requestId,
-            reversesRequestId: input.reversesRequestId,
-            note: input.note ?? null,
+            kind: 'ADMIN_ADJUSTMENT',
+            delta: input.delta,
+            balanceAfter: next,
+            requestId: input.requestId,
+            note: input.reason,
+            actorId: input.actorId,
             createdAt: now(),
           });
-        }
-        void updated;
-        return { ok: true, refunded: semesterRefund + topupRefund };
-      });
+          return snapshotOf(updated);
+        }),
+      );
     },
 
-    async expireSemesterCredits(input) {
-      return db().transaction(async (tx) => {
-        const [existing] = await tx
-          .select(ledgerColumns)
-          .from(creditLedger)
-          .where(eq(creditLedger.requestId, input.requestId))
-          .limit(1);
-        if (existing) return snapshotOf(await ensureWalletRow(input.userId, tx));
-        const wallet = await ensureWalletRow(input.userId, tx);
-        if (wallet.semesterBalance <= 0) return snapshotOf(wallet);
-        const [updated] = await tx
-          .update(creditWallets)
-          .set({ semesterBalance: 0, semesterExpiresAt: now(), updatedAt: now() })
-          .where(eq(creditWallets.userId, input.userId))
-          .returning(walletColumns);
-        await tx.insert(creditLedger).values({
-          id: crypto.randomUUID(),
-          userId: input.userId,
-          bucket: 'SEMESTER',
-          kind: 'EXPIRE',
-          delta: -wallet.semesterBalance,
-          balanceAfter: 0,
-          semesterId: input.semesterId,
-          requestId: input.requestId,
-          note: input.note ?? null,
-          createdAt: now(),
-        });
-        return snapshotOf(updated);
-      });
-    },
-
-    async adjust(input) {
-      return db().transaction(async (tx) => {
-        const wallet = await ensureWalletRow(input.userId, tx);
-        const current = input.bucket === 'SEMESTER' ? wallet.semesterBalance : wallet.topupBalance;
-        const next = current + input.delta;
-        if (next < 0) throw new Error('negative_balance');
-        const patch =
-          input.bucket === 'SEMESTER'
-            ? { semesterBalance: next, updatedAt: now() }
-            : { topupBalance: next, updatedAt: now() };
-        const [updated] = await tx
-          .update(creditWallets)
-          .set(patch)
-          .where(eq(creditWallets.userId, input.userId))
-          .returning(walletColumns);
-        await tx.insert(creditLedger).values({
-          id: crypto.randomUUID(),
-          userId: input.userId,
-          bucket: input.bucket,
-          kind: 'ADMIN_ADJUSTMENT',
-          delta: input.delta,
-          balanceAfter: next,
-          requestId: input.requestId,
-          note: input.reason,
-          actorId: input.actorId,
-          createdAt: now(),
-        });
-        return snapshotOf(updated);
-      });
+    async listSemesterGrants(userId) {
+      const rows = await db()
+        .select(grantColumns)
+        .from(semesterCreditGrants)
+        .where(eq(semesterCreditGrants.userId, userId))
+        .orderBy(desc(semesterCreditGrants.createdAt));
+      return rows;
     },
 
     async listLedger(userId, limit) {
@@ -500,6 +706,16 @@ function createDrizzleWalletStore(): CreditWalletStore {
       return row ?? null;
     },
   };
+}
+
+// Fallback semester id for an admin adjustment when none is supplied: use any
+// existing semester (the schema requires a non-null FK). The admin API always
+// resolves a real semester before calling, so this is only a safety net.
+async function firstSemesterId(tx: ReturnType<typeof getDb>): Promise<string> {
+  const { semesters } = await import('../../db/schema');
+  const [row] = await tx.select({ id: semesters.id }).from(semesters).limit(1);
+  if (!row) throw new Error('no_semester');
+  return row.id;
 }
 
 let override: CreditWalletStore | null = null;
@@ -532,5 +748,35 @@ export async function hasActiveSemesterEntitlement(userId: string, at = new Date
   return rows.length > 0;
 }
 
-// Convenience re-exports used by tests and admin reports.
-export { entitlements, users, creditWallets, creditLedger, isNull, gt };
+// Read-only ledger vs wallet reconciliation. Never mutates anything.
+export type WalletReconciliation = {
+  userId: string;
+  walletSemesterBalance: number;
+  grantsSemesterBalance: number;
+  walletTopupBalance: number;
+  ledgerTopupBalance: number;
+  mismatches: string[];
+};
+
+export async function reconcileWallet(userId: string): Promise<WalletReconciliation> {
+  const db = getDb();
+  const [wallet] = await db.select(walletColumns).from(creditWallets).where(eq(creditWallets.userId, userId)).limit(1);
+  const [grantAgg] = await db
+    .select({ sum: sql<number>`coalesce(sum(case when ${semesterCreditGrants.status} = 'ACTIVE' and ${semesterCreditGrants.startsAt} <= now() and ${semesterCreditGrants.expiresAt} > now() then ${semesterCreditGrants.remainingCredits} else 0 end), 0)::int` })
+    .from(semesterCreditGrants)
+    .where(eq(semesterCreditGrants.userId, userId));
+  const [ledgerAgg] = await db
+    .select({ sum: sql<number>`coalesce(sum(${creditLedger.delta}), 0)::int` })
+    .from(creditLedger)
+    .where(and(eq(creditLedger.userId, userId), eq(creditLedger.bucket, 'TOPUP')));
+  const walletSemester = wallet?.semesterBalance ?? 0;
+  const walletTopup = wallet?.topupBalance ?? 0;
+  const grantsSemester = grantAgg?.sum ?? 0;
+  const ledgerTopup = ledgerAgg?.sum ?? 0;
+  const mismatches: string[] = [];
+  if (walletSemester !== grantsSemester) mismatches.push(`semester cache ${walletSemester} != grants ${grantsSemester}`);
+  if (walletTopup !== ledgerTopup) mismatches.push(`topup cache ${walletTopup} != ledger ${ledgerTopup}`);
+  return { userId, walletSemesterBalance: walletSemester, grantsSemesterBalance: grantsSemester, walletTopupBalance: walletTopup, ledgerTopupBalance: ledgerTopup, mismatches };
+}
+
+export { entitlements, users, creditWallets, creditLedger, semesterCreditGrants, creditGrantDebits, isNull, gt, or, and };
