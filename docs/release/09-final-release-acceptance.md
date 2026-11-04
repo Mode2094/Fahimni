@@ -26,7 +26,7 @@ approval and operational configuration (see `08-launch-blockers-and-owner-action
 | 11 | Staging deployment verified | ❌ blocked (B3) |
 | 12 | Backups restored successfully | ❌ not drilled (B3) |
 | 13 | Production env configuration complete | ⚠️ documented; owner must set values |
-| 14 | GitHub CI passes | ✅ (see PR run) |
+| 14 | GitHub CI passes | ✅ run `41861619201`, success (both jobs) |
 | 15 | Rollback & monitoring ready | ⚠️ documented in `06-infrastructure-and-deployment.md` |
 | 16 | Final code independently reviewed | ⚠️ this dossier; independent human review recommended |
 
@@ -57,3 +57,9 @@ approval and operational configuration (see `08-launch-blockers-and-owner-action
 - No production deployment, production migration or live payment activation.
 - No historical/copyrighted data deleted; migrations are additive.
 - No fabricated payments, profits or provider costs.
+
+## Branch, commit, PR
+- Branch: `release/fahimni-production-readiness`
+- Base: `feat/unified-semester-subscription` (PR #2)
+- PR: https://github.com/Mode2094/Fahimni/pull/3
+- CI: https://github.com/Mode2094/Fahimni/actions/runs/41861619201 (success)

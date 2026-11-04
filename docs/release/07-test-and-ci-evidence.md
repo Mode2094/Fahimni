@@ -34,8 +34,11 @@ rather than being skipped.
 ## CI
 GitHub Actions runs `pnpm install --frozen-lockfile → typecheck → lint → test →
 build:next` plus a reproducibility build, with PostgreSQL + Redis service
-containers. See the PR for the run URL on the pushed head. Local results above
-mirror CI’s environment; CI is the authoritative gate.
+containers.
+
+**Run on head `424ba64`:** https://github.com/Mode2094/Fahimni/actions/runs/41861619201
+— **success** (both jobs). Local results above mirror CI’s environment; CI is the
+authoritative gate.
 
 ## Coverage gaps (honest)
 - No browser-automation (Playwright) E2E in CI.
