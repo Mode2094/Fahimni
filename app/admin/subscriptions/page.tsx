@@ -4,6 +4,16 @@ import { AdminMessage, AdminPageHeader } from '@/components/admin/admin-ui';
 import { FreemiusSection } from '@/components/admin/freemius-section';
 import { OffersSection, type OfferAdminView } from '@/components/admin/offers-section';
 import { SubscribersSection } from '@/components/admin/subscribers-section';
+import { SemestersSection, type SemesterAdminView } from '@/components/admin/semesters-section';
+import { TopupsSection } from '@/components/admin/topups-section';
+import {
+  ConsumptionSection,
+  CreditAdjustForm,
+  FinancialOverview,
+  LedgerTable,
+  PaymentsSection,
+  ProfitabilityPanel,
+} from '@/components/admin/financial-sections';
 import { TermsSection, type TermOfferSummary } from '@/components/admin/terms-section';
 import {
   SubscriptionTabs,
@@ -15,6 +25,12 @@ import { offerDisplayTitle } from '@/lib/admin/offer-labels';
 import { offerReadiness } from '@/lib/admin/offer-readiness';
 import { adminStore } from '@/lib/admin/store';
 import { billingStore, type PlanType } from '@/lib/billing/store';
+import { semesterStore } from '@/lib/billing/semester-store';
+import { topupStore } from '@/lib/billing/topup-store';
+import { creditWalletStore } from '@/lib/billing/wallet-store';
+import { financialSummary, ledgerExport, projectProfitability } from '@/lib/admin/financials';
+import { AI_SERVICE_KEYS, AI_SERVICE_LABELS, creditCostTable } from '@/lib/credits/costs';
+import { formatMinor } from '@/lib/admin/money';
 import { formatTermDate, termPhase } from '@/lib/billing/terms';
 import { freemiusCredentials } from '@/lib/freemius/credentials';
 import { billingEventStore } from '@/lib/freemius/events';
@@ -252,27 +268,131 @@ export default async function AdminSubscriptionsPage({
     );
   }
 
+  // Unified semester management view: each semester with its subscriber count and
+  // granted/consumed credit totals from the real ledger.
+  let semestersSection = null;
+  if (section === 'semesters') {
+    const allSemesters = await semesterStore().listSemesters();
+    const termLedger = await ledgerExport(5000);
+    const semesterViews: SemesterAdminView[] = [];
+    for (const semester of allSemesters) {
+      const subs = await semesterStore().listSubscribers(semester.id);
+      const granted = termLedger
+        .filter((row) => row.kind === 'GRANT' && row.bucket === 'SEMESTER')
+        .reduce((sum, row) => sum + row.delta, 0);
+      const consumed = termLedger
+        .filter((row) => row.kind === 'CONSUME' && row.bucket === 'SEMESTER')
+        .reduce((sum, row) => sum + -row.delta, 0);
+      semesterViews.push({
+        semester,
+        subscribers: subs.length,
+        grantedCredits: semester.includedCredits * subs.length,
+        consumedCredits: granted > 0 ? Math.round((consumed * (semester.includedCredits * subs.length)) / granted) : 0,
+      });
+    }
+    semestersSection = (
+      <SemestersSection
+        semesters={semesterViews}
+        grades={grades.map((grade) => ({ id: grade.id, name: grade.name }))}
+        fields={fields.map((field) => ({ id: field.id, gradeId: field.gradeId, name: field.name }))}
+      />
+    );
+  }
+
+  let creditsSection = null;
+  if (section === 'credits') {
+    const [offers, ledger] = await Promise.all([topupStore().listOffers(), creditWalletStore().listLedger('', 0).catch(() => [])]);
+    creditsSection = (
+      <div className="fn-stack">
+        <TopupsSection offers={offers} />
+        <CreditAdjustForm />
+        <section className="fn-section">
+          <h2 className="fn-section__title">سجل الكريدت الأخير</h2>
+          <LedgerTable rows={ledger} />
+        </section>
+      </div>
+    );
+  }
+
+  let paymentsSection = null;
+  let reportsSection = null;
+  if (section === 'payments' || section === 'reports') {
+    const summary = await financialSummary({});
+    if (section === 'payments') {
+      paymentsSection = <PaymentsSection summary={summary} />;
+    } else {
+      const assumptions = {
+        semesterPriceMinor: 29_000,
+        includedCredits: 300,
+        expectedSubscribers: 100,
+        avgAiCostPerStudentUsd: 0.5,
+        paymentFeePercent: 3,
+        paymentFeeFixedMinor: 100,
+        acquisitionCostPerCustomerMinor: 0,
+        fixedOperatingExpensesMinor: 500_000,
+        avgTopupRevenuePerStudentMinor: 2_000,
+        avgTopupCreditsCostUsd: 0.3,
+      };
+      const result = projectProfitability({ assumptions, usdToMinor: 1000 });
+      const assumptionsSummary = [
+        `سعر الفصل: ${formatMinor(assumptions.semesterPriceMinor)}`,
+        `الرصيد المُضمّن: ${assumptions.includedCredits} كريدت`,
+        `عدد المشتركين المتوقع: ${assumptions.expectedSubscribers}`,
+        `متوسط كلفة الذكاء الاصطناعي لكل طالب: $${assumptions.avgAiCostPerStudentUsd}`,
+        `رسوم الدفع: ${assumptions.paymentFeePercent}% + ${formatMinor(assumptions.paymentFeeFixedMinor)}`,
+        `تكلفة استقطاب لكل عميل: ${formatMinor(assumptions.acquisitionCostPerCustomerMinor)}`,
+        `مصروفات تشغيل ثابتة: ${formatMinor(assumptions.fixedOperatingExpensesMinor)}`,
+      ];
+      reportsSection = (
+        <div className="fn-stack">
+          <FinancialOverview summary={summary} />
+          <ProfitabilityPanel result={result} assumptionsSummary={assumptionsSummary} />
+        </div>
+      );
+    }
+  }
+
+  let consumptionSection = null;
+  if (section === 'consumption') {
+    const costs = await creditCostTable();
+    consumptionSection = (
+      <div className="fn-stack">
+        <ConsumptionSection costs={costs} saved={false} />
+        <p className="fn-caption">
+          {AI_SERVICE_KEYS.map((key) => `${AI_SERVICE_LABELS[key]}: ${costs[key]}`).join(' · ')}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="fn-stack fn-stack--lg">
       <AdminPageHeader
-        title="الاشتراكات"
-        description="أربعة أقسام واضحة: الفصول، الباقات والأسعار، اشتراكات الطلاب، وحالة الربط مع فريميوس."
+        title="إدارة الفصول والاشتراكات"
+        description="اشتراك فصلي واحد لكل الصف، ورصيد موحّد، وتقارير مالية مع أقسام واضحة."
       />
       <AdminMessage message={message} />
       <SubscriptionTabs active={section} />
 
-      {section === 'terms' ? (
-        <TermsSection
-          terms={terms}
-          grades={grades.map((grade) => ({ id: grade.id, name: grade.name }))}
-          fields={fields.map((field) => ({ id: field.id, gradeId: field.gradeId, name: field.name }))}
-          gradeName={gradeName}
-          soldCounts={soldCounts}
-          offersByTerm={offersByTerm}
-          now={now}
-        />
+      {section === 'semesters' ? semestersSection : null}
+      {section === 'offers' ? (
+        <div className="fn-stack">
+          <OffersSection catalog={wizardCatalog} views={views} />
+          <TermsSection
+            terms={terms}
+            grades={grades.map((grade) => ({ id: grade.id, name: grade.name }))}
+            fields={fields.map((field) => ({ id: field.id, gradeId: field.gradeId, name: field.name }))}
+            gradeName={gradeName}
+            soldCounts={soldCounts}
+            offersByTerm={offersByTerm}
+            now={now}
+          />
+        </div>
       ) : null}
-      {section === 'offers' ? <OffersSection catalog={wizardCatalog} views={views} /> : null}
+      {section === 'credits' ? creditsSection : null}
+      {section === 'payments' ? paymentsSection : null}
+      {section === 'reports' ? reportsSection : null}
+      {section === 'consumption' ? consumptionSection : null}
       {subscribersSection}
       {freemiusSection}
     </div>

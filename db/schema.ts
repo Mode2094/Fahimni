@@ -560,3 +560,251 @@ export const learningProgress = pgTable(
 
 export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
 export type RegisteredDevice = typeof registeredDevices.$inferSelect;
+
+/* ============================================================================
+ * Unified semester subscription & credit wallet (Phase 2)
+ *
+ * ONE publicly offered paid product: "اشتراك فهمني الفصلي" — a semester
+ * subscription that covers every READY, authorised subject for the student's
+ * grade/track and grants one unified credit wallet. Top-up credits are bought
+ * separately and persist across semesters.
+ *
+ * These tables are additive. Legacy catalog/entitlement tables above are kept
+ * intact so historical monthly/subject/bundle purchases stay valid until they
+ * expire or the owner approves a migration.
+ * ========================================================================== */
+
+export const semesterStatus = pgEnum('semester_status', [
+  'DRAFT',
+  'SCHEDULED',
+  'ACTIVE',
+  'ENDED',
+  'ARCHIVED',
+]);
+
+export const lateEnrollmentPolicy = pgEnum('late_enrollment_policy', ['FULL_PRICE', 'PRORATED']);
+
+// Admin-controlled semester calendar. All boundaries are stored as precise UTC
+// instants converted from Asia/Amman calendar dates; the admin end date is
+// inclusive through the end of that local day (exclusive UTC end timestamp).
+export const semesters = pgTable(
+  'semesters',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    academicYear: text('academic_year').notNull(),
+    // Scope: a semester targets one grade, optionally one academic track.
+    gradeId: text('grade_id')
+      .notNull()
+      .references(() => grades.id, { onDelete: 'restrict' }),
+    academicFieldId: text('academic_field_id').references(() => academicFields.id, { onDelete: 'set null' }),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+    // Sales window. salesStartAt defaults to creation; salesEndAt optional.
+    salesStartAt: timestamp('sales_start_at', { withTimezone: true }).notNull().defaultNow(),
+    salesEndAt: timestamp('sales_end_at', { withTimezone: true }),
+    // Price is stored in integer minor units of `currency` only.
+    priceMinor: integer('price_minor').notNull(),
+    currency: text('currency').notNull().default('JOD'),
+    // Credits granted once per successful semester purchase.
+    includedCredits: integer('included_credits').notNull().default(0),
+    status: semesterStatus('status').notNull().default('DRAFT'),
+    lateEnrollmentPolicy: lateEnrollmentPolicy('late_enrollment_policy').notNull().default('FULL_PRICE'),
+    // Whether purchased-credit top-ups are offered to this semester's students.
+    topUpEnabled: boolean('top_up_enabled').notNull().default(true),
+    freemiusPlanId: text('freemius_plan_id'),
+    adminNotes: text('admin_notes'),
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('semesters_status_idx').on(table.status),
+    index('semesters_grade_idx').on(table.gradeId),
+    index('semesters_scope_idx').on(table.gradeId, table.academicFieldId, table.startsAt, table.endsAt),
+    index('semesters_freemius_plan_idx').on(table.freemiusPlanId),
+  ],
+);
+
+export const topupOfferStatus = pgEnum('topup_offer_status', ['DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED']);
+
+// Admin-managed top-up catalog. Prices are integer minor units only and are
+// never auto-activated: an offer only sells once its provider link is verified.
+export const topupOffers = pgTable(
+  'topup_offers',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    credits: integer('credits').notNull(),
+    priceMinor: integer('price_minor').notNull(),
+    currency: text('currency').notNull().default('JOD'),
+    status: topupOfferStatus('status').notNull().default('DRAFT'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    freemiusPlanId: text('freemius_plan_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('topup_offers_status_idx').on(table.status),
+    index('topup_offers_freemius_plan_idx').on(table.freemiusPlanId),
+  ],
+);
+
+export const creditBucket = pgEnum('credit_bucket', ['SEMESTER', 'TOPUP']);
+export const creditLedgerKind = pgEnum('credit_ledger_kind', [
+  'GRANT',
+  'CONSUME',
+  'REFUND',
+  'TOPUP_PURCHASE',
+  'ADMIN_ADJUSTMENT',
+  'REVERSAL',
+  'EXPIRE',
+]);
+
+// One wallet per user with two independent buckets. Semester-included credits
+// expire with their semester; purchased top-up credits persist across semesters
+// and are only spendable while the student holds a valid paid entitlement.
+export const creditWallets = pgTable(
+  'credit_wallets',
+  {
+    userId: text('user_id')
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Semester-included credit balance (granted per purchased semester).
+    semesterBalance: integer('semester_balance').notNull().default(0),
+    // Purchased top-up credit balance (durable across semesters).
+    topupBalance: integer('topup_balance').notNull().default(0),
+    // When the current semester bucket was granted and when it expires.
+    semesterGrantedAt: timestamp('semester_granted_at', { withTimezone: true }),
+    semesterExpiresAt: timestamp('semester_expires_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
+// Append-only ledger. Every mutation of a wallet writes exactly one row; the
+// wallet balances are a materialised projection of this ledger. `requestId` is
+// unique per mutation so retries and webhook replays never double-apply.
+export const creditLedger = pgTable(
+  'credit_ledger',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    bucket: creditBucket('bucket').notNull(),
+    kind: creditLedgerKind('kind').notNull(),
+    // Signed delta: positive credit, negative debit.
+    delta: integer('delta').notNull(),
+    balanceAfter: integer('balance_after').notNull(),
+    subjectId: text('subject_id').references(() => subjects.id, { onDelete: 'set null' }),
+    semesterId: text('semester_id').references(() => semesters.id, { onDelete: 'set null' }),
+    entitlementId: text('entitlement_id').references(() => entitlements.id, { onDelete: 'set null' }),
+    topupPurchaseId: text('topup_purchase_id'),
+    // Idempotency key: unique per logical mutation (request id, webhook id, ...).
+    requestId: text('request_id').notNull().unique(),
+    // For refunds/reversals: the requestId of the original debit.
+    reversesRequestId: text('reverses_request_id'),
+    note: text('note'),
+    actorId: text('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('credit_ledger_user_idx').on(table.userId, table.createdAt),
+    index('credit_ledger_bucket_idx').on(table.userId, table.bucket),
+    index('credit_ledger_semester_idx').on(table.semesterId),
+    index('credit_ledger_kind_idx').on(table.kind),
+  ],
+);
+
+export const purchaseStatus = pgEnum('purchase_status', [
+  'PENDING',
+  'ACTIVE',
+  'CANCELED',
+  'EXPIRED',
+  'REFUNDED',
+  'FAILED',
+]);
+
+// Immutable snapshot of what a student bought for a semester. Financial terms
+// are copied at purchase time and never rewritten when the admin later edits
+// the semester, so historical records stay audit-safe.
+export const subscriptionPurchases = pgTable(
+  'subscription_purchases',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    semesterId: text('semester_id')
+      .notNull()
+      .references(() => semesters.id, { onDelete: 'restrict' }),
+    entitlementId: text('entitlement_id').references(() => entitlements.id, { onDelete: 'set null' }),
+    // Snapshot of the semester terms at purchase time.
+    semesterName: text('semester_name').notNull(),
+    priceMinor: integer('price_minor').notNull(),
+    currency: text('currency').notNull(),
+    includedCredits: integer('included_credits').notNull(),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    lateEnrollment: boolean('late_enrollment').notNull().default(false),
+    status: purchaseStatus('status').notNull().default('PENDING'),
+    // Provider identifiers (unique). The provider license id is the natural key.
+    provider: text('provider').notNull().default('freemius'),
+    providerLicenseId: text('provider_license_id').unique(),
+    providerSubscriptionId: text('provider_subscription_id'),
+    providerPlanId: text('provider_plan_id'),
+    // Exactly-once guard for the credit grant: set when credits were granted.
+    creditsGrantedAt: timestamp('credits_granted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('subscription_purchases_user_idx').on(table.userId),
+    index('subscription_purchases_semester_idx').on(table.semesterId),
+    index('subscription_purchases_status_idx').on(table.status),
+    // One active/pending purchase per user and semester is enforced in code
+    // (partial unique indexes over enum predicates are managed by migration).
+    index('subscription_purchases_user_semester_idx').on(table.userId, table.semesterId),
+  ],
+);
+
+// One-time paid credit top-ups. Each successful verified payment adds top-up
+// credits exactly once, guarded by the unique provider transaction id.
+export const topupPurchases = pgTable(
+  'topup_purchases',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    offerId: text('offer_id').references(() => topupOffers.id, { onDelete: 'set null' }),
+    // Snapshot of the offer at purchase time.
+    offerName: text('offer_name').notNull(),
+    credits: integer('credits').notNull(),
+    priceMinor: integer('price_minor').notNull(),
+    currency: text('currency').notNull(),
+    status: purchaseStatus('status').notNull().default('PENDING'),
+    provider: text('provider').notNull().default('freemius'),
+    // Unique external transaction id — replay protection.
+    providerTransactionId: text('provider_transaction_id').unique(),
+    providerLicenseId: text('provider_license_id'),
+    providerPlanId: text('provider_plan_id'),
+    creditsGrantedAt: timestamp('credits_granted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('topup_purchases_user_idx').on(table.userId),
+    index('topup_purchases_status_idx').on(table.status),
+    index('topup_purchases_offer_idx').on(table.offerId),
+  ],
+);
+
+export type Semester = typeof semesters.$inferSelect;
+export type NewSemester = typeof semesters.$inferInsert;
+export type TopupOffer = typeof topupOffers.$inferSelect;
+export type NewTopupOffer = typeof topupOffers.$inferInsert;
+export type CreditWallet = typeof creditWallets.$inferSelect;
+export type CreditLedgerEntry = typeof creditLedger.$inferSelect;
+export type SubscriptionPurchase = typeof subscriptionPurchases.$inferSelect;
+export type TopupPurchase = typeof topupPurchases.$inferSelect;

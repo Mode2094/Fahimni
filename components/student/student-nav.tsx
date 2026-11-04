@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Crown, Home, Monitor, User } from "lucide-react";
+import { BookOpen, Coins, Crown, Home, Monitor, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { FnTabBar, FnTabBarItem } from "@/components/fahimni";
@@ -22,6 +22,7 @@ function navItems(whiteboardHref: string): NavItem[] {
     { href: "/app/subjects", label: "المواد", icon: BookOpen },
     { href: whiteboardHref, label: "السبورة", icon: Monitor, whiteboard: true },
     { href: "/app/subscription", label: "اشتراكي", icon: Crown },
+    { href: "/app/topup", label: "رصيدي", icon: Coins },
     { href: "/app/account", label: "حسابي", icon: User },
   ];
 }

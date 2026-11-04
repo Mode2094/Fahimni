@@ -2,6 +2,11 @@ import type { Freemius, WebhookEvent } from '@freemius/sdk';
 
 import { syncEntitlementFromPurchase, type PurchaseLike } from '../billing/entitlements';
 import type { BillingStore } from '../billing/store';
+import { provisionSemesterPurchase } from '../billing/subscription';
+import type { SemesterStore } from '../billing/semester-store';
+import type { PurchaseStore } from '../billing/purchase-store';
+import type { TopupStore } from '../billing/topup-store';
+import type { CreditWalletStore } from '../billing/wallet-store';
 import { summaryForBillingEvent, type BillingEventStore } from './events';
 
 type WebhookListener = ReturnType<Freemius['webhook']['createListener']>;
@@ -25,6 +30,15 @@ export const PAYMENT_FAILURE_EVENTS = ['subscription.renewal.failed', 'subscript
 // Lifecycle events worth an admin-visible timeline entry after processing.
 const AUDIT_EVENTS = ['license.cancelled', 'license.expired', 'license.shortened', 'license.plan.changed'] as const;
 
+// The unified semester/top-up settlement surface. Optional so existing
+// callers/tests that only exercise the legacy subject-plan path keep working.
+export type UnifiedSettlementDeps = {
+  semesters: SemesterStore;
+  purchases: PurchaseStore;
+  wallets: CreditWalletStore;
+  topups: TopupStore;
+};
+
 export type FreemiusWebhookDeps = {
   createListener: () => WebhookListener;
   processFetch: (listener: WebhookListener, request: Request) => Promise<Response>;
@@ -33,6 +47,9 @@ export type FreemiusWebhookDeps = {
   findUserByEmail: (email: string) => Promise<{ id: string } | null>;
   // Optional so existing callers/tests keep working; the route always passes it.
   events?: BillingEventStore;
+  // When present, license events for a semester or top-up plan settle the
+  // unified purchase + credit grant instead of the legacy subject path.
+  unified?: UnifiedSettlementDeps;
   now?: () => Date;
 };
 
@@ -83,16 +100,22 @@ export async function handleFreemiusWebhook(request: Request, deps: FreemiusWebh
     const purchase = await deps.retrievePurchase(licenseId);
     if (!purchase) return;
 
-    const result = await syncEntitlementFromPurchase(
-      { store: deps.store, findUserByEmail: deps.findUserByEmail },
-      purchase,
-      now(),
-    );
-    if (!result.ok) {
-      // Safe diagnostic only: never log keys, tokens or full payment payloads.
-      console.error('[freemius] entitlement sync skipped:', result.reason, event.type);
+    // Unified settlement first: if the license's plan belongs to a semester or
+    // a top-up offer, settle that purchase + credit grant (idempotent) instead
+    // of the legacy per-subject path. Never both.
+    const settled = await settleUnified(deps, purchase, licenseId, now());
+    if (!settled) {
+      const result = await syncEntitlementFromPurchase(
+        { store: deps.store, findUserByEmail: deps.findUserByEmail },
+        purchase,
+        now(),
+      );
+      if (!result.ok) {
+        // Safe diagnostic only: never log keys, tokens or full payment payloads.
+        console.error('[freemius] entitlement sync skipped:', result.reason, event.type);
+      }
     }
-    if (deps.events && result.ok && (AUDIT_EVENTS as readonly string[]).includes(event.type)) {
+    if (deps.events && (AUDIT_EVENTS as readonly string[]).includes(event.type)) {
       const details = eventDetails(event);
       await deps.events.record({
         type: event.type,
@@ -141,4 +164,95 @@ export async function handleFreemiusWebhook(request: Request, deps: FreemiusWebh
   });
 
   return deps.processFetch(listener, request);
+}
+
+// Settles a verified license against the unified semester/top-up model. Returns
+// true when the plan was recognised (handled here), false to fall through to the
+// legacy per-subject sync. All writes are idempotent: the wallet dedupes by
+// request id, purchases are keyed by provider license/transaction id.
+async function settleUnified(
+  deps: FreemiusWebhookDeps,
+  purchase: PurchaseLike,
+  licenseId: string,
+  now: Date,
+): Promise<boolean> {
+  if (!deps.unified) return false;
+  const { semesters, purchases, wallets, topups } = deps.unified;
+
+  const semester = await semesters.findSemesterByFreemiusPlanId(purchase.planId);
+  if (semester) {
+    const user = await deps.findUserByEmail(purchase.email);
+    if (!user) {
+      console.error('[freemius] unified settlement skipped: unknown user');
+      return true;
+    }
+    // A canceled semester purchase is not provisioned; provisioning is idempotent.
+    if (purchase.canceled) return true;
+    await provisionSemesterPurchase({
+      purchases,
+      billing: deps.store,
+      wallets,
+      semester,
+      userId: user.id,
+      provider: { licenseId, subscriptionId: purchase.subscriptionId, planId: purchase.planId },
+      purchasedAt: purchase.created,
+      now,
+    });
+    return true;
+  }
+
+  const offer = await topups.findOfferByFreemiusPlanId(purchase.planId);
+  if (offer) {
+    const user = await deps.findUserByEmail(purchase.email);
+    if (!user) {
+      console.error('[freemius] top-up settlement skipped: unknown user');
+      return true;
+    }
+    // Only grant credits for a settled, non-canceled one-time payment.
+    if (purchase.canceled) return true;
+    const transactionId = purchase.subscriptionId ?? licenseId;
+    const existing = await topups.findPurchaseByProviderTransactionId(transactionId);
+    let purchaseId = existing?.id ?? null;
+    if (!purchaseId) {
+      const pending = await topups.findPendingPurchaseForUser(user.id, offer.id);
+      if (pending) {
+        await topups.updatePurchase(pending.id, {
+          status: 'ACTIVE',
+          providerTransactionId: transactionId,
+          providerLicenseId: licenseId,
+          providerPlanId: purchase.planId,
+        });
+        purchaseId = pending.id;
+      } else {
+        const created = await topups.createPurchase({
+          id: crypto.randomUUID(),
+          userId: user.id,
+          offerId: offer.id,
+          offerName: offer.name,
+          credits: offer.credits,
+          priceMinor: offer.priceMinor,
+          currency: offer.currency,
+          status: 'ACTIVE',
+          provider: 'freemius',
+          providerTransactionId: transactionId,
+          providerLicenseId: licenseId,
+          providerPlanId: purchase.planId,
+          creditsGrantedAt: null,
+        });
+        purchaseId = created.id;
+      }
+    }
+    const grant = await wallets.grantTopupCredits({
+      userId: user.id,
+      credits: offer.credits,
+      topupPurchaseId: purchaseId,
+      requestId: `topup-grant:${transactionId}`,
+    });
+    if (grant.granted) {
+      await topups.updatePurchase(purchaseId, { creditsGrantedAt: now });
+    }
+    return true;
+  }
+
+  return false;
 }

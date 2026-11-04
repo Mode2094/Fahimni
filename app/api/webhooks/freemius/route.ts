@@ -1,5 +1,9 @@
 import { authStore } from '../../../../lib/auth/store';
 import { billingStore } from '../../../../lib/billing/store';
+import { semesterStore } from '../../../../lib/billing/semester-store';
+import { purchaseStore } from '../../../../lib/billing/purchase-store';
+import { topupStore } from '../../../../lib/billing/topup-store';
+import { creditWalletStore } from '../../../../lib/billing/wallet-store';
 import { FreemiusConfigError, freemiusClient } from '../../../../lib/freemius/client';
 import { billingEventStore } from '../../../../lib/freemius/events';
 import { handleFreemiusWebhook } from '../../../../lib/freemius/webhook';
@@ -36,6 +40,12 @@ export async function POST(request: Request) {
       store: billingStore(),
       findUserByEmail: (email) => authStore().findUserByEmail(email),
       events: billingEventStore(),
+      unified: {
+        semesters: semesterStore(),
+        purchases: purchaseStore(),
+        wallets: creditWalletStore(),
+        topups: topupStore(),
+      },
     });
   } catch (error) {
     if (error instanceof FreemiusConfigError) {

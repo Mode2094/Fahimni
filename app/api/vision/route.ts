@@ -24,7 +24,7 @@ export async function POST(req:Request){
    if(!result.clear)throw new ProviderError('unclear',422);
    return Response.json({...result,credits:{balance:charge.balance}},{headers:aiResponseHeaders(access.context)});
   }catch(e){
-   await refundAiCredits(charge);
+   await refundAiCredits(charge, undefined, undefined, undefined, access.context);
    throw e;
   }
  }catch(e){trace({stage:'failed',code:e instanceof ProviderError?e.code:'invalid_request'});return failure(e);}

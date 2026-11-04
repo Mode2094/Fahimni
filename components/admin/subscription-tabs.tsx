@@ -1,12 +1,16 @@
 import Link from 'next/link';
-import { CalendarRange, CreditCard, ShieldCheck, Users } from 'lucide-react';
+import { CalendarRange, Coins, CreditCard, Gauge, Receipt, ShieldCheck, TrendingUp, Users } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
 export const SUBSCRIPTION_SECTIONS = [
-  { id: 'terms', label: 'الفصول الدراسية', icon: CalendarRange },
-  { id: 'offers', label: 'الباقات والأسعار', icon: CreditCard },
-  { id: 'subscribers', label: 'اشتراكات الطلاب', icon: Users },
+  { id: 'semesters', label: 'الفصول الدراسية', icon: CalendarRange },
+  { id: 'subscribers', label: 'الاشتراكات', icon: Users },
+  { id: 'credits', label: 'الكريدت والشحن', icon: Coins },
+  { id: 'payments', label: 'المدفوعات', icon: Receipt },
+  { id: 'reports', label: 'التقارير المالية', icon: TrendingUp },
+  { id: 'consumption', label: 'إعدادات الاستهلاك', icon: Gauge },
+  { id: 'offers', label: 'الباقات القديمة', icon: CreditCard },
   { id: 'freemius', label: 'حالة الربط مع فريميوس', icon: ShieldCheck },
 ] as const;
 
@@ -14,7 +18,7 @@ export type SubscriptionSectionId = (typeof SUBSCRIPTION_SECTIONS)[number]['id']
 
 export function normalizeSubscriptionSection(value: string | undefined): SubscriptionSectionId {
   const match = SUBSCRIPTION_SECTIONS.find((section) => section.id === value);
-  return match ? match.id : 'terms';
+  return match ? match.id : 'semesters';
 }
 
 export function SubscriptionTabs({ active }: { active: SubscriptionSectionId }) {
