@@ -103,7 +103,12 @@ created, billingCycle` — **بلا مبلغ ولا عملة**. ودالة ال�
 
 - التزامات عادية على فرع PR #3 دون إعادة كتابة التاريخ.
 - الفرع: `release/fahimni-production-readiness`
+- HEAD النهائي للكود: `1070cf44266d8db5fa81abe20e3959f82941979f`
 - PR: https://github.com/Mode2094/Fahimni/pull/3
+- CI: https://github.com/Mode2094/Fahimni/actions/runs/41887528629 — **نجاح** لكلا
+  المهمتين. سجل CI يؤكد تشغيل الاختبارات الجديدة واختبارات قاعدة البيانات:
+  `ok 272 wallet financial integrity…`، `ok 273 admin adjustments only affect…`،
+  `ok 274/275/276 route … payment`، و`# tests 279 · # pass 279 · # fail 0 · # skipped 0`.
 - ملف التقرير: `docs/release/12-final-payment-and-readiness-verification.md`
 
 ### هل التحقق من مبلغ الدفع مدعوم فعليًا؟
