@@ -123,16 +123,26 @@
 | --- | --- |
 | `pnpm typecheck` | نجاح (0 أخطاء) |
 | `pnpm lint` | نجاح (0 أخطاء، 18 تحذيرًا قديمًا) |
-| `pnpm test` | **270 اختبارًا، 270 نجاح، 0 فشل** على Node 22 مع PostgreSQL و Redis حقيقيين |
+| `pnpm test` | **270 اختبارًا، 270 نجاح، 0 فشل، 0 مُتخطّى** على Node 22 مع PostgreSQL و Redis حقيقيين |
 | `pnpm build:next` | نجاح |
 
-اختبارات تكامل PostgreSQL فعّالة (لم تُتخطَّ): `wallet-financial-integrity.test.ts`
+اختبارات تكامل PostgreSQL فعّالة في CI (لم تُتخطَّ): `wallet-financial-integrity.test.ts`
 (النتائج 1–5) و`unified-wallet-db.test.ts` (التزامن والعزل والمطابقة).
+
+**CI (HEAD النهائي):** https://github.com/Mode2094/Fahimni/actions/runs/41879583454
+— **نجاح** لكلا المهمتين. سجل CI يؤكد تشغيل اختبارات قاعدة البيانات:
+`ok 260 - unified wallet on PostgreSQL…` و`ok 267 - wallet financial integrity…`،
+و`# tests 270 · # pass 270 · # fail 0 · # skipped 0`.
 
 ## الالتزام بالتاريخ
 
 أُضيفت الإصلاحات كالتزامات عادية على نفس فرع PR #3 دون إعادة كتابة التاريخ.
 لم يُمَس `main` ولا PR #1 ولا PR #2.
+
+- الفرع: `release/fahimni-production-readiness`
+- HEAD النهائي: `0ee660a05e6fc195c0ba70f5e8ba1ee90757e568`
+- PR: https://github.com/Mode2094/Fahimni/pull/3
+- CI: https://github.com/Mode2094/Fahimni/actions/runs/41879583454 (نجاح)
 
 ## المسائل غير المحلولة / خارج النطاق
 
