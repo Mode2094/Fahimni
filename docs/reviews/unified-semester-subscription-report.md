@@ -165,9 +165,14 @@ Redis: **259 tests, 259 pass, 0 fail, 0 skipped, 0 cancelled**.
 
 ## 12. CI result and URL
 
-See the PR description / GitHub Actions for run URLs on the pushed branch head.
+GitHub Actions on the branch head `470ece7`:
+https://github.com/Mode2094/Fahimni/actions/runs/41847053376 — **success**
+(both jobs: `install · test · typecheck · lint · build` and
+`production build (reproducibility)`).
+
 Local verification: `pnpm typecheck` (0 errors), `pnpm lint` (0 errors, 18
-pre-existing warnings), `pnpm test` (259/259), `pnpm build:next` (pass).
+pre-existing warnings), `pnpm test` (259/259 on Node 22 with real PostgreSQL +
+Redis), `pnpm build:next` (pass).
 
 ## 13. Browser screenshots or testing limitations
 
@@ -191,7 +196,8 @@ mapping is verified, by design.
 
 - Branch: `feat/unified-semester-subscription`
 - Base: `feat/phase-1-ux-architecture` (PR #1) — stacked PR.
-- PR URL: created via `gh pr create` (see the command output in this session).
+- Head commit: `470ece7298b97791a2adce01db0bb0bd4ecea173`
+- PR: https://github.com/Mode2094/Fahimni/pull/2
 
 ## 16. Confirmation
 
