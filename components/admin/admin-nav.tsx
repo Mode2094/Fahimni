@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, CreditCard, FolderTree, GraduationCap, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
+import { BookOpen, CreditCard, FolderTree, GraduationCap, LayoutDashboard, Rocket, Settings, Users, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ const ADMIN_NAV: readonly AdminNavItem[] = [
   { href: "/admin/fields", label: "الحقول", icon: FolderTree },
   { href: "/admin/subjects", label: "المواد", icon: BookOpen },
   { href: "/admin/subscriptions", label: "الاشتراكات", icon: CreditCard },
+  { href: "/admin/readiness", label: "جاهزية الإطلاق", icon: Rocket },
   { href: "/admin/settings", label: "الإعدادات", icon: Settings },
 ];
 
