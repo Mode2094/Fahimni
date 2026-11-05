@@ -2,6 +2,7 @@ import { Action, BoardState, emptyBoard } from '../../schemas/lesson';
 import { assertMathIntegrity, assertTextIntegrity } from '../ai/math-integrity';
 export const draws=new Set<Action['type']>(['write_text','write_latex','draw_line','draw_arrow','draw_circle','draw_rectangle','draw_axes','plot_point','plot_points','plot_graph','show_label','show_image','show_book_reference']);
 export function applyAction(board:BoardState,a:Action):BoardState {
+ if(a.type==='use_visual')throw new Error('Verified visual reference must be resolved on the server');
  if(a.type==='clear_board')return emptyBoard();
  let objects=board.objects.map(o=>({...o}));
  if(draws.has(a.type)){
@@ -36,7 +37,7 @@ export function validateActions(base:BoardState,segments:{actions:Action[]}[],al
   if(['write_latex','write_text','show_label'].includes(a.type)&&!a.content)throw new Error('Missing content');
   if(a.type==='show_image'&&!allowedImages.includes(a.content||''))throw new Error('Image outside retrieved sources');
   if(['plot_graph','plot_points','plot_point'].includes(a.type)&&!a.points.length)throw new Error('Missing plot points');
-  if(['plot_graph','plot_points'].includes(a.type)&&a.points.length<2)throw new Error('A curve needs at least two points');
+  if(['plot_graph','plot_points'].includes(a.type)&&a.points.length<2)throw new Error(`${a.type} ${a.id}: a curve needs at least two points; use plot_point for a single point, or provide the sampled curve coordinates`);
   if(a.type==='plot_point'&&a.points.length!==1)throw new Error('A plotted point needs exactly one coordinate');
   if(a.region==='graph-area'){
    if(['draw_line','draw_arrow'].includes(a.type)&&a.points.length!==2)throw new Error('Graph segments need two endpoints');

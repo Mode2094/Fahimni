@@ -1,4 +1,6 @@
 import { assertTextIntegrity } from './math-integrity';
+import {assertVisualMath,unitCircleFacts} from './visual-math-check';
+import {verifiedVisualsFor,resolveVisualReferences} from '../whiteboard/verified-visuals';
 import { z } from 'zod';
 import { assessmentSchema, generatedLessonSchema, BoardState, Lesson, emptyBoard } from '../../schemas/lesson';
 import { toStructuredOutputsSchema } from './json-schema';
@@ -58,22 +60,32 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
  // Quiz turns are deterministic: presenting a practice question starts a fresh
  // board; the student's reply is always an evaluation that keeps the board.
  const followup=turn==='evaluate'?true:turn==='present'?false:(intent.followup&&hasConversation);
- const visualRules=`Graph-area uses mathematical world coordinates with y upward. A draw_circle uses exactly two points: center and one point on the circumference, e.g. [{"x":0,"y":0},{"x":1,"y":0}] for a unit circle; geometry is null. Never approximate a circle with a sparse polygon. draw_line/draw_arrow need two endpoints. plot_points follows the given order (use it for angle arcs); plot_graph is ordered by x (functions only). A show_label in graph-area needs one point anchoring its plain label. Give points short content labels such as P. The renderer fits the whole scene with equal x/y scale automatically; do not multiply unit coordinates by ten. Draw only elements relevant to the current narration, progressively over segments, keeping axes and scene objects visible. For a unit-circle lesson show the radius, correct quadrant, angle arc, coordinate projections, and verify x²+y²=1 and the signs of sin, cos and tan. Write canonical KaTeX with backslashes escaped correctly for JSON; never output tabs, carriage returns, form feeds, mojibake or guessed damaged notation. If extraction is damaged, reconstruct only from unambiguous mathematical context, otherwise admit insufficient context. Keep prose and spoken Arabic separate from display LaTeX.`;
+ const visualRules=`When verifiedVisualRefs is nonempty, geometry and mathematical notation MUST use type use_visual with content set to a provided ref key (for example content: "circle"), a distinct id, points:[], geometry:null, targets:[] and all other required fields. The server resolves it to correct primitives; never copy numerical coordinates, angle samples or LaTeX yourself in that case. Include every relevant provided ref progressively across the lesson: axes/circle/definition first, then point/coordinate/radius/angle/angle-label, then projections with sin/cos, finally tan/check. Keep write_text for short Arabic headings and reasoning, and focus/highlight for existing objects. Your work is to teach WHY and choose a clear progressive sequence from the textbook. If verifiedVisualFacts is provided, it contains server-computed facts for your reasoning. Never rescale or reinterpret them. Still explain WHY using the retrieved textbook. Graph-area uses mathematical world coordinates with y upward. A draw_circle uses exactly two points: center and one point on the circumference, e.g. [{"x":0,"y":0},{"x":1,"y":0}] for a unit circle; geometry is null. Never approximate a circle with a sparse polygon. draw_line/draw_arrow need two endpoints. plot_points follows the given order (use it for angle arcs); plot_graph is ordered by x (functions only). A show_label in graph-area needs one point anchoring its plain label. Give points short content labels such as P. The renderer fits the whole scene with equal x/y scale automatically; do not multiply unit coordinates by ten. Draw only elements relevant to the current narration, progressively over segments, keeping axes and scene objects visible. For a unit-circle lesson show the radius, correct quadrant, angle arc, coordinate projections, and verify x²+y²=1 and the signs of sin, cos and tan. Write canonical KaTeX with backslashes escaped correctly for JSON; never output tabs, carriage returns, form feeds, mojibake or guessed damaged notation. If extraction is damaged, reconstruct only from unambiguous mathematical context, otherwise admit insufficient context. Keep prose and spoken Arabic separate from display LaTeX.`;
  const sceneRules=isMathSubject(input.subjectSlug)?visualRules:"Use diagrams only when they explain the current subject. Graph-area uses equal axis scales with y upward. For a circle use draw_circle with two points: center and a radius point. Keep text in plain Arabic, labels short, and preserve UTF-8 encoding. Build visual elements progressively alongside their narration.";
- const system=`${tutorIdentity({subjectName:input.subjectName})} ${BASE_RULES} ${sceneRules} ${teachingPolicy({mode,subjectSlug:input.subjectSlug,reviewTopics:input.reviewTopics})}`;
+ const system=`${tutorIdentity({subjectName:input.subjectName})} ${BASE_RULES} ${sceneRules} ${teachingPolicy({mode,subjectSlug:input.subjectSlug,reviewTopics:input.reviewTopics})} FINAL OUTPUT RULE: if verifiedVisualRefs is nonempty, reveal those references with use_visual actions, never hand-author their coordinates or notation. Example action: {"type":"use_visual","id":"circle","content":"circle","region":"graph-area","targets":[],"points":[],"color":"teal","geometry":null,"delayMs":0}. Select the other supplied ref keys similarly, progressively beside the narration. Raw drawing/notation actions are rejected in this case. If refs are empty, use the usual primitives.`;
  const tRetrieve=Date.now();
  const found=retrieveFn(intent.searchQuery+(followup?' '+input.currentLesson?.title:''));
  stage('retrieve',Date.now()-tRetrieve);
  if(!found.length)throw new ProviderError('no_context',422);
  const initial=followup?input.board:emptyBoard();
- const context={trustedSubject:input.subjectName??null,trustedGrade:input.gradeName??null,question:input.question,followup,currentStep:input.currentStep,currentLesson:input.currentLesson,history:input.history,board:initial,retrieved:found.map(c=>({id:c.id,unit:c.unit,lesson:c.lesson,text:c.text,image:c.image,equations:c.equations}))};
+ let visualQuestion=input.question;
+ if(followup&&!unitCircleFacts(visualQuestion)){
+  const circle=initial.objects.some(o=>o.type==='draw_circle'&&o.points.length===2&&Math.hypot(o.points[0].x,o.points[0].y)<.005&&Math.abs(Math.hypot(o.points[1].x,o.points[1].y)-1)<.005);
+  const prior=[...input.history].reverse().find(h=>/دائرة\s*الوحدة/.test(h.question));
+  if(prior&&(circle||/دائرة\s*الوحدة/.test(input.currentLesson?.title??'')))visualQuestion=prior.question;
+ }
+ const visualLibrary=mode==='explain'?verifiedVisualsFor(visualQuestion):{};
+ const context={trustedSubject:input.subjectName??null,trustedGrade:input.gradeName??null,verifiedVisualRefs:Object.entries(visualLibrary).map(([ref,visual])=>({ref,type:visual.type,region:visual.region,notation:visual.content})),verifiedVisualFacts:mode==='explain'&&!followup?unitCircleFacts(input.question):null,question:input.question,followup,currentStep:input.currentStep,currentLesson:input.currentLesson,history:input.history,board:initial,retrieved:found.map(c=>({id:c.id,unit:c.unit,lesson:c.lesson,text:c.text,image:c.image,equations:c.equations}))};
  let previousError='';
- for(let attempt=0;attempt<2;attempt++){
+ for(let attempt=0;attempt<3;attempt++){
   try{
    const tLlm=Date.now();
    const raw=await ai.json(system,{...context,repairInstruction:previousError},toStructuredOutputsSchema(generatedLessonSchema),signal);
    stage(`llm-attempt${attempt}`,Date.now()-tLlm);
    const draft=generatedLessonSchema.parse(raw);
+   // Explicit references avoid asking a text model to copy numeric geometry.
+   // Existing action payloads remain valid; clients receive resolved primitives.
+   draft.segments.forEach(s=>{s.actions=resolveVisualReferences(s.actions,visualLibrary);});
    const tPost=Date.now();
    if(!draft.sufficientContext)throw new ProviderError('no_context',422);
    if(!draft.segments.length)throw new Error('Empty lesson');
@@ -82,6 +94,7 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
    // mislabels follow-ups, so the authoritative value is derived here from the
    // actual conversation state instead of rejecting an otherwise valid lesson.
    draft.mode=followup?'followup':'new';
+   if(followup&&draft.segments.some(s=>s.actions.some(a=>a.type==='clear_board'||(a.type==='clear_region'&&a.region==='graph-area'))))throw new Error('A follow-up must preserve the existing board and diagram: focus existing objects and add the relevant explanation without clearing them');
    for(const seg of draft.segments)for(const id of seg.sourceChunkIds)if(!found.some(c=>c.id===id))throw new Error('Source ID not retrieved');
    // Mechanical repair: a drawing action without an id is a model omission, not
    // a mathematical error. Assign a deterministic id instead of failing the
@@ -100,6 +113,7 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
    assertTextIntegrity(draft.title);
    for(const s of draft.segments){assertTextIntegrity(s.narration);assertTextIntegrity(s.goal);}
    validateActions(initial,draft.segments,found.map(c=>c.image));
+   if(mode==='explain'&&!followup)assertVisualMath(input.question,initial,draft.segments);
    // Evidence is completed by the bounded extraction fallback below instead of
    // regenerating the whole lesson, which doubled latency on evaluation turns.
    // Guarantee: no raw LaTeX ever reaches the teacher text or the TTS input.
@@ -122,7 +136,7 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
    }
    stage('validate+evidence',Date.now()-tPost);
    return {...draft,id:crypto.randomUUID(),question:input.question,segments,sources:used.map(id=>sourceFor(found.find(c=>c.id===id)!)),...(process.env.NODE_ENV==='development'&&process.env.TUTOR_DIAGNOSTICS==='true'?{diagnostics:{normalizedQuestion:intent.searchQuery,retrieved:found}}:{})};
-  }catch(e){if(e instanceof ProviderError&&e.code!=='invalid_output')throw e;if(process.env.NODE_ENV!=='production')console.error('[tutor] attempt',attempt,'rejected:',e instanceof Error?e.message.slice(0,220):'unknown');previousError=String(e).slice(0,1500);}
+  }catch(e){if(e instanceof ProviderError&&e.code!=='invalid_output')throw e;previousError=(e instanceof ProviderError?e.repairHint??String(e):String(e)).slice(0,1500);if(process.env.NODE_ENV!=='production')console.error('[tutor] attempt',attempt,'rejected:',previousError.slice(0,220));}
  }
  throw new ProviderError('invalid_output');
 }

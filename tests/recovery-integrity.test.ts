@@ -41,6 +41,8 @@ for (const [name, content] of [
   ['mojibake punctuation from screenshot', 'x â€ = 1'],
   ['mojibake Greek theta', 'sin(Î¸)=0.8'],
   ['Unicode replacement character', 'sin(\uFFFD)=0.8'],
+  ['actual-provider stray Thai character in a coordinate', 'P(-0.6, ญ0.8)'],
+  ['actual-provider invisible right-to-left marks inside math', 'P(x,y)=P(\u200f\u200fcosθ,sinθ)'],
   ['unknown mathematical command', String.raw`\invalidMathCommand{x}`],
 ] as const) {
   test(`generated math rejects ${name}`, () => {

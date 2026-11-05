@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const regions = ['top','working-area','explanation-area','graph-area','result-area'] as const;
-export const actionTypes = ['write_text','write_latex','highlight','unhighlight','draw_line','draw_arrow','draw_circle','draw_rectangle','draw_axes','plot_point','plot_points','plot_graph','show_label','show_image','show_book_reference','move_object','erase_object','clear_region','clear_board','focus_object','group_objects','wait','change_emphasis'] as const;
+export const actionTypes = ['use_visual','write_text','write_latex','highlight','unhighlight','draw_line','draw_arrow','draw_circle','draw_rectangle','draw_axes','plot_point','plot_points','plot_graph','show_label','show_image','show_book_reference','move_object','erase_object','clear_region','clear_board','focus_object','group_objects','wait','change_emphasis'] as const;
 const ID=z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/);
 export const pointSchema=z.object({x:z.number().min(-10).max(10),y:z.number().min(-10).max(10)}).strict();
 export const actionSchema=z.object({

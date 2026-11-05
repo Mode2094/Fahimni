@@ -1,6 +1,6 @@
 import { aiRuntimeConfig, type AiRuntimeConfig } from './runtime-config';
 
-export class ProviderError extends Error{constructor(public code:string,public status=502){super(code);}}
+export class ProviderError extends Error{constructor(public code:string,public status=502,public repairHint?:string){super(code);}}
 // Minimal shape of the chat-completions payload we read; extra fields are ignored.
 type ChatCompletionResponse={choices:Array<{finish_reason?:string;message:{content?:string|null}}>};
 export interface AIProvider {
@@ -69,8 +69,9 @@ export const provider:AIProvider={
   // max_completion_tokens supersedes the deprecated max_tokens parameter.
   const r=await request('chat/completions',{model:config.tutorModel,messages:[{role:'system',content:system},{role:'user',content:JSON.stringify(input)}],response_format:schema?{type:'json_schema',json_schema:{name:'response',strict:true,schema}}:{type:'json_object'},max_completion_tokens:6500,...reasoningEffort()},config.tutorModel,config,signal);
   const j=await r.json() as ChatCompletionResponse;const content=j.choices?.[0]?.message?.content;
-  if(!content||j.choices[0].finish_reason==='length')throw new ProviderError('invalid_output');
-  try{return JSON.parse(content);}catch{throw new ProviderError('invalid_output');}
+  if(!content)throw new ProviderError('invalid_output',502,'The response was empty. Return the complete JSON object required by the schema.');
+  if(j.choices[0].finish_reason==='length')throw new ProviderError('invalid_output',502,'The response was truncated. Use fewer concise segments and actions while preserving correct teaching. Return complete JSON.');
+  try{return JSON.parse(content);}catch{throw new ProviderError('invalid_output',502,'Malformed JSON. Return one complete JSON object only, without Markdown fences or trailing prose. Escape quotation marks and LaTeX backslashes correctly for JSON; never put raw control characters inside strings.');}
  },
  async vision(dataUrl,signal,subjectName){
   const config=await aiRuntimeConfig();

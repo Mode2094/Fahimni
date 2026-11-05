@@ -16,7 +16,10 @@ export function assertTextIntegrity(text: string): void {
 export function assertMathIntegrity(expression: string): void {
   assertTextIntegrity(expression);
   if (!expression.trim()) throw new Error('Empty mathematical expression');
-  if (/[\u202a-\u202e\u2066-\u2069]/u.test(expression)) throw new Error('Direction controls inside mathematics');
+  if (/\p{Cf}/u.test(expression)) throw new Error('Invisible formatting controls inside mathematics; use canonical notation and external direction isolation');
+  for(const character of expression){
+    if(!/[\p{Script=Latin}\p{Script=Greek}\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Common}\p{Script=Inherited}]/u.test(character))throw new Error(`Unexpected Unicode script in mathematics: U+${character.codePointAt(0)!.toString(16)}; regenerate canonical notation`);
+  }
   katex.renderToString(expression, {
     throwOnError: true, trust: false, strict: 'ignore',
     displayMode: true, maxSize: 10, maxExpand: 500,

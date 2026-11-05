@@ -5,7 +5,7 @@ import {retrieve,chunks} from '../lib/textbook/retrieval';
 import {actionSchema,generatedLessonSchema,emptyBoard,Action} from '../schemas/lesson';
 import {runActions,validateActions,beforeSegment} from '../lib/whiteboard/engine';
 import {teach,TutorInput} from '../lib/ai/tutor';
-import {AIProvider,provider} from '../lib/ai/provider';
+import {AIProvider,provider,ProviderError} from '../lib/ai/provider';
 import {upload,boundedBody} from '../lib/http';
 import {setSettingsReaderForTests} from '../lib/settings/service';
 // The provider reads runtime config from settings. Without a reader override a
@@ -28,6 +28,18 @@ test('engine deterministic navigation, objects, focus, erase, clear, groups',()=
 test('engine rejects missing targets and arbitrary source image URLs',()=>{assert.throws(()=>validateActions(emptyBoard(),[{actions:[action('highlight',{targets:['ghost']})]}],[]));assert.throws(()=>validateActions(emptyBoard(),[{actions:[action('show_image',{id:'img',content:'https://evil.test/image'})]}],[]));});
 test('tutor attaches actual retrieved sources and validated math',async()=>{const l=await teach(baseInput,undefined,fakeAI(fixture));assert(l.sources.length);assert(l.sources.every(s=>chunks.some(c=>c.id===s.chunkId&&c.pdfPage===s.pdfPage)));assert.equal(l.mode,'new');assert.equal(l.segments[0].actions[0].content,'x^3+4x^2=5x');});
 test('tutor repairs malformed output once',async()=>{let attempts=0;const l=await teach(baseInput,undefined,fakeAI((input,n)=>{attempts=n;return n===1?{bad:true}:fixture(input);}));assert.equal(attempts,2);assert(l.segments.length);});
+test('bounded regeneration receives the provider repair hint instead of a generic invalid_output code',async()=>{
+ let seen='';const hint='Return complete JSON with correctly escaped backslashes, without Markdown fences.';
+ const lesson=await teach(baseInput,undefined,fakeAI((input,n)=>{if(n===1)throw new ProviderError('invalid_output',502,hint);seen=(input as FakeInput&{repairInstruction:string}).repairInstruction;return fixture(input);}));
+ assert.equal(seen,hint);assert(lesson.segments.length>0);
+});
+test('malformed provider JSON is rejected with a safe repair hint and no response text',async()=>{
+ const oldFetch=globalThis.fetch,oldKey=process.env.OPENAI_API_KEY;
+ process.env.OPENAI_API_KEY='local-test-placeholder';
+ globalThis.fetch=async()=>Response.json({choices:[{finish_reason:'stop',message:{content:'```json\n{"private-student-text":true}\n```'}}]});
+ try{await assert.rejects(provider.json('fixture',{}),(error:unknown)=>error instanceof ProviderError&&error.code==='invalid_output'&&Boolean(error.repairHint?.includes('Malformed JSON'))&&!error.repairHint?.includes('private-student-text'));}
+ finally{globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.OPENAI_API_KEY;else process.env.OPENAI_API_KEY=oldKey;}
+});
 test('tutor rejects repeatedly hallucinated citations and malformed LaTeX',async()=>{await assert.rejects(teach(baseInput,undefined,fakeAI(input=>{const f=fixture(input);f.segments[0].sourceChunkIds=['invented-page-999'];return f;})),/invalid_output/);await assert.rejects(teach(baseInput,undefined,fakeAI(input=>{const f=fixture(input);f.segments[0].actions[0].content='\\invalidMathCommand';return f;})),/invalid_output/);});
 test('followup receives current objects and focuses without clearing board',async()=>{const board=runActions(emptyBoard(),[action('write_latex',{id:'eq1',content:'x^3+4x^2=5x'})]);const l=await teach({...baseInput,question:'ليش عملنا الخطوة الثانية؟',board,currentStep:1,currentLesson:{title:'حل معادلات خاصة',goals:['المعادلة','التحليل'],narrations:['نبدأ','نحلل']}},undefined,fakeAI(fixture));assert.equal(l.mode,'followup');const next=runActions(board,l.segments[0].actions);assert.equal(next.objects[0].id,'eq1');assert(next.objects[0].highlighted);});
 test('insufficient grounding stops lesson generation',async()=>{const ai=fakeAI(fixture);ai.json=async()=>({searchQuery:'طبخ الكبسة',followup:false});await assert.rejects(teach(baseInput,undefined,ai),/no_context/);});
