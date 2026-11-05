@@ -7,6 +7,7 @@ import Classroom from '@/components/classroom/Classroom';
 import { FnButton, FnCard } from '@/components/fahimni';
 import { isEntitlementActive } from '@/lib/billing/entitlements';
 import { billingStore } from '@/lib/billing/store';
+import { creditWalletStore } from '@/lib/billing/wallet-store';
 import { booksStore } from '@/lib/books/store';
 import { ensureCreditPeriod } from '@/lib/credits/periods';
 import { requireOnboardedStudent } from '@/lib/student/guard';
@@ -72,10 +73,10 @@ export default async function SubjectTutorPage({ params }: { params: Promise<{ s
       ? expiredByTime
         ? 'انتهت تجربتك المجانية'
         : 'انتهى رصيد تجربتك المجانية'
-      : 'تحتاج للاشتراك في المادة للمتابعة';
+      : 'ابدأ التعلّم باشتراك فهمني الفصلي';
     const text = trialEnded
-      ? 'اشترك في مادة أو باقة للاستمرار في التعلّم — حسابك وكل تقدّمك محفوظان.'
-      : `اشترك في ${subject.name} للوصول إلى الشرح الكامل على السبورة، أو جرّب فهمني مجانًا أولًا.`;
+      ? 'اشترك في فهمني فصليًا للاستمرار في التعلّم — حسابك وكل تقدّمك محفوظان.'
+      : `اشترك فصليًا للوصول إلى ${subject.name} وجميع المواد الجاهزة لصفك، أو جرّب فهمني مجانًا أولًا.`;
     return (
       <div className="fn-root fn-page">
         <main className="fn-page__main">
@@ -103,12 +104,16 @@ export default async function SubjectTutorPage({ params }: { params: Promise<{ s
 
   if (paidActive && entitlement) {
     entitlement = await ensureCreditPeriod(billing, entitlement, now);
-    return <Classroom subject={{ slug: subject.slug, name: subject.name }} creditBalance={entitlement.creditBalance} />;
+    // The unified semester wallet is the source of truth for the balance; the
+    // entitlement's own creditBalance stays zero on the unified model.
+    const wallet = await creditWalletStore().getSnapshot(user.id);
+    return <Classroom userId={user.id} subject={{ slug: subject.slug, name: subject.name }} creditBalance={wallet.total} />;
   }
 
   // Trial access: the 48h countdown starts on the first accepted AI request.
   return (
     <Classroom
+      userId={user.id}
       subject={{ slug: subject.slug, name: subject.name }}
       creditBalance={trial?.remainingCredits ?? 0}
       trial={{ expiresAt: trial?.expiresAt ? trial.expiresAt.toISOString() : null }}

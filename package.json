@@ -19,9 +19,12 @@
     "build:next": "next build",
     "start:next": "next start",
     "test": "node --import tsx --test --test-concurrency=1 tests/*.test.ts",
+    "test:browser": "playwright test",
+    "test:zoom": "node qa/tools/recovery-native-zoom.mjs",
     "typecheck": "tsc --noEmit",
     "ingest": "python scripts/ingest.py",
-    "dev:seed-login": "node --env-file-if-exists=.env.local --import tsx scripts/dev-login.ts"
+    "dev:seed-login": "node --env-file-if-exists=.env.local --import tsx scripts/dev-login.ts",
+    "dev:setup": "node --env-file-if-exists=.env.local --import tsx scripts/dev-setup.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -58,6 +61,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "4.2.1",
     "@types/jsdom": "^30.0.0",
     "@types/katex": "^0.16.8",

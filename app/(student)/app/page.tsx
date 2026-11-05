@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
 import { FnBadge, FnButton, FnCard, FnLinkMore } from '@/components/fahimni';
+import {ContinueLearning} from '@/components/student/continue-learning';
 import { CreditBadge } from '@/components/student/credit-badge';
 import { SubjectCard } from '@/components/student/subject-card';
 import { SubscriptionWidgetCard } from '@/components/student/subscription-widget';
@@ -87,7 +88,7 @@ export default async function StudentDashboardPage() {
           : { variant: 'outline' as const, label: 'لا يوجد اشتراك نشط' };
 
   return (
-    <div className="fn-container fn-stack fn-stack--lg">
+    <div className="fn-container fn-stack fn-stack--lg student-dashboard">
       <header className="dash-header">
         <h1 className="fn-display fn-display--xl">مرحبًا، {firstName} 👋</h1>
         <div className="fn-row fn-row--wrap">
@@ -107,6 +108,8 @@ export default async function StudentDashboardPage() {
           ) : null}
         </div>
       </header>
+
+      <ContinueLearning userId={user.id} subjects={subjects.filter(s=>readyBookIds.has(s.id))}/>
 
       {!hasPaid && (trial || trialSettings.enabled) ? (
         <TrialCard
@@ -160,12 +163,13 @@ export default async function StudentDashboardPage() {
 
       <section className="fn-section">
         <div className="fn-section__head">
-          <h2 className="fn-section__title">آخر الجلسات</h2>
+          <h2 className="fn-section__title">المراجعة والتدريب</h2>
         </div>
         <FnCard variant="flat" className="dash-empty">
           <span className="dash-stat__body">
-            <span className="fn-caption">لا توجد جلسات محفوظة بعد — تظهر هنا بعد أول شرح كامل على السبورة.</span>
+            <span className="fn-caption">مراجعاتك تأتي من محاولاتك الفعلية. افتح صفحة المراجعة لتعرف ما يحتاج تدريبًا.</span>
           </span>
+          <Link className="fn-btn fn-btn--soft" href="/app/review">افتح مراجعتي</Link>
         </FnCard>
       </section>
     </div>

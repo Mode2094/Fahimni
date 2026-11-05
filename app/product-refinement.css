@@ -1,0 +1,76 @@
+/* Shared visual contract for public, student and administrative surfaces. */
+:root{
+ --fn-primary:#6941ad;--fn-primary-hover:#55318f;--fn-primary-active:#452576;
+ --fn-primary-soft:#eee8f7;--fn-primary-softer:#f7f4fb;--fn-bg:#f5f4f8;
+ --fn-ink:#292338;--fn-body:#575061;--fn-muted:#71697d;
+ --fn-border:#e6e0ed;--fn-border-strong:#d9d0e4;
+ --fn-gradient-primary:linear-gradient(120deg,#714bb1,#59368e);
+ --fn-shadow-brand:0 4px 10px #6941ad16;
+ --fn-font-display:var(--fn-font-body);
+ --fn-radius-xl:14px;--fn-radius-lg:12px;
+}
+.fn-root{font-size:16px}
+.fn-root .fn-card,.fn-admin .fn-card{border-radius:14px;box-shadow:none;background-image:none}
+.fn-root .fn-card--tinted,.fn-admin .fn-card--tinted{background:#fff}
+.fn-root .fn-btn,.fn-admin .fn-btn{border-radius:9px;min-height:44px;box-shadow:none}
+.fn-root .fn-display,.fn-admin .fn-display{letter-spacing:-.025em;line-height:1.55}
+.fn-root .fn-icon-tile,.fn-admin .fn-icon-tile{border-radius:10px}
+.fn-root .fn-chip,.fn-root .fn-badge,.fn-admin .fn-badge{border-radius:7px}
+.fn-root .fn-navbar{box-shadow:none;border-bottom:1px solid var(--fn-border)}
+.student-dashboard{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);align-items:start;gap:24px}
+.student-dashboard>.dash-header{grid-column:1/-1}
+.student-dashboard>.continue-learning{grid-column:1;grid-row:2;background:#fff;padding:28px;border:1px solid var(--fn-border);border-top:3px solid var(--fn-primary);border-radius:12px}
+.continue-learning h2{font-size:26px;line-height:1.6;margin:8px 0}
+.continue-learning p{font-size:16px;color:var(--fn-body);line-height:1.9;max-width:42ch;margin:8px 0 20px}
+.continue-learning__link{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;color:var(--fn-primary);text-decoration:none}
+.continue-learning__link small{display:block;margin-top:8px;color:var(--fn-muted)}
+.student-dashboard>.trial-card{grid-column:2;grid-row:2;gap:12px!important}
+.student-dashboard>.trial-card .fn-caption{font-size:13px;line-height:1.9}
+.student-dashboard>.trial-card .fn-icon-tile{display:none}
+.student-dashboard>[aria-label='ملخص الاشتراك']{grid-column:2;gap:16px;padding:20px}
+.student-dashboard>.fn-section{grid-column:1;grid-row:3}
+.student-dashboard>.fn-section:last-child{grid-row:4}
+.student-dashboard .fn-card__title{font-size:17px}
+.student-dashboard .fn-empty__title{font-size:20px}
+.student-dashboard .dash-empty{min-height:100px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.student-dashboard .fn-section__head{margin-bottom:14px}
+.student-dashboard .dash-header h1{font-size:28px;font-weight:600}
+.fn-admin__main{background:#f6f5f8}
+.fn-admin__topbar{box-shadow:none}
+.fn-admin__sidebar{background:#fff;border-inline-end:1px solid var(--fn-border)}
+.fn-admin table{font-size:14px;line-height:1.8}
+.fn-admin th{font-weight:600;background:#f6f3f9;color:#5c5269}
+.fn-admin td,.fn-admin th{padding:14px 16px}
+.fn-admin input,.fn-admin select,.fn-admin textarea{border-radius:8px;min-height:44px}
+.fn-root .landing-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;text-align:start;padding-block:60px 72px;gap:64px}
+.fn-root .landing-hero__copy{align-items:flex-start;max-width:100%}
+.fn-root .landing-title{font-size:clamp(38px,4.8vw,64px);font-weight:600;max-width:11ch}
+.fn-root .fn-text-gradient{background:none;color:var(--fn-primary);-webkit-text-fill-color:currentColor}
+.fn-root .landing-lede{font-size:19px;line-height:2;max-width:38ch}
+.fn-root .landing-hero__art--visual{display:block;position:static;inset:auto;background:none;box-shadow:none;transform:none}
+.learning-preview{padding:24px;background:#172e38;color:#f2f6fa;border-radius:14px;box-shadow:0 20px 50px #26203814;width:100%;position:relative}
+.learning-preview__header{display:flex;justify-content:space-between;font-size:13px;color:#c2d0dc;border-bottom:1px solid #ffffff25;padding-bottom:14px}
+.learning-preview h2{font-size:20px;font-weight:500;line-height:1.8;margin:20px 0 0}
+.learning-preview svg{display:block;max-width:260px;margin:12px auto}
+.learning-preview__equation{direction:ltr;unicode-bidi:isolate;text-align:center;font-family:Georgia,serif;font-size:24px;color:#a6dfcc}
+.learning-preview p{font-size:14px;line-height:1.9;color:#d0dce5;border-top:1px solid #ffffff25;padding-top:16px;margin-bottom:0}
+.fn-root .grade-card,.fn-root .feature-card{border-radius:12px;box-shadow:none}
+.fn-root .landing-nav{box-shadow:none;background:#fff}
+.fn-root .landing-section-title{font-weight:600;font-size:30px}
+.fn-root .landing-section-sub{font-size:17px;line-height:1.9}
+.fn-root :focus-visible,.fn-admin :focus-visible{outline:3px solid #946bc6;outline-offset:3px}
+.account-grid,.account-grid .fn-row,.account-grid .fn-stack{min-width:0}
+.account-grid .fn-badge{white-space:normal;overflow-wrap:anywhere;text-align:start;max-width:100%}
+.account-grid .fn-caption[dir='ltr'],.account-info dd{overflow-wrap:anywhere;min-width:0}
+.account-grid .fn-avatar{flex-shrink:0}
+@media(max-width:860px){
+ .student-dashboard{grid-template-columns:1fr;gap:20px}
+ .student-dashboard>.continue-learning,.student-dashboard>.trial-card,.student-dashboard>[aria-label='ملخص الاشتراك'],.student-dashboard>.fn-section,.student-dashboard>.fn-section:last-child{grid-column:1;grid-row:auto}
+ .student-dashboard>.continue-learning{padding:22px}
+ .continue-learning h2{font-size:23px}
+ .fn-root .landing-hero{grid-template-columns:1fr;padding-block:32px 44px;gap:28px}
+ .fn-root .landing-title{font-size:40px}
+ .fn-root .landing-lede{font-size:17px}
+ .learning-preview{padding:20px}
+}
+@media(prefers-reduced-motion:reduce){.fn-root *,.fn-admin *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

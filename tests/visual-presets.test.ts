@@ -70,7 +70,7 @@ test('every subject preset produces strictly valid, renderable actions', () => {
 });
 
 test('fixtures for bookless subjects are labelled and pass the real server schema', () => {
-  assert.deepEqual(FIXTURE_KEYS.sort(), ['arabic', 'chemistry', 'geometry', 'history', 'physics']);
+  assert.deepEqual(FIXTURE_KEYS.sort(), ['algebra', 'arabic', 'chemistry', 'geometry', 'history', 'physics', 'unit-circle']);
   for (const [key, lesson] of Object.entries(FIXTURE_LESSONS)) {
     assert.ok(lesson.title.startsWith('عرض تجريبي'), `${key} is clearly labelled`);
     const payload = {

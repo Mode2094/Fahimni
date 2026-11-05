@@ -7,6 +7,7 @@ import { aiFailureResponse, aiResponseHeaders, authorizeAiRequest, chargeAiCredi
 import { CREDIT_COSTS } from '../../../lib/credits/config';
 import { booksStore } from '../../../lib/books/store';
 import { learningProgressStore } from '../../../lib/learning/progress';
+import { studentStore } from '../../../lib/student/store';
 import { subjectRetriever } from '../../../lib/textbook/subject-retrieval';
 
 const schema=z.object({question:z.string().trim().min(2).max(4000),board:boardSchema,history:z.array(z.object({question:z.string().max(4000),title:z.string().max(100)})).max(8),currentStep:z.number().int().min(0).max(12),currentLesson:z.object({title:z.string().max(100),goals:z.array(z.string().max(150)).max(12),narrations:z.array(z.string().max(1300)).max(12)}).nullable(),subjectSlug:z.string().trim().max(60).optional(),requestId:z.string().uuid().optional(),mode:z.enum(['explain','coach','quiz']).optional()});
@@ -43,7 +44,8 @@ export async function POST(req:Request){
   if(!charge.ok)return aiFailureResponse(charge.failure,access.context);
 
   try{
-   const lesson=await teach({...input,mode:normalizeTeachingMode(input.mode),subjectSlug:access.context.subject?.slug??null,subjectName:access.context.subject?.name??null,reviewTopics},req.signal,undefined,retrieveFn);
+   const grade=access.context.subject?await studentStore().findGradeById(access.context.subject.gradeId):null;
+   const lesson=await teach({...input,gradeName:grade?.name??null,mode:normalizeTeachingMode(input.mode),subjectSlug:access.context.subject?.slug??null,subjectName:access.context.subject?.name??null,reviewTopics},req.signal,undefined,retrieveFn);
    // Real assessment evidence only; failures never block the lesson response.
    if(lesson.assessment&&access.context.user&&access.context.subject){
     try{await learningProgressStore().recordAssessment({userId:access.context.user.id,subjectId:access.context.subject.id,assessment:lesson.assessment});}

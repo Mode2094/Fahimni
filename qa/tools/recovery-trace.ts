@@ -1,0 +1,11 @@
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
+import {normalize} from '../../lib/textbook/retrieval';
+import {assertMathIntegrity} from '../../lib/ai/math-integrity';
+const chunks=JSON.parse(readFileSync('data/textbook.json','utf8')) as {id:string;text:string;equations:string[]}[];
+const suspicious=chunks.flatMap(c=>[c.text,...c.equations].filter(t=>/â€|Î¸|\uFFFD|[\u0000-\u0009\u000b-\u001f]/u.test(t)).map(text=>({chunkId:c.id,sample:text.slice(0,180)})));
+const formulas=[String.raw`P=(r\cos\theta,\;r\sin\theta)`,String.raw`\tan\theta=-\frac{4}{3}`,'\theta','\frac{4}{3}','sin(Î¸)=0.8','x â€ = 1'];
+const stages=formulas.map(input=>{const parsed=JSON.parse(JSON.stringify({content:input})).content;let validation='accepted';try{assertMathIntegrity(parsed);}catch(e){validation=e instanceof Error?e.message:'rejected';}return{input,json:JSON.stringify(input),afterParse:parsed,codepoints:[...parsed].map(c=>`U+${c.codePointAt(0)!.toString(16).padStart(4,'0')}`),retrievalSearchOnly:normalize(input),validation};});
+mkdirSync('docs/reviews/recovery',{recursive:true});
+writeFileSync('docs/reviews/recovery/math-trace.json',JSON.stringify({capturedAt:new Date().toISOString(),source:'repository development textbook JSON; no live student records',chunks:chunks.length,suspiciousExtractionCount:suspicious.length,extractionSamples:suspicious.slice(0,5),stages},null,2));
+console.log('Math trace saved:',chunks.length,'chunks inspected;',suspicious.length,'suspicious extraction fields');

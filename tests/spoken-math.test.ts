@@ -4,6 +4,11 @@ import assert from 'node:assert/strict';
 import { toSpokenArabic } from '../lib/ai/spoken-math';
 
 const NO_LATEX = /[\\^_{}$]/;
+test('actual narration superscripts and raw theta are spoken as Arabic words',()=>{
+ const spoken=toSpokenArabic('س² + ص³ = θ');
+ assert.match(spoken,/س تربيع/);assert.match(spoken,/ص تكعيب/);assert.match(spoken,/ثيتا/);
+ assert.doesNotMatch(spoken,/[²³θ]/);
+});
 
 test('spoken Arabic never contains LaTeX syntax', () => {
   const cases = [

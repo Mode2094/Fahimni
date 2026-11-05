@@ -5,6 +5,8 @@ import '@fontsource/ibm-plex-sans-arabic/600.css';
 import 'katex/dist/katex.min.css';
 import './globals.css';
 import './design-system.css';
+import './product-refinement.css';
+import '../components/classroom/classroom.css';
 import {ServiceWorkerRegister} from '../components/pwa/pwa-provider';
 import {SETTING_KEYS} from '../lib/settings/keys';
 import {getPlainSetting} from '../lib/settings/service';

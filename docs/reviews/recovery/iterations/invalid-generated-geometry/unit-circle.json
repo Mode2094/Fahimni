@@ -1,0 +1,376 @@
+{
+  "title": "دائرة الوحدة والنسب المثلثية للنقطة بي في الربع الثاني",
+  "mode": "new",
+  "sufficientContext": true,
+  "message": "",
+  "assessment": null,
+  "segments": [
+    {
+      "id": "seg1",
+      "narration": "دائرة الوحدة هي دائرة مركزها نقطة الأصل ونصف قطرها وحدة واحدة، وأي زاوية مصورة في الوضع القياسي يقطع ضلع انتهائها الدائرة في نقطة وحيدة. رح نرسمها ونحط عليها النقطة بي .",
+      "goal": "أعرض مفهوم دائرة الوحدة وأرسمها على السبورة",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_text",
+          "id": "head",
+          "content": "دائرة الوحدة: نقطة P = (−0.6, 0.8)",
+          "region": "top",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "draw_circle",
+          "id": "circle",
+          "content": "دائرة الوحدة",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 1,
+              "y": 0
+            }
+          ],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 400
+        },
+        {
+          "type": "show_label",
+          "id": "lp",
+          "content": "P(−0.6, 0.8)",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": -1.05,
+              "y": 0.85
+            }
+          ],
+          "color": "red",
+          "geometry": null,
+          "delayMs": 800
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg2",
+      "narration": "النقطة بي تقع في الربع الثاني لأن إحداثيها السيني سالب والصادي موجب، والشعاع من الأصل إليها هو ضلع الانتهاء للزاوية ثيتا، وطوله وحدة واحدة لأنه نصف قطر الدائرة.",
+      "goal": "أحدد موقع بي والزاوية ونصف القطر",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p66-420332b3",
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "draw_line",
+          "id": "radius",
+          "content": "نصف القطر OP",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": -1.05,
+              "y": 0.85
+            }
+          ],
+          "color": "red",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "plot_points",
+          "id": "arc",
+          "content": "قوس الزاوية ثيتا",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": 1,
+              "y": 0
+            },
+            {
+              "x": 0.71,
+              "y": 0.71
+            },
+            {
+              "x": 0,
+              "y": 1
+            },
+            {
+              "x": -1.05,
+              "y": 0.85
+            }
+          ],
+          "color": "red",
+          "geometry": null,
+          "delayMs": 400
+        },
+        {
+          "type": "show_label",
+          "id": "ltheta",
+          "content": "θ",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.35
+            }
+          ],
+          "color": "red",
+          "geometry": null,
+          "delayMs": 700
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p66-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 66,
+          "printedPage": 66,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/66",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        },
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg3",
+      "narration": "بين إحداثيي النقطة إسقاطين: الإسقاط الأفقي على محور السينات قيمته سالب ستة أعشار، والإسقاط العمودي على محور الصادات قيمته ثمانية أعشار. سبب صحة هذا أن طول الشعاع واحد فكل إحداثي يمثل مباشرة نسبة مثلثية.",
+      "goal": "أرسم إسقاطي الإحداثيين على المحورين",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "draw_line",
+          "id": "projx",
+          "content": "الإسقاط على محور السينات",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": -1.05,
+              "y": 0.85
+            },
+            {
+              "x": -1.05,
+              "y": 0
+            }
+          ],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "draw_line",
+          "id": "projy",
+          "content": "الإسقاط على محور الصادات",
+          "region": "graph-area",
+          "targets": [],
+          "points": [
+            {
+              "x": -1.05,
+              "y": 0.85
+            },
+            {
+              "x": 0,
+              "y": 0.85
+            }
+          ],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 300
+        },
+        {
+          "type": "write_latex",
+          "id": "eq1",
+          "content": "P(x,y) = P(0.6-2, y)",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 0
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg4",
+      "narration": "من تعريف النسب المثلثية على دائرة الوحدة: جيب الزاوية يساوي الإحداثي الصادي وهو ثمانية أعشار، وجيب التمام يساوي الإحداثي السيني وهو سالب ستة أعشار، والظل يساوي الصادي على السيني فيكون سالب أربعة على ثلاثة لأن قسمة سالب على موجب تعطي سالبا.",
+      "goal": "أحسب النسب المثلثية الأساسية",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_latex",
+          "id": "eqsin",
+          "content": "y = 0.8",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "write_latex",
+          "id": "eqcos",
+          "content": "x = -0.6",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 300
+        },
+        {
+          "type": "write_latex",
+          "id": "eqtan",
+          "content": "y/x = 0.8 / -0.6 = -4/3",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 600
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg5",
+      "narration": "وأخيرا نتحقق من الإشارات في الربع الثاني: الصادي موجب فالجيب موجب، والسيني سالب فجيب التمام سالب، والظل قسمة سالب على موجب فيكون سالبا، وهذه نفس قاعدة إشارات الأرباع بالكتاب. تذكر أن الرسم يحقق المعادلة: صفر وستة وثلاثون مئة على ألف ثم نقول: عظيم إذن Σ يساوي ١ وهذا نتائجه تمشي مع نظرية فيثاغورس. شو بتتوقع الإشارة للظل لو كانت النقطة في الربع الرابع؟",
+      "goal": "أتفحص إشارات النسب في الربع الثاني",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p71-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_latex",
+          "id": "check",
+          "content": "(-0.6)^2 + (0.8)^2 = 1",
+          "region": "explanation-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "write_text",
+          "id": "signs",
+          "content": "في الربع الثاني: الجيب موجب، جيب التمام سالب، الظل سالب",
+          "region": "result-area",
+          "targets": [],
+          "points": [],
+          "color": "blue",
+          "geometry": null,
+          "delayMs": 500
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p71-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 71,
+          "printedPage": 71,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/71",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    }
+  ],
+  "id": "2b1152a5-b960-4122-8d66-a125a7884b75",
+  "question": "اشرح دائرة الوحدة وارسمها بدقة مع النقطة P=(-0.6,0.8) ونصف القطر والزاوية وإسقاطات الإحداثيين. أوجد الجيب وجيب التمام والظل واشرح إشاراتها في الربع الثاني.",
+  "sources": [
+    {
+      "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+      "sourceId": "math10-2ad3b12dc497",
+      "pdfPage": 69,
+      "printedPage": 69,
+      "lesson": "النسب المثلثية",
+      "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+      "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+    },
+    {
+      "chunkId": "math10-2ad3b12dc497-p66-420332b3",
+      "sourceId": "math10-2ad3b12dc497",
+      "pdfPage": 66,
+      "printedPage": 66,
+      "lesson": "النسب المثلثية",
+      "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/66",
+      "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+    },
+    {
+      "chunkId": "math10-2ad3b12dc497-p71-420332b3",
+      "sourceId": "math10-2ad3b12dc497",
+      "pdfPage": 71,
+      "printedPage": 71,
+      "lesson": "النسب المثلثية",
+      "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/71",
+      "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+    }
+  ],
+  "credits": {
+    "balance": 14,
+    "resetAt": "2026-11-07T15:29:48.188Z"
+  }
+}

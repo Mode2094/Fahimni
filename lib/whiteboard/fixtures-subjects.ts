@@ -1,5 +1,6 @@
 import type {Lesson, Segment, Source} from '../../schemas/lesson';
 import {SUBJECT_PRESETS, type SubjectPresetKey} from './presets';
+import {unitCircleFixture,algebraFixture} from './recovery-fixtures';
 
 // Renderer fixtures for subjects that do NOT have an uploaded textbook yet.
 // They are clearly labelled as demonstrations and are only reachable in
@@ -44,6 +45,8 @@ function fixtureLesson(key: SubjectPresetKey, title: string, goal: string, narra
 }
 
 export const FIXTURE_LESSONS: Record<string, Lesson> = {
+  'unit-circle':unitCircleFixture,
+  algebra:algebraFixture,
   geometry: fixtureLesson('geometry', 'مثلث وارتفاعه (رسم تجريبي)', 'نرسم مثلثًا وارتفاعه', 'نرسم مثلثًا وننزل ارتفاعًا من الرأس ج إلى القاعدة.'),
   physics: fixtureLesson('physics', 'قوتان متعامدتان (رسم تجريبي)', 'نرسم متجهي القوتين', 'قوتان متعامدتان: إحداهما شرقًا والأخرى شمالًا، ثم نرسم المحصلة.'),
   arabic: fixtureLesson('arabic', 'إعراب جملة (عرض تجريبي)', 'نحلل الجملة كلمة كلمة', 'نقرأ الجملة، ثم نحدد المبتدأ والخبر والفعل.'),

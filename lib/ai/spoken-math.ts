@@ -53,6 +53,9 @@ function speakSubscript(value: string): string {
 export function toSpokenArabic(input: string): string {
   let text = String(input ?? '');
   if (!text.trim()) return '';
+  // These appear in actual generated Arabic narration, even when the model
+  // follows the no-LaTeX rule. Speak their meaning rather than their glyphs.
+  text=text.replace(/²/g,' تربيع ').replace(/³/g,' تكعيب ').replace(/θ/g,' ثيتا ').replace(/π/g,' باي ');
 
   // \text{...} and friends keep their content.
   for (const command of ['\\text', '\\mathrm', '\\operatorname', '\\mbox']) {

@@ -1,0 +1,165 @@
+{
+  "title": "ليش جيب التمام سالب بالربع الثاني؟",
+  "mode": "new",
+  "sufficientContext": true,
+  "message": "",
+  "assessment": null,
+  "segments": [
+    {
+      "id": "seg1",
+      "narration": "فكّر فيها هكذا: جيب التمام للزاوية ثيتا هو بس الإحداثي السيني للنقطة بي اللي على دائرة الوحدة، هاد التعريف من الكتاب نفسه.",
+      "goal": "تذكير بالتعريف",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_latex",
+          "id": "cosdef",
+          "content": "P(x, y) = P(‏‏cosθ, sinθ)",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "highlight",
+          "id": "cosdef",
+          "content": "cosθ",
+          "region": "working-area",
+          "targets": [
+            "cosdef"
+          ],
+          "points": [],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 400
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg2",
+      "narration": "النقطة عندنا بسالف هو ماينوس صفر ستة وصفر ثمانية، يعني هي واقعة عاليسار من المحور الصادي، وأي نقطة عاليسار سينيها سالب تلقائياً.",
+      "goal": "الربط بالنقطة على الرسم",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_latex",
+          "id": "pcoord",
+          "content": "P(-0.6, ญ0.8) −−> cosθ = x = −0.6",
+          "region": "working-area",
+          "targets": [],
+          "points": [],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 0
+        },
+        {
+          "type": "write_text",
+          "id": "whytext",
+          "content": "بي عاليسار من محور الصادات ⟵ سينيها سالب",
+          "region": "explanation-area",
+          "targets": [],
+          "points": [],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 300
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    },
+    {
+      "id": "seg3",
+      "narration": "يعني الإشارة ما جات من الحسبة ولا من شيء معقّد، جات من موقع النقطة نفسها بالربع الثاني: اليسار يعني إكس سالب، فجيب التمام يطلع سالب مباشرة. شو بتتوقع إشارة الجيب بنفس النقطة؟",
+      "goal": "الخلاصة",
+      "sourceChunkIds": [
+        "math10-2ad3b12dc497-p69-420332b3",
+        "math10-2ad3b12dc497-p75-420332b3"
+      ],
+      "actions": [
+        {
+          "type": "write_text",
+          "id": "result",
+          "content": "الربع الثاني: x سالب ⟵ جيب التمام سالب، و y موجب ⟵ الجيب موجب",
+          "region": "result-area",
+          "targets": [],
+          "points": [],
+          "color": "teal",
+          "geometry": null,
+          "delayMs": 0
+        }
+      ],
+      "sources": [
+        {
+          "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 69,
+          "printedPage": 69,
+          "lesson": "النسب المثلثية",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        },
+        {
+          "chunkId": "math10-2ad3b12dc497-p75-420332b3",
+          "sourceId": "math10-2ad3b12dc497",
+          "pdfPage": 75,
+          "printedPage": 75,
+          "lesson": "النسب المثلثية للزوايا ضمن الدورة الواحدة",
+          "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/75",
+          "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+        }
+      ]
+    }
+  ],
+  "id": "ce93dbdb-0bbf-4a1b-977b-6da4f86c369d",
+  "question": "ليش جيب التمام سالب هون؟ اشرحها أبسط واربطها بالنقطة اللي على الرسم.",
+  "sources": [
+    {
+      "chunkId": "math10-2ad3b12dc497-p69-420332b3",
+      "sourceId": "math10-2ad3b12dc497",
+      "pdfPage": 69,
+      "printedPage": 69,
+      "lesson": "النسب المثلثية",
+      "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/69",
+      "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+    },
+    {
+      "chunkId": "math10-2ad3b12dc497-p75-420332b3",
+      "sourceId": "math10-2ad3b12dc497",
+      "pdfPage": 75,
+      "printedPage": 75,
+      "lesson": "النسب المثلثية للزوايا ضمن الدورة الواحدة",
+      "image": "/api/books/420332b3-1736-4e15-b7f0-0a0a55e54ca1/pages/75",
+      "bookId": "420332b3-1736-4e15-b7f0-0a0a55e54ca1"
+    }
+  ],
+  "credits": {
+    "balance": 12,
+    "resetAt": "2026-11-07T15:29:48.188Z"
+  }
+}

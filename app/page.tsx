@@ -114,7 +114,7 @@ const FAQ = (maxDevices: number | null) => [
   },
   {
     q: 'كيف ألغي اشتراكي؟',
-    a: 'تُدار الاشتراكات والفواتير عبر بوابة الدفع الآمنة، وعند إلغاء التجديد يبقى وصولك حتى نهاية المدة المدفوعة.',
+    a: 'تُدار الاشتراكات والفواتير عبر بوابة الدفع الآمنة، والاشتراك الفصلي لا يتجدد شهريًا؛ يبقى الوصول حتى نهاية الفصل المعلنة.',
   },
   {
     q: 'ماذا عن خصوصية بياناتي؟',
@@ -180,63 +180,30 @@ export default async function LandingPage() {
       <main className="fn-app-main">
         <div className="fn-container landing-sections">
           <section className="landing-hero">
-            <div className="landing-hero__art landing-hero__art--mascot" aria-hidden="true">
-              <FahimniMark size={200} className="landing-mascot-svg" />
-            </div>
-
             <div className="landing-hero__copy">
-              <FnBadge variant="primary">
-                <Sparkles size={13} aria-hidden="true" />
-                فهمني · منصة تعليمية ذكية لجميع المواد
-              </FnBadge>
-              <h1 className="fn-display fn-display--hero landing-title">
-                مدرّسك الذكي <span className="fn-text-gradient">من كتابك</span>
-              </h1>
-              <p className="landing-lede">
-                اسأل نصًا أو بصورة أو بالصوت، واحصل على شرح واضح خطوة بخطوة على سبورة تفاعلية — من كتابك المدرسي، وبالسرعة
-                التي تناسبك.
-              </p>
+              <FnBadge variant="outline">فهمني · تعلّم من المواد الجاهزة لصفك</FnBadge>
+              <h1 className="fn-display fn-display--hero landing-title">افهم الفكرة.<br/><span className="fn-text-gradient">ثم حلّها بنفسك.</span></h1>
+              <p className="landing-lede">معلّمك الذكي من كتابك. اسأل نصًا أو بصورة أو بالصوت، وشاهد الخطوات والرسوم على سبورة تفاعلية. توقف واسأل «ليش؟» في أي لحظة.</p>
               <div className="fn-row fn-row--wrap landing-actions">
-                <FnButton asChild size="lg">
-                  <Link href={startHref}>
-                    ابدأ الآن
-                    <ChevronLeft size={19} aria-hidden="true" />
-                  </Link>
-                </FnButton>
-                <FnButton asChild size="lg" variant="outline">
-                  <Link href="/#how">كيف يعمل فهمني؟</Link>
-                </FnButton>
+                <FnButton asChild size="lg"><Link href={startHref}>ابدأ التعلّم<ChevronLeft size={19} aria-hidden="true"/></Link></FnButton>
+                <FnButton asChild size="lg" variant="outline"><Link href="/#how">كيف يعمل فهمني؟</Link></FnButton>
               </div>
+              <p className="fn-caption">متاح للمواد التي اكتمل تجهيز كتبها، وفق صفك وحقلك الدراسي.</p>
             </div>
-
-            <div className="landing-hero__art landing-hero__art--visual" aria-hidden="true">
-              <div className="landing-visual">
-                <div className="landing-visual__card">
-                  <span className="landing-visual__head">
-                    <span className="landing-visual__tile">
-                      <Sparkles size={16} />
-                    </span>
-                    <span className="landing-visual__name">فهمني يشرح</span>
-                  </span>
-                  <span className="landing-visual__line" />
-                  <span className="landing-visual__line landing-visual__line--short" />
-                  <span className="landing-visual__line landing-visual__line--mid" />
-                  <span className="landing-visual__chips">
-                    <span className="landing-visual__chip landing-visual__chip--mint">
-                      <Mic size={14} />
-                      صوت
-                    </span>
-                    <span className="landing-visual__chip landing-visual__chip--pink">
-                      <ImagePlus size={14} />
-                      صورة
-                    </span>
-                  </span>
-                </div>
-                <span className="landing-visual__badge">
-                  <PenLine size={14} />
-                  خطوة بخطوة
-                </span>
-              </div>
+            <div className="landing-hero__art landing-hero__art--visual">
+              <section className="learning-preview" aria-label="مثال توضيحي لشكل الدرس، ليس جلسة مباشرة">
+                <div className="learning-preview__header"><span>على سبورة فهمني</span><span>مثال توضيحي</span></div>
+                <h2>ليش الجيب موجب في الربع الثاني؟</h2>
+                <svg viewBox="0 0 240 220" direction="ltr" role="img" aria-label="دائرة الوحدة ونقطة في الربع الثاني فوق المحور السيني">
+                  <path d="M 16 110 H 224 M 120 206 V 14" stroke="#a6ceff" strokeWidth="1"/>
+                  <circle cx="120" cy="110" r="82" fill="none" stroke="#8ce0c1" strokeWidth="2"/>
+                  <path d="M 120 110 L 70.8 44.4 L 70.8 110 M 70.8 44.4 H 120" fill="none" stroke="#f3cf7b" strokeWidth="2"/>
+                  <circle cx="70.8" cy="44.4" r="4" fill="#f3cf7b"/>
+                  <g fill="#e6edf5" fontSize="14" fontFamily="Georgia,serif"><text x="222" y="103">x</text><text x="127" y="15">y</text><text x="51" y="34">P</text><text x="126" y="44">0.8</text><text x="51" y="128">−0.6</text></g>
+                </svg>
+                <div className="learning-preview__equation">sin θ = y = 0.8</div>
+                <p>الجيب هو الإحداثي الصادي. النقطة فوق المحور السيني، إذن إشارته موجبة.</p>
+              </section>
             </div>
           </section>
 
@@ -394,11 +361,11 @@ export default async function LandingPage() {
                   <h2 className="fn-card__title">الاشتراكات بوضوح</h2>
                 </div>
                 <ul className="fn-list">
-                  <li>مادة واحدة، أو باقة تجمع كل مواد صفك وتخصصك.</li>
-                  <li>شهري متكرر، أو فصلي بدفعة واحدة حتى نهاية الفصل الدراسي.</li>
-                  <li>كل خطة تشمل رصيد نقاط شهريًا معلنًا قبل الشراء.</li>
+                  <li>اشتراك فصلي واحد لجميع المواد الجاهزة والمصرّح بها لصفك وحقلك.</li>
+                  <li>دفعة واحدة حتى نهاية الفصل المعلنة، دون تجديد شهري تلقائي.</li>
+                  <li>رصيد موحّد للفصل مع إمكانية شحن رصيد إضافي حسب العروض المتاحة.</li>
                   <li>الأسعار النهائية تُعرض داخل حسابك حسب صفك عند تفعيل الدفع — بلا رسوم خفية.</li>
-                  <li>الإلغاء والتجديد والفواتير عبر بوابة الدفع الآمنة.</li>
+                  <li>تظهر تواريخ الفصل والرصيد والسعر قبل تأكيد الشراء.</li>
                 </ul>
               </FnCard>
             </div>
