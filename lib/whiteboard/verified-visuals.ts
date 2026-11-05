@@ -1,5 +1,6 @@
 import type {Action} from '../../schemas/lesson';
 import {unitCircleFacts} from '../ai/visual-math-check';
+import {linearEquationFacts,linearNotation} from '../ai/linear-equation';
 
 export type VisualLibrary=Record<string,Action>;
 const action=(value:Partial<Action>&{type:Action['type']}):Action=>({id:null,content:null,region:'graph-area',targets:[],points:[],geometry:null,color:'ink',delayMs:0,...value});
@@ -16,6 +17,8 @@ function ratioFraction(y:number,x:number){
 /** Verified scene atoms are data, not executable model code. The tutor chooses
  * when to reveal a reference; the server owns its computed geometry/notation. */
 export function verifiedVisualsFor(question:string):VisualLibrary{
+ const linear=linearEquationFacts(question);
+ if(linear)return Object.fromEntries(Object.entries(linearNotation(linear)).map(([key,content])=>[key,action({type:'write_latex',content,region:key==='solution'?'result-area':key==='check'?'explanation-area':'working-area',color:key==='solution'?'teal':'ink'})]));
  const facts=unitCircleFacts(question);if(!facts)return{};
  const library:VisualLibrary={
   axes:action({type:'draw_axes',color:'blue'}),

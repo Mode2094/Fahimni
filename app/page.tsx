@@ -194,7 +194,7 @@ export default async function LandingPage() {
               <section className="learning-preview" aria-label="مثال توضيحي لشكل الدرس، ليس جلسة مباشرة">
                 <div className="learning-preview__header"><span>على سبورة فهمني</span><span>مثال توضيحي</span></div>
                 <h2>ليش الجيب موجب في الربع الثاني؟</h2>
-                <svg viewBox="0 0 240 220" role="img" aria-label="دائرة الوحدة ونقطة في الربع الثاني فوق المحور السيني">
+                <svg viewBox="0 0 240 220" direction="ltr" role="img" aria-label="دائرة الوحدة ونقطة في الربع الثاني فوق المحور السيني">
                   <path d="M 16 110 H 224 M 120 206 V 14" stroke="#a6ceff" strokeWidth="1"/>
                   <circle cx="120" cy="110" r="82" fill="none" stroke="#8ce0c1" strokeWidth="2"/>
                   <path d="M 120 110 L 70.8 44.4 L 70.8 110 M 70.8 44.4 H 120" fill="none" stroke="#f3cf7b" strokeWidth="2"/>

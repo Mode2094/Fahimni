@@ -1,8 +1,8 @@
 import { assertTextIntegrity } from './math-integrity';
-import {assertVisualMath,unitCircleFacts} from './visual-math-check';
+import {assertVisualMath,assertNarratedSigns,unitCircleFacts} from './visual-math-check';
 import {verifiedVisualsFor,resolveVisualReferences} from '../whiteboard/verified-visuals';
 import { z } from 'zod';
-import { assessmentSchema, generatedLessonSchema, BoardState, Lesson, emptyBoard } from '../../schemas/lesson';
+import { actionSchema,segmentSchema,assessmentSchema, generatedLessonSchema, BoardState, Lesson, emptyBoard } from '../../schemas/lesson';
 import { toStructuredOutputsSchema } from './json-schema';
 import { retrieve, sourceFor, type Retriever } from '../textbook/retrieval';
 import { draws, validateActions } from '../whiteboard/engine';
@@ -51,6 +51,7 @@ async function extractAssessment(ai:AIProvider,question:string,narration:string,
 export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=provider,retrieveFn:Retriever=retrieve):Promise<Lesson>{
  const mode=normalizeTeachingMode(input.mode);
  const hasConversation=input.history.length>0||Boolean(input.currentLesson);
+ const initialCoaching=mode==='coach'&&!hasConversation&&!/اعرض الحل كامل|الحل الكامل/.test(input.question);
  const turn=quizTurn(mode,hasConversation);
  const stage=(name:string,ms:number)=>{if(process.env.NODE_ENV!=='production')console.log(`[tutor-stage] ${name} ${Math.round(ms)}ms`);};
  const tIntent=Date.now();
@@ -59,10 +60,11 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
  stage('normalize',Date.now()-tIntent);
  // Quiz turns are deterministic: presenting a practice question starts a fresh
  // board; the student's reply is always an evaluation that keeps the board.
- const followup=turn==='evaluate'?true:turn==='present'?false:(intent.followup&&hasConversation);
+ const explicitContinuation=/هون|اللي على الرسم|هذا الرسم|هاد الرسم|الخطوة السابقة|نفس النقطة|كمل الشرح/.test(input.question)&&!/[=]|\([+-]?[\d.]+\s*[,،]/.test(input.question);
+ const followup=turn==='evaluate'?true:turn==='present'?false:((intent.followup||explicitContinuation)&&hasConversation);
  const visualRules=`When verifiedVisualRefs is nonempty, geometry and mathematical notation MUST use type use_visual with content set to a provided ref key (for example content: "circle"), a distinct id, points:[], geometry:null, targets:[] and all other required fields. The server resolves it to correct primitives; never copy numerical coordinates, angle samples or LaTeX yourself in that case. Include every relevant provided ref progressively across the lesson: axes/circle/definition first, then point/coordinate/radius/angle/angle-label, then projections with sin/cos, finally tan/check. Keep write_text for short Arabic headings and reasoning, and focus/highlight for existing objects. Your work is to teach WHY and choose a clear progressive sequence from the textbook. If verifiedVisualFacts is provided, it contains server-computed facts for your reasoning. Never rescale or reinterpret them. Still explain WHY using the retrieved textbook. Graph-area uses mathematical world coordinates with y upward. A draw_circle uses exactly two points: center and one point on the circumference, e.g. [{"x":0,"y":0},{"x":1,"y":0}] for a unit circle; geometry is null. Never approximate a circle with a sparse polygon. draw_line/draw_arrow need two endpoints. plot_points follows the given order (use it for angle arcs); plot_graph is ordered by x (functions only). A show_label in graph-area needs one point anchoring its plain label. Give points short content labels such as P. The renderer fits the whole scene with equal x/y scale automatically; do not multiply unit coordinates by ten. Draw only elements relevant to the current narration, progressively over segments, keeping axes and scene objects visible. For a unit-circle lesson show the radius, correct quadrant, angle arc, coordinate projections, and verify x²+y²=1 and the signs of sin, cos and tan. Write canonical KaTeX with backslashes escaped correctly for JSON; never output tabs, carriage returns, form feeds, mojibake or guessed damaged notation. If extraction is damaged, reconstruct only from unambiguous mathematical context, otherwise admit insufficient context. Keep prose and spoken Arabic separate from display LaTeX.`;
  const sceneRules=isMathSubject(input.subjectSlug)?visualRules:"Use diagrams only when they explain the current subject. Graph-area uses equal axis scales with y upward. For a circle use draw_circle with two points: center and a radius point. Keep text in plain Arabic, labels short, and preserve UTF-8 encoding. Build visual elements progressively alongside their narration.";
- const system=`${tutorIdentity({subjectName:input.subjectName})} ${BASE_RULES} ${sceneRules} ${teachingPolicy({mode,subjectSlug:input.subjectSlug,reviewTopics:input.reviewTopics})} FINAL OUTPUT RULE: if verifiedVisualRefs is nonempty, reveal those references with use_visual actions, never hand-author their coordinates or notation. Example action: {"type":"use_visual","id":"circle","content":"circle","region":"graph-area","targets":[],"points":[],"color":"teal","geometry":null,"delayMs":0}. Select the other supplied ref keys similarly, progressively beside the narration. Raw drawing/notation actions are rejected in this case. If refs are empty, use the usual primitives.`;
+ const system=`${tutorIdentity({subjectName:input.subjectName})} ${BASE_RULES} ${sceneRules} ${teachingPolicy({mode,subjectSlug:input.subjectSlug,reviewTopics:input.reviewTopics})} FINAL OUTPUT RULE: if verifiedVisualRefs is nonempty, reveal those references with use_visual actions, never hand-author their coordinates or notation. Example action: {"type":"use_visual","id":"circle","content":"circle","region":"graph-area","targets":[],"points":[],"color":"teal","geometry":null,"delayMs":0}. Select the other supplied ref keys similarly, progressively beside the narration. Raw drawing/notation actions are rejected in this case. For linear-equation references use equation, balance, isolate, divide, solution and check across at least three segments: explain the same operation on BOTH sides, isolate the variable, give the computed solution and verify by substitution. Never stop after introducing the equation. For a follow-up reveal only the relevant refs and focus existing objects without duplicating the whole lesson. If refs are empty, use the usual primitives.`;
  const tRetrieve=Date.now();
  const found=retrieveFn(intent.searchQuery+(followup?' '+input.currentLesson?.title:''));
  stage('retrieve',Date.now()-tRetrieve);
@@ -74,15 +76,22 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
   const prior=[...input.history].reverse().find(h=>/دائرة\s*الوحدة/.test(h.question));
   if(prior&&(circle||/دائرة\s*الوحدة/.test(input.currentLesson?.title??'')))visualQuestion=prior.question;
  }
- const visualLibrary=mode==='explain'?verifiedVisualsFor(visualQuestion):{};
- const context={trustedSubject:input.subjectName??null,trustedGrade:input.gradeName??null,verifiedVisualRefs:Object.entries(visualLibrary).map(([ref,visual])=>({ref,type:visual.type,region:visual.region,notation:visual.content})),verifiedVisualFacts:mode==='explain'&&!followup?unitCircleFacts(input.question):null,question:input.question,followup,currentStep:input.currentStep,currentLesson:input.currentLesson,history:input.history,board:initial,retrieved:found.map(c=>({id:c.id,unit:c.unit,lesson:c.lesson,text:c.text,image:c.image,equations:c.equations}))};
+ const visualLibrary=mode==='explain'&&isMathSubject(input.subjectSlug)?verifiedVisualsFor(visualQuestion):{};
+ const refKeys=Object.keys(visualLibrary);
+ const boundAction=actionSchema.extend({type:z.literal('use_visual'),content:z.enum(refKeys as [string,...string[]])});
+ const annotationAction=actionSchema.extend({type:z.enum(['write_text','highlight','unhighlight','focus_object','change_emphasis','wait'])});
+ const responseSchema=refKeys.length?generatedLessonSchema.extend({segments:z.array(segmentSchema.extend({
+  sourceChunkIds:z.array(z.enum(found.map(c=>c.id) as [string,...string[]])).min(1).max(6),
+  actions:z.array(z.union([boundAction,annotationAction])).min(1).max(18),
+ })).min(followup?1:3).max(12)}):initialCoaching?generatedLessonSchema.extend({segments:z.array(segmentSchema).length(1)}):generatedLessonSchema;
+ const context={trustedSubject:input.subjectName??null,trustedGrade:input.gradeName??null,verifiedVisualRefs:Object.entries(visualLibrary).map(([ref,visual])=>({ref,type:visual.type,region:visual.region,notation:visual.content})),verifiedVisualFacts:mode==='explain'?unitCircleFacts(visualQuestion):null,question:input.question,followup,currentStep:input.currentStep,currentLesson:input.currentLesson,history:input.history,board:initial,retrieved:found.map(c=>({id:c.id,unit:c.unit,lesson:c.lesson,text:c.text,image:c.image,equations:c.equations}))};
  let previousError='';
  for(let attempt=0;attempt<3;attempt++){
   try{
    const tLlm=Date.now();
-   const raw=await ai.json(system,{...context,repairInstruction:previousError},toStructuredOutputsSchema(generatedLessonSchema),signal);
+   const raw=await ai.json(system+(initialCoaching?' INITIAL COACHING TURN: return exactly one concise segment. Restate only this problem and ask one actionable question about its first operation. Do not solve, introduce another example, or explain later steps before the student responds.':''),{...context,repairInstruction:previousError},toStructuredOutputsSchema(responseSchema),signal);
    stage(`llm-attempt${attempt}`,Date.now()-tLlm);
-   const draft=generatedLessonSchema.parse(raw);
+   const draft=responseSchema.parse(raw);
    // Explicit references avoid asking a text model to copy numeric geometry.
    // Existing action payloads remain valid; clients receive resolved primitives.
    draft.segments.forEach(s=>{s.actions=resolveVisualReferences(s.actions,visualLibrary);});
@@ -114,6 +123,7 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
    for(const s of draft.segments){assertTextIntegrity(s.narration);assertTextIntegrity(s.goal);}
    validateActions(initial,draft.segments,found.map(c=>c.image));
    if(mode==='explain'&&!followup)assertVisualMath(input.question,initial,draft.segments);
+   if(mode==='explain')assertNarratedSigns(visualQuestion,draft.segments.map(s=>s.narration));
    // Evidence is completed by the bounded extraction fallback below instead of
    // regenerating the whole lesson, which doubled latency on evaluation turns.
    // Guarantee: no raw LaTeX ever reaches the teacher text or the TTS input.

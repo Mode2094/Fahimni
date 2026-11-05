@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     // This project builds into .next-native (distDir), so the generated output
     // must be ignored too — linting it only produced noise from bundled code.
     ".next-native/**",
+    ".next-recovery/**",
+    ".qa/**",
+    "test-results/**",
+    "playwright-report/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

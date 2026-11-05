@@ -2,10 +2,24 @@ import type {Action,BoardState} from '../../schemas/lesson';
 import {circleFromPoints} from '../whiteboard/scene';
 import {runActions} from '../whiteboard/engine';
 import {evaluateNumeric} from './math-check';
+import {linearEquationFacts,linearNotation} from './linear-equation';
 
 const close=(a:number,b:number)=>Math.abs(a-b)<.005;
 const same=(a:{x:number;y:number},b:{x:number;y:number})=>close(a.x,b.x)&&close(a.y,b.y);
 const origin={x:0,y:0};
+/** Bounded Arabic sign checks, not a general proof of natural-language truth. */
+export function assertNarratedSigns(question:string,narrations:string[]){
+ const facts=unitCircleFacts(question);if(!facts?.ratios)return;
+ const expected={sin:Math.sign(facts.ratios.sin),cos:Math.sign(facts.ratios.cos),tan:facts.ratios.tan===null?0:Math.sign(facts.ratios.tan)};
+ for(const narration of narrations){
+  const text=narration.replace(/[\u064b-\u065f]/g,'').replace(/جيب\s*التمام/g,'cos').replace(/الجيب|جيب\s*الزاوية/g,'sin').replace(/الظل|ظل\s*الزاوية/g,'tan');
+  if(/السالب\s+(?:بس|فقط)\s+cos/.test(text)&&expected.tan===-1)throw new Error('Narrated sign contradiction: both cosine and tangent are negative here; only sine is positive');
+  for(const match of text.matchAll(/\b(sin|cos|tan)\b\s+(?:هو\s+|بقي\s+|بيطلع\s+)?(موجب|سالب)/g)){
+   const sign=match[2]==='موجب'?1:-1;
+   if(expected[match[1] as keyof typeof expected]!==sign)throw new Error(`Narrated sign contradiction for ${match[1]}: use the verified signs directly without rhetorical or contradictory statements`);
+  }
+ }
+}
 export function unitCircleFacts(question:string){
  if(!/دائرة\s*الوحدة/.test(question))return null;
  const normalized=question.replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[−–]/g,'-').replace(/٫/g,'.').replace(/،/g,',');
@@ -29,6 +43,12 @@ function numericLatex(text:string):number|null{
  * Applies to an explanation of the unit circle with any explicitly supplied
  * on-circle coordinate. Other questions and coaching/quiz turns stay generic. */
 export function assertVisualMath(question:string,base:BoardState,segments:{actions:Action[]}[]):void{
+ const linear=linearEquationFacts(question);
+ if(linear){
+  const notation=linearNotation(linear),formulas=segments.flatMap(s=>s.actions.filter(a=>a.type==='write_latex').map(a=>a.content));
+  if(segments.length<3||!['isolate','solution','check'].every(key=>formulas.includes(notation[key as keyof typeof notation])))throw new Error('A complete linear explanation requires intermediate isolation, the computed solution, and substitution check across at least three teaching segments');
+  return;
+ }
  const facts=unitCircleFacts(question);if(!facts)return;
  const {point}=facts;
  const objects=segments.reduce((board,s)=>runActions(board,s.actions),base).objects;

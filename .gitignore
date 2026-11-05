@@ -49,6 +49,9 @@ next-env.d.ts
 *.tsbuildinfo
 
 /.next-native/
+/.next-recovery/
+/test-results/
+/playwright-report/
 # Plaintext provider key, kept out of the repository.
 openai-api-key.txt
 # Local book storage when DATA_DIR is not configured.

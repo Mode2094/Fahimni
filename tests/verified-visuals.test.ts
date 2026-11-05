@@ -5,6 +5,19 @@ import {verifiedVisualsFor,resolveVisualReferences} from '../lib/whiteboard/veri
 import {validateActions} from '../lib/whiteboard/engine';
 import {assertVisualMath} from '../lib/ai/visual-math-check';
 
+test('linear explanations include computed solution and substitution for different equations',()=>{
+ for(const [question,solution] of [['حل 3x+6=18','x=4'],['حل 2x-3=8',String.raw`x=\frac{11}{2}`],['حل -x+2=5','x=-3'],[String.raw`حل \(3x+6=18\)`,'x=4'],['حل $3x+6=18$','x=4']]){
+  const library=verifiedVisualsFor(question);
+  assert.equal(library.solution?.content,solution);
+  assert.ok(library.check?.content);
+  assert.throws(()=>assertVisualMath(question,{objects:[]},[{actions:[{...ref('equation'),type:'write_latex',content:'3x+6=18'}]}]),/complete|solution/i);
+  const actions=resolveVisualReferences(Object.keys(library).map(key=>ref(key)),library);
+  assert.doesNotThrow(()=>assertVisualMath(question,{objects:[]},actions.map(a=>({actions:[a]}))));
+ }
+ assert.deepEqual(verifiedVisualsFor('حل x^2+3x=5'),{});
+ assert.deepEqual(verifiedVisualsFor('حل 2x+3=5x'),{});
+});
+
 const ref=(content:string):Action=>({type:'use_visual',id:`ref-${content}`,content,region:'graph-area',targets:[],points:[],geometry:null,color:'ink',delayMs:0});
 test('AI-selected references compile to verified geometry and canonical notation for different points',()=>{
  for(const tuple of ['(-0.6,0.8)','(0.6,-0.8)','(-0.8,-0.6)']){

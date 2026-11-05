@@ -1,0 +1,11 @@
+import {spawn} from 'node:child_process';
+import {readFileSync,openSync} from 'node:fs';
+import {parseEnv} from 'node:util';
+if(process.env.RECOVERY_PAID_VERIFICATION!=='authorized-up-to-5-usd')throw new Error('Explicit paid-verification opt-in required');
+const env=parseEnv(readFileSync('.env.local','utf8'));
+if(!env.OPENAI_API_KEY?.trim())throw new Error('No configured provider credential');
+const proxyFd=openSync('.qa/provider-proxy.log','w');
+const proxy=spawn(process.execPath,['qa/tools/recovery-budget-proxy.mjs'],{detached:true,stdio:['ignore',proxyFd,proxyFd]});proxy.unref();
+const fd=openSync('.qa/live-server.log','w');
+const child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1','--port','3012'],{detached:true,stdio:['ignore',fd,fd],env:{...process.env,...env,NEXT_DIST_DIR:'.qa/next-live',DATABASE_URL:'postgresql://localhost/fahimni_recovery_dev',REDIS_URL:'redis://127.0.0.1:6379/12',AUTH_SECRET:'recovery-local-only-secret-0123456789abcdef',DEV_LOGIN_ENABLED:'true',OPENAI_BASE_URL:'http://127.0.0.1:3013/',OPENAI_API_KEY:env.OPENAI_API_KEY,OPENAI_TUTOR_MODEL:process.env.RECOVERY_TUTOR_MODEL||env.OPENAI_TUTOR_MODEL,OPENAI_VISION_MODEL:'nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4',OPENAI_REASONING_EFFORT:'low',NEXT_PUBLIC_VISUAL_DEV_MODE:'false'}});
+child.unref();console.log('Live verification server prepared on localhost:3012 with local cumulative cost governor');

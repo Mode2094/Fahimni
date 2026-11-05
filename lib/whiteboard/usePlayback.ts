@@ -10,7 +10,7 @@ export type LessonCheckpoint={lesson:Lesson;index:number;base:BoardState;board:B
 const isAbort=(e:unknown)=>e instanceof Error&&(e.name==='AbortError'||e.name==='TimeoutError');
 const mark=(name:string)=>{if(process.env.NODE_ENV!=='production'){try{performance.mark(name);}catch{/* marks are diagnostic only */}}};
 export function usePlayback(subjectSlug?:string){
- const [lesson,setLesson]=useState<Lesson|null>(null),[board,setBoard]=useState<BoardState>(emptyBoard),[index,setIndex]=useState(0),[status,setStatus]=useState<PlaybackStatus>('idle'),[revision,setRevision]=useState(0),[voice,setVoice]=useState(true),[rate,setRate]=useState(1),[audioError,setAudioError]=useState(''),[audioLoading,setAudioLoading]=useState(false);
+ const [lesson,setLesson]=useState<Lesson|null>(null),[board,setBoard]=useState<BoardState>(emptyBoard),[index,setIndex]=useState(0),[status,setStatus]=useState<PlaybackStatus>('idle'),[revision,setRevision]=useState(0),[voice,setVoiceState]=useState(true),[rate,setRate]=useState(1),[audioError,setAudioError]=useState(''),[audioLoading,setAudioLoading]=useState(false);
  const base=useRef<BoardState>(emptyBoard()),audio=useRef<HTMLAudioElement|null>(null),active=useRef(false),speed=useRef(1),muted=useRef(false),cache=useRef(new Map<string,string>()),inflight=useRef(new Map<string,Promise<string>>());
  // Exposed so the UI can read real playback progress for the voice indicator
  // without the hook depending on any view.
@@ -48,6 +48,14 @@ export function usePlayback(subjectSlug?:string){
  },[subjectSlug]);
  const load=useCallback((next:Lesson,current:BoardState)=>{audio.current?.pause();restoring.current=null;base.current=next.mode==='followup'?structuredClone(current):emptyBoard();setBoard(base.current);setLesson(next);setIndex(0);setAudioError('');setRevision(v=>v+1);setStatus('playing');},[]);
  const checkpoint=():LessonCheckpoint|null=>lesson?{lesson,index,base:structuredClone(base.current),board:structuredClone(board),...progress.current}:null;
+ const changeVoice=(next:boolean)=>{
+  setVoiceState(next);
+  if(!next)setAudioPlaying(false);
+  else if(audio.current&&!audio.current.paused)setAudioPlaying(true);
+  else if(!voice&&lesson&&!audio.current&&(status==='playing'||status==='paused'||status==='ready')){
+   const saved=checkpoint();if(saved){restoring.current=saved;setRevision(v=>v+1);}
+  }
+ };
  const restore=(saved:LessonCheckpoint)=>{audio.current?.pause();base.current=structuredClone(saved.base);restoring.current=saved;setLesson(saved.lesson);setIndex(saved.index);setAudioError('');setRevision(v=>v+1);setStatus('playing');};
  // Resume a suspended lesson at the exact step the student interrupted.
  const resume=useCallback((next:Lesson,at:number,current:BoardState)=>{audio.current?.pause();base.current=next.mode==='followup'?structuredClone(current):emptyBoard();setBoard(base.current);setLesson(next);setIndex(Math.max(0,Math.min(next.segments.length-1,at)));setAudioError('');setRevision(v=>v+1);setStatus('playing');},[]);
@@ -83,8 +91,9 @@ export function usePlayback(subjectSlug?:string){
    let delays=schedule();
    timer=setInterval(()=>{
     const now=performance.now();const delta=now-last;last=now;if(!alive()||!active.current)return;
+    if(waitingForAudio&&muted.current)waitingForAudio=false;
     if(waitingForAudio&&actionIndex>0)return;
-    if(hasAudio&&player&&!player.paused){
+    if(hasAudio&&!muted.current&&player&&!player.paused){
      elapsed=player.currentTime*1000;
      if(elapsed!==lastAudioPosition){lastAudioPosition=elapsed;lastAudioTime=now;}
      else if(now-lastAudioTime>15000){hasAudio=false;audioFailed=true;player.pause();safe(()=>setAudioError('توقف تحميل الصوت. تابع الشرح المكتوب أو أعد الخطوة.'));}
@@ -107,7 +116,7 @@ export function usePlayback(subjectSlug?:string){
     if(!alive())return;
     mark('seg:audio-ready:'+segment.id);
     player=new Audio(url);audio.current=player;playerRef.current=player;player.playbackRate=speed.current;player.muted=muted.current;
-    player.onplaying=()=>safe(()=>setAudioPlaying(true));player.onpause=()=>safe(()=>setAudioPlaying(false));
+    player.onplaying=()=>safe(()=>setAudioPlaying(!muted.current));player.onpause=()=>safe(()=>setAudioPlaying(false));
     player.onended=()=>{audioEnded=true;safe(()=>setAudioPlaying(false));mark('seg:audio-ended:'+segment.id);};
     await new Promise<void>((resolve,reject)=>{
      const timeout=setTimeout(()=>reject(new Error('audio timeout')),10000);
@@ -137,5 +146,5 @@ export function usePlayback(subjectSlug?:string){
  useEffect(()=>{unmounted.current=false;return()=>{unmounted.current=true;pendingControllers.current.forEach(c=>c.abort());audio.current?.pause();cache.current.forEach(url=>URL.revokeObjectURL(url));};},[]);
  const jump=(next:number)=>{if(!lesson)return;audio.current?.pause();setIndex(Math.max(0,Math.min(lesson.segments.length-1,next)));setRevision(v=>v+1);setStatus('playing');};
  const clear=()=>{audio.current?.pause();setLesson(null);setBoard(emptyBoard());base.current=emptyBoard();setStatus('idle');setIndex(0);setAudioError('');setAudioLoading(false);};
- return {lesson,board,index,status,setStatus,audioError,audioLoading,audioPlaying,voice,setVoice,rate,setRate,load,resume,checkpoint,restore,halt,jump,clear,playerRef,toggle:()=>{if(status==='completed')jump(0);else setStatus(status==='playing'?'paused':'playing');},stop:()=>{halt();setStatus('ready');},restart:()=>jump(0)};
+ return {lesson,board,index,status,setStatus,audioError,audioLoading,audioPlaying,voice,setVoice:changeVoice,rate,setRate,load,resume,checkpoint,restore,halt,jump,clear,playerRef,toggle:()=>{if(status==='completed')jump(0);else setStatus(status==='playing'?'paused':'playing');},stop:()=>{halt();setStatus('ready');},restart:()=>jump(0)};
 }

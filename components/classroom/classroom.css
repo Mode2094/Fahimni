@@ -9,7 +9,7 @@
 .classroom .topbar{flex-wrap:nowrap;min-height:64px;background:#fff;border-bottom:1px solid #e6e3ed;padding:10px 24px;gap:20px;backdrop-filter:none}
 .classroom-back{display:flex;align-items:center;gap:4px;color:#5e43a4;text-decoration:none;min-height:44px;white-space:nowrap}
 .classroom .course{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;gap:0}
-.classroom .course strong{font-size:16px}
+.classroom .course strong,.classroom .course h1{font-size:16px;font-weight:600;line-height:1.5;margin:0}
 .classroom .lesson-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .classroom .topbar-actions{margin:0;flex-shrink:0}
 .classroom .topbar-actions button{min-width:44px;min-height:44px}
@@ -110,7 +110,7 @@
  .classroom-back span,.classroom .topbar .btn-label{display:none}
  .classroom .topbar-actions{gap:0}
  .classroom .topbar-actions button{width:44px;padding:0;justify-content:center}
- .classroom .course strong{font-size:14px}
+ .classroom .course strong,.classroom .course h1{font-size:14px}
  .classroom .lesson-title{font-size:12px}
  .classroom .workspace{padding:10px 12px 16px;gap:10px}
  .classroom .course-bar{gap:4px}

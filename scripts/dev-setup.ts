@@ -38,6 +38,8 @@ type RawChunk = {
 
 async function main(): Promise<void> {
   if (process.env.NODE_ENV === 'production') throw new Error('dev-setup is disabled in production');
+  const destination=new URL(process.env.DATABASE_URL||'');
+  if(!['localhost','127.0.0.1','[::1]'].includes(destination.hostname)||!/dev|local|test|recovery/i.test(destination.pathname))throw new Error('dev-setup requires an explicitly named, loopback-only development database');
   const db = getDb();
   const now = new Date();
 
@@ -114,13 +116,14 @@ async function main(): Promise<void> {
   const people = [
     { key: 'admin', email: 'dev-admin@fahimni.local', name: 'مشرف تجريبي', role: 'ADMIN' as const },
     { key: 'student', email: 'dev-student@fahimni.local', name: 'طالب تجريبي', role: 'STUDENT' as const },
+    { key: 'new-student', email: 'dev-new-student@fahimni.local', name: 'طالب جديد تجريبي', role: 'STUDENT' as const },
   ];
   for (const person of people) {
     await db.insert(users).values({ id: `dev-${person.key}-${crypto.randomUUID()}`, email: person.email, name: person.name, role: person.role, createdAt: now, updatedAt: now }).onConflictDoNothing({ target: users.email });
     const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, person.email)).limit(1);
     if (!row) continue;
     await db.insert(accounts).values({ id: crypto.randomUUID(), userId: row.id, provider: 'google', providerAccountId: `dev-${row.id}`, createdAt: now }).onConflictDoNothing();
-    if (person.role === 'STUDENT') {
+    if (person.role === 'STUDENT'&&person.key!=='new-student') {
       await db.insert(studentProfiles).values({ userId: row.id, gradeId: grade.id, academicFieldId: field?.id ?? null, onboardingCompleted: true, createdAt: now, updatedAt: now }).onConflictDoNothing({ target: studentProfiles.userId });
     }
   }

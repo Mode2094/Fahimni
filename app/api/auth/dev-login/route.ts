@@ -13,8 +13,9 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const target = url.searchParams.get('target') === 'admin' ? 'admin' : 'student';
-  const email = target === 'admin' ? 'dev-admin@fahimni.local' : 'dev-student@fahimni.local';
+  const requested = url.searchParams.get('target');
+  const target = requested === 'admin' ? 'admin' : requested === 'new-student' ? 'new-student' : 'student';
+  const email = `dev-${target}@fahimni.local`;
 
   const store = authStore();
   const user = await store.findUserByEmail(email);

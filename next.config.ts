@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   // Keep native Next.js generated types separate from the Sites build.
-  distDir: '.next-native',
+  distDir: process.env.NEXT_DIST_DIR || '.next-native',
   experimental: {
     // PDF textbooks can be up to 100MB (MAX_PDF_BYTES). Next.js buffers the
     // request body when proxy.ts runs; the 10MB default truncated multipart

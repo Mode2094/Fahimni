@@ -1,9 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {assertVisualMath} from '../lib/ai/visual-math-check';
+import {assertVisualMath,assertNarratedSigns} from '../lib/ai/visual-math-check';
 import {unitCircleFixture} from '../lib/whiteboard/recovery-fixtures';
 import type {Action,Lesson} from '../schemas/lesson';
+
+test('a spoken quadrant claim cannot contradict the verified signs',()=>{
+ assert.throws(()=>assertNarratedSigns('دائرة الوحدة P=(-0.6,0.8)',['في الربع التاني السالب بس جيب التمام.']),/sign/);
+ assert.throws(()=>assertNarratedSigns('دائرة الوحدة P=(-0.6,0.8)',['جيب التمام موجب والظل سالب']),/sign/);
+ assert.doesNotThrow(()=>assertNarratedSigns('دائرة الوحدة P=(-0.6,0.8)',['الجيب موجب، وجيب التمام سالب، والظل سالب لأنه موجب على سالب.']));
+});
 
 test('the actual provider output that moved P outside the unit circle is rejected',()=>{
  const observed=JSON.parse(readFileSync('docs/reviews/recovery/iterations/invalid-generated-geometry/unit-circle.json','utf8')) as Lesson;
