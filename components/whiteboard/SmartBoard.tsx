@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import katex from 'katex';
+import {assertMathIntegrity} from '../../lib/ai/math-integrity';
 import type {Action,BoardObject,BoardState,Lesson} from '../../schemas/lesson';
 import {deriveTeachingStates,idsForSegment,isAnnotation,isMath,pointerTarget,type TeachingVisualState} from '../../lib/whiteboard/teaching-state';
 import {planLayout,rowsFor,zoneWeight,type Zone} from '../../lib/whiteboard/layout';
@@ -21,7 +22,7 @@ const GRAPHICS=new Set<Action['type']>(['draw_line','draw_arrow','draw_circle','
 
 export function MathText({text,state,inline=false,fallback='error'}:{text:string;state?:TeachingVisualState;inline?:boolean;fallback?:'error'|'text'}){
  const html=useMemo(()=>{
-  try{return katex.renderToString(text,{throwOnError:true,trust:false,strict:'ignore',displayMode:!inline,maxSize:10,maxExpand:500});}
+  try{assertMathIntegrity(text);return katex.renderToString(text,{throwOnError:true,trust:false,strict:'ignore',displayMode:!inline,maxSize:10,maxExpand:500});}
   catch{return null;}
  },[text,inline]);
  // Question text may contain mixed Arabic and escaped or unescaped LaTeX. When
@@ -88,18 +89,18 @@ function BoardItem({o,state,onSelect,ghost=false}:{o:BoardObject;state:TeachingV
 
 /* --------------------------------------------------------------- zones ---- */
 
-function Zone({zone,objects,states,weight,focus,onSelect,ghostIds}:{
+function Zone({zone,objects,states,weight,focus,onSelect,ghostIds,planned}:{
  zone:Zone;objects:BoardObject[];states:Map<string,TeachingVisualState>;weight:number;focus:boolean;
- onSelect:(o:BoardObject)=>void;ghostIds:Set<string>;
+ onSelect:(o:BoardObject)=>void;ghostIds:Set<string>;planned:Action[];
 }){
- const rows=rowsFor(objects);
- const graphObjects=objects.filter(o=>o.region==='graph-area'&&GRAPHICS.has(o.type));
+ const graphObjects=objects.filter(o=>o.region==='graph-area'&&(GRAPHICS.has(o.type)||(o.type==='show_label'&&o.points.length>0)));
+ const rows=rowsFor(objects.filter(o=>!graphObjects.includes(o)));
  if(!rows.length&&!graphObjects.length)return null;
- return <section className={`board-zone zone-${zone}${focus?' is-focus':''}`} data-zone={zone} style={{'--zone-weight':weight} as React.CSSProperties}>
-  {graphObjects.length?<GraphLayer objects={graphObjects} ghostIds={ghostIds}/>:null}
-  {rows.map((row,i)=><div className="board-row" key={row.map(o=>o.id).join('|')||i}>
+ return <section className={`board-zone zone-${zone}${focus?' is-focus':''}${graphObjects.length?' has-diagram':''}`} data-zone={zone} style={{'--zone-weight':weight} as React.CSSProperties}>
+  {graphObjects.length?<GraphLayer objects={graphObjects} planned={planned} ghostIds={ghostIds} onSelect={onSelect}/>:null}
+  <div className="board-reasoning">{rows.map((row,i)=><div className="board-row" key={row.map(o=>o.id).join('|')||i}>
    {row.filter(o=>!GRAPHICS.has(o.type)).map(o=><div className="row-item" key={o.id}><BoardItem o={o} state={states.get(o.id)??'inactive'} onSelect={onSelect} ghost={ghostIds.has(o.id)}/></div>)}
-  </div>)}
+  </div>)}</div>
  </section>;
 }
 
@@ -151,7 +152,7 @@ export default function SmartBoard({board,lesson=null,index=0,status='idle',onSe
   const out:GlyphPair[]=[];
   for(const{objects}of plan.zones){
    for(const row of rowsFor(objects)){
-    const glyphs=row.filter(isGlyph);
+    const glyphs=row.filter(o=>o.region!=='graph-area'&&isGlyph(o));
     if(!glyphs.length)continue;
     const target=row.find(o=>!GRAPHICS.has(o.type));
     if(!target)continue;
@@ -169,6 +170,8 @@ export default function SmartBoard({board,lesson=null,index=0,status='idle',onSe
   if(status!=='playing'&&status!=='paused')return;
   const el=scroll.current;if(!el)return;
   const zone=el.querySelector<HTMLElement>('.board-zone.is-focus');
+  // Keep a scene anchored while its equations change, including its axes.
+  if(zone?.classList.contains('has-diagram'))return;
   const target=zone?.querySelector<HTMLElement>('.state-active,.state-focused,.state-final')??zone;
   if(!target||!zone)return;
   const hr=el.getBoundingClientRect(),tr=target.getBoundingClientRect();
@@ -183,7 +186,7 @@ export default function SmartBoard({board,lesson=null,index=0,status='idle',onSe
    <div className="board-surface" aria-hidden="true"><span className="grain"/><span className="residue"/><span className="vignette"/></div>
    <div className="board-scroll" ref={scroll} dir="rtl">
     <div className="board-content" ref={content}>
-     {plan.zones.map(z=><Zone key={z.zone} zone={z.zone} objects={z.objects} states={states} weight={zoneWeight(z.zone,plan.focus,hasFuture)} focus={z.zone===plan.focus} onSelect={onSelect} ghostIds={ghostIds}/>)}
+     {plan.zones.map(z=><Zone key={z.zone} zone={z.zone} objects={z.objects} states={states} weight={zoneWeight(z.zone,plan.focus,hasFuture)} focus={z.zone===plan.focus} onSelect={onSelect} ghostIds={ghostIds} planned={lesson?.segments.flatMap(s=>s.actions)??[]}/>)}
      {!board.objects.length&&children}
     </div>
     <TeachingAnnotation pairs={pairs} frames={frames}/>

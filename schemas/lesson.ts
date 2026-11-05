@@ -7,7 +7,8 @@ export const actionSchema=z.object({
  type:z.enum(actionTypes), id:ID.nullable(), content:z.string().max(1400).nullable(),
  region:z.enum(regions), targets:z.array(ID).max(30),
  points:z.array(pointSchema).max(180), color:z.enum(['ink','blue','teal','amber','red']),
- // geometry uses normalized 0–100 coordinates inside a fixed SVG canvas, never page pixels.
+ // Legacy annotation geometry is a normalized 0–100 canvas. Graph points are
+ // world coordinates (y up); a circle uses [center, circumference point].
  geometry:z.object({x:z.number().min(0).max(100),y:z.number().min(0).max(100),width:z.number().min(0).max(100),height:z.number().min(0).max(100)}).strict().nullable(),
  delayMs:z.number().int().min(0).max(5000)
 }).strict();
