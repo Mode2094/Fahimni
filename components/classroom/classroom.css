@@ -1,0 +1,146 @@
+/* Classroom composition owns its layout at every width. Legacy board drawing
+   animations stay in globals.css; shell and player rules live here. */
+.classroom {
+ --room:#f5f4f8;--room-ink:#26223b;--room-muted:#686376;
+ --chalk-main:#f5f7fa;--chalk-soft:#e0e6ed;--chalk-muted:#c2cdd8;
+ --chalk-accent:#f3cf7b;--chalk-teal:#8ce0c1;--chalk-blue:#a6ceff;
+ background:var(--room);color:var(--room-ink);height:auto;min-height:100dvh;overflow:visible;
+}
+.classroom .topbar{flex-wrap:nowrap;min-height:64px;background:#fff;border-bottom:1px solid #e6e3ed;padding:10px 24px;gap:20px;backdrop-filter:none}
+.classroom-back{display:flex;align-items:center;gap:4px;color:#5e43a4;text-decoration:none;min-height:44px;white-space:nowrap}
+.classroom .course{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;gap:0}
+.classroom .course strong{font-size:16px}
+.classroom .lesson-title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.classroom .topbar-actions{margin:0;flex-shrink:0}
+.classroom .topbar-actions button{min-width:44px;min-height:44px}
+.classroom .workspace{width:min(1600px,100%);flex:1;padding:16px 24px;gap:12px;overflow:visible}
+.classroom .course-bar{justify-content:space-between;display:flex;gap:12px}
+.classroom .mode-selector{flex-shrink:0;display:flex;padding:3px;border-radius:10px;border:1px solid #e1dce9;background:#eeebf3}
+.classroom .mode-selector button{min-height:40px;padding:6px 16px;font-size:14px;white-space:nowrap;border-radius:7px}
+.classroom .mode-selector button.is-active{background:#fff;color:#5b399d;box-shadow:0 1px 4px #28213b12}
+.classroom .course-bar .mobile-units{display:none}
+.classroom .board-tools{display:flex;margin-inline-start:auto;box-shadow:none}
+.classroom .board-tools button{width:40px;height:40px}
+.classroom .classroom-grid{overflow:visible;flex:none;gap:0}
+.classroom .board-shell{gap:12px;overflow:visible;flex:none}
+.classroom .board-stage-wrap{flex:none;height:clamp(400px,calc(100dvh - 360px),780px);min-height:400px;padding:0}
+.classroom .board-stage,.classroom .board-frame{height:100%}
+.classroom .board-frame{padding:1px;border-radius:14px;background:#243742;box-shadow:0 8px 24px #20203b0b;border:1px solid #1b3440}
+.classroom .board-frame::before,.classroom .board-frame::after{display:none}
+.classroom .board-surface{inset:0;border-radius:13px;background:#172e38;box-shadow:none}
+.classroom .board-surface .grain,.classroom .board-surface .residue,.classroom .board-surface .vignette,.classroom .voice-wave,.classroom .board-watermark,.classroom .board-hud{display:none}
+.classroom .board-scroll{border-radius:13px;overflow:auto;scroll-padding:24px}
+.classroom .board-content{padding:24px;min-height:100%;gap:16px;font-size:calc(clamp(1.05rem,1.5vw,1.4rem)*var(--board-scale,1))}
+.classroom .board-zone{opacity:1;flex:none;gap:16px}
+.classroom .board-zone.zone-work{flex:1;justify-content:center}
+.classroom .board-zone:not(.has-diagram)>.board-reasoning{width:min(100%,820px);margin-inline:auto}
+.classroom .board-zone.has-diagram{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:28px;flex:1}
+.classroom .graph-layer{max-inline-size:min(100%,460px);inline-size:100%;padding:0;margin:auto}
+.classroom .graph-layer svg{display:block;width:100%;height:auto;aspect-ratio:1;max-height:460px;min-height:300px}
+.classroom .graph-layer text{font-family:Georgia,'IBM Plex Sans Arabic',serif;font-size:4px;stroke:none;fill:#e2ebf3;paint-order:stroke;stroke-width:0;pointer-events:none}
+.classroom .graph-layer text.graph-tick{font-size:3px;text-anchor:middle;fill:#bfccd6}
+.classroom .graph-glyph{cursor:pointer;outline:none}
+.classroom .graph-glyph:focus-visible,.classroom .graph-glyph.is-focused{stroke-width:.9}
+.classroom .graph-glyph.is-focused{stroke-dasharray:1.5 1}
+.classroom .board-reasoning{min-width:0;display:flex;flex-direction:column;gap:14px}
+.classroom .board-row{min-width:0;gap:12px}
+.classroom .row-item{min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden}
+.classroom .board-object{max-width:100%;padding:4px 8px;filter:none;flex-shrink:0}
+.classroom .board-object .object-label{color:inherit}
+.classroom .board-object.state-inactive,.classroom .board-object.state-completed,.classroom .board-object.state-dimmed,.classroom .zone-work .board-row:not(:last-child){opacity:1;filter:none}
+.classroom .board-object .math{font-size:1.15em;unicode-bidi:isolate;max-width:100%;overflow-x:auto;overflow-y:hidden}
+.classroom .math .katex-display{margin:.25em 0}
+.classroom .zone-result{margin:0;padding-top:12px;border-top:1px solid #ffffff25}
+.classroom .teacher-pointer{display:none}
+.classroom .lesson-console{flex:none;display:flex;flex-direction:column;align-items:stretch;padding:0;gap:0;max-height:none;overflow:visible;border:1px solid #e5e0ed;border-radius:12px;background:#fff;box-shadow:none}
+.classroom .lesson-console .narration-bar{display:flex;flex:none;align-items:center;gap:12px;padding:12px 16px;overflow:visible;border:0;border-radius:0;background:none;box-shadow:none}
+.classroom .narration-bar .icon-button{display:grid;flex-shrink:0}
+.classroom .narrator-label{font-size:14px;font-weight:600;display:flex;flex-wrap:wrap;gap:8px}
+.classroom .narration-bar p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px;line-height:1.7;margin:4px 0 0;color:#4d465b}
+.classroom .playback{display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;padding:8px 16px;gap:12px;border:0;border-top:1px solid #eeeaf3;background:none;border-radius:0}
+.classroom .playback-actions{display:flex;align-items:center;flex-wrap:nowrap;gap:6px}
+.classroom .icon-button{min-width:44px;min-height:44px}
+.classroom .play-button{width:44px;height:44px;border-radius:12px;background:#6941ad;color:#fff;display:grid;place-items:center}
+.classroom .step-time{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.classroom .transcript-button{margin-inline-start:auto;font-size:14px;color:#644195;min-height:44px;white-space:nowrap}
+.classroom .tools-button{display:grid;width:44px;height:44px;padding:0;background:#f3f0f7}
+.classroom .lesson-transcript{border-top:1px solid #e8e1f1;max-height:340px;overflow:auto;padding:16px;font-size:15px}
+.classroom .lesson-transcript>div{display:flex;align-items:center;justify-content:space-between}
+.classroom .lesson-transcript article{padding:12px;border-inline-start:2px solid #ddd5e9}
+.classroom .lesson-transcript article[aria-current]{border-color:#7852b2;background:#f8f6fb}
+.classroom .lesson-transcript p{line-height:1.9;margin:6px 0}
+.classroom .teacher-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding:0;border:0}
+.classroom .teacher-action{min-height:44px;white-space:nowrap;padding:6px 8px;font-size:14px;border:1px solid #ddd6e8;border-radius:8px;background:#fff;color:#514363;justify-content:center}
+.classroom .resume-lesson{min-height:44px;color:#624195;font-weight:600;background:#eae3f5;border-radius:8px}
+.classroom .interaction-area{flex:none;padding:0;gap:8px;margin-top:0}
+.classroom .question-form{box-shadow:none;border:1px solid #ddd6e8;padding:8px 12px;border-radius:12px;background:#fff;align-items:center;gap:8px}
+.classroom .question-form textarea{font-size:16px;min-width:0;line-height:1.6;padding:8px 0}
+.classroom .input-spark{display:none}
+.classroom .input-tools{display:flex;flex:none;gap:0}
+.classroom .input-tools button{width:44px;height:44px;min-width:44px}
+.classroom .input-tools .upload-button{display:grid}
+.classroom .input-hint{display:flex;font-size:12px;color:#716a7b}
+.classroom .dev-badge{display:inline;font-size:12px;border-radius:6px;padding:5px 8px}
+.classroom .journey-slot{display:contents}
+.classroom .journey-slot[data-open='true'] .lesson-sidebar{position:fixed;inset:80px 24px auto auto;max-height:70dvh;width:min(360px,calc(100vw - 48px));overflow:auto;z-index:45;background:#fff;box-shadow:0 20px 80px #201a3b30}
+.classroom .is-speaking{box-shadow:none}
+.classroom .board-hud-expand{display:none}
+.classroom.is-immersive{height:100dvh;overflow:auto}
+@media(min-width:768px){
+ .classroom .board-stage-wrap{container-type:size}
+ .classroom .board-stage-wrap:has(.graph-layer){min-height:520px}
+ .classroom .graph-layer svg{max-height:min(460px,calc(100cqh - 180px));min-height:0}
+}
+@media(min-width:1100px){
+ .classroom .board-stage-wrap{height:clamp(400px,calc(100dvh - 390px),780px)}
+ .classroom .lesson-console{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+ .classroom .lesson-console .playback{border-top:0;border-inline-start:1px solid #eeeaf3}
+ .classroom .lesson-console .narration-bar{padding:12px 16px}
+ .classroom .lesson-transcript{grid-column:1/-1}
+ .classroom .teacher-actions{display:flex;justify-content:flex-start}
+ .classroom .teacher-action{padding-inline:20px}
+ .classroom .lesson-console{position:relative}
+}
+@media(max-width:1023px){
+ .classroom .topbar .btn-label{display:none}
+ .classroom .topbar-actions button{width:44px;min-width:44px;min-height:44px;padding:0;justify-content:center}
+}
+@media(max-width:767px){
+ .classroom .topbar{gap:8px;padding:8px 12px;min-height:60px}
+ .classroom-back span,.classroom .topbar .btn-label{display:none}
+ .classroom .topbar-actions{gap:0}
+ .classroom .topbar-actions button{width:44px;padding:0;justify-content:center}
+ .classroom .course strong{font-size:14px}
+ .classroom .lesson-title{font-size:12px}
+ .classroom .workspace{padding:10px 12px 16px;gap:10px}
+ .classroom .course-bar{gap:4px}
+ .classroom .mode-selector{flex:1;justify-content:space-between}
+ .classroom .mode-selector button{padding:6px 10px;font-size:13px}
+ .classroom .course-bar .board-tools{display:none}
+ .classroom .board-stage-wrap{height:auto;min-height:400px}
+ .classroom .board-content{padding:20px 14px;gap:14px}
+ .classroom .board-zone.has-diagram{grid-template-columns:1fr;gap:16px}
+ .classroom .graph-layer{max-inline-size:360px}
+ .classroom .graph-layer svg{max-height:none;min-height:0}
+ .classroom .board-frame{min-height:400px}
+ .classroom .board-reasoning{gap:12px}
+ .classroom .board-object .math{font-size:1.15em}
+ .classroom .narration-bar{padding:10px 12px}
+ .classroom .narration-bar p{font-size:14px}
+ .classroom .playback{gap:4px;padding:6px 8px}
+ .classroom .playback-actions{gap:0}
+ .classroom .step-time{font-size:12px}
+ .classroom .transcript-button{font-size:12px;padding:0 4px}
+ .classroom .teacher-action{font-size:13px}
+ .classroom .question-form{flex-wrap:wrap;padding:8px;gap:0}
+ .classroom .question-form textarea{flex-basis:100%;min-height:46px}
+ .classroom .input-tools{width:100%;justify-content:flex-end;border-top:1px solid #eeeaf3;padding-top:6px}
+ .classroom .input-tools .mic{margin-inline-end:auto}
+ .classroom .input-hint{display:none}
+ .classroom .dev-badge{position:absolute;top:112px;inset-inline-end:22px;z-index:10;pointer-events:none}
+ .classroom .credit-chip{padding:6px 8px;font-size:13px}
+ .classroom .welcome{padding:24px 12px}
+ .classroom .welcome h2{font-size:32px}
+ .classroom .welcome p{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){.classroom *{animation:none!important;transition:none!important}}

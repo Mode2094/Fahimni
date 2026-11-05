@@ -46,7 +46,7 @@ export function SubscriptionWidgetCard({ widget }: { widget: SubscriptionWidget 
             {widget.endsAt
               ? status === 'scheduled'
                 ? `يبدأ خلال ${widget.daysRemaining} يومًا`
-                : `ينتهي ${formatTermDate(widget.endsAt)} · ${widget.daysRemaining} يومًا متبقيًا`
+                : `${status==='none'?'الفصل المعروض ينتهي':'ينتهي'} ${formatTermDate(widget.endsAt)} · ${widget.daysRemaining} يومًا متبقيًا`
               : 'غير محدد'}
           </span>
         </div>
