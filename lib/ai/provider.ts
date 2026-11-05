@@ -13,7 +13,13 @@ export interface AIProvider {
  speak(text:string,signal?:AbortSignal,subjectName?:string|null):Promise<ArrayBuffer>;
 }
 const isDev=()=>process.env.NODE_ENV!=='production';
-const ENDPOINT=`https://api.openai.com/v1/`;
+// The chat/vision/audio API base. Defaults to OpenAI; set OPENAI_BASE_URL to
+// point at any OpenAI-compatible provider (e.g. a gateway or local model).
+function endpoint(): string {
+  const base = process.env.OPENAI_BASE_URL?.trim();
+  if (!base) return 'https://api.openai.com/v1/';
+  return base.endsWith('/') ? base : `${base}/`;
+}
 const TIMEOUT_MS=90000;
 
 // Diagnostics run in development only and deliberately exclude the key, the
@@ -22,7 +28,7 @@ const TIMEOUT_MS=90000;
 function logFailure(path:string,status:number,model:string,body:unknown){
  if(!isDev())return;
  const err=isRecord(body)&&isRecord(body.error)?body.error:{};
- const meta={endpoint:`${ENDPOINT}${path}`,httpStatus:status,model,openaiCode:err.code??null,openaiType:err.type??null,openaiParam:err.param??null,openaiMessage:typeof err.message==='string'?err.message:null};
+ const meta={endpoint:`${endpoint()}${path}`,httpStatus:status,model,openaiCode:err.code??null,openaiType:err.type??null,openaiParam:err.param??null,openaiMessage:typeof err.message==='string'?err.message:null};
  console.error('[openai:request-failed]',JSON.stringify(meta));
 }
 const isRecord=(v:unknown):v is Record<string,unknown>=>typeof v==='object'&&v!==null;
@@ -32,9 +38,9 @@ async function request(path:string,body:unknown,model:string,config:AiRuntimeCon
  const timeout=AbortSignal.timeout(TIMEOUT_MS);
  let response:Response;
  try{
-  response=await fetch(ENDPOINT+path,{method:'POST',headers:{Authorization:`Bearer ${config.apiKey}`,...(!form?{'Content-Type':'application/json'}:{})},body:form?body:JSON.stringify(body),signal:signal?AbortSignal.any([signal,timeout]):timeout});
+  response=await fetch(endpoint()+path,{method:'POST',headers:{Authorization:`Bearer ${config.apiKey}`,...(!form?{'Content-Type':'application/json'}:{})},body:form?body:JSON.stringify(body),signal:signal?AbortSignal.any([signal,timeout]):timeout});
  }catch(e){
-  if(isDev())console.error('[openai:transport-failed]',JSON.stringify({endpoint:`${ENDPOINT}${path}`,model,reason:e instanceof Error?e.name:'unknown',message:e instanceof Error?e.message:null}));
+  if(isDev())console.error('[openai:transport-failed]',JSON.stringify({endpoint:`${endpoint()}${path}`,model,reason:e instanceof Error?e.name:'unknown',message:e instanceof Error?e.message:null}));
   throw new ProviderError(timeout.aborted||(e instanceof Error&&e.name==='TimeoutError')?'timeout':'network',504);
  }
  if(!response.ok){
@@ -47,11 +53,21 @@ async function request(path:string,body:unknown,model:string,config:AiRuntimeCon
  }
  return response;
 }
+// Optional per-provider reasoning effort. Some OpenAI-compatible gateways serve
+// reasoning models that spend the whole token budget "thinking" and return an
+// empty or truncated JSON body; capping effort to 'low' makes them emit the
+// answer. Configured via OPENAI_REASONING_EFFORT (e.g. "low"); omitted for
+// OpenAI itself, which rejects unknown fields on some models.
+function reasoningEffort(): Record<string, unknown> {
+  const value = process.env.OPENAI_REASONING_EFFORT?.trim().toLowerCase();
+  if (value === 'low' || value === 'medium' || value === 'high') return { reasoning_effort: value };
+  return {};
+}
 export const provider:AIProvider={
  async json(system,input,schema,signal){
   const config=await aiRuntimeConfig();
   // max_completion_tokens supersedes the deprecated max_tokens parameter.
-  const r=await request('chat/completions',{model:config.tutorModel,messages:[{role:'system',content:system},{role:'user',content:JSON.stringify(input)}],response_format:schema?{type:'json_schema',json_schema:{name:'response',strict:true,schema}}:{type:'json_object'},max_completion_tokens:6500},config.tutorModel,config,signal);
+  const r=await request('chat/completions',{model:config.tutorModel,messages:[{role:'system',content:system},{role:'user',content:JSON.stringify(input)}],response_format:schema?{type:'json_schema',json_schema:{name:'response',strict:true,schema}}:{type:'json_object'},max_completion_tokens:6500,...reasoningEffort()},config.tutorModel,config,signal);
   const j=await r.json() as ChatCompletionResponse;const content=j.choices?.[0]?.message?.content;
   if(!content||j.choices[0].finish_reason==='length')throw new ProviderError('invalid_output');
   try{return JSON.parse(content);}catch{throw new ProviderError('invalid_output');}
