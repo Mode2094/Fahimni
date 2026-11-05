@@ -47,7 +47,7 @@ async function prepare(page: Page, lesson: Lesson = unitCircleFixture) {
     return route.fulfill({ status: 200, json: { question: 'اشرح لماذا الجيب موجب في الربع الثاني' } });
   });
   await page.goto('/api/auth/dev-login?target=student');
-  await expect(page.locator('.trial-card')).toBeVisible();
+  await expect(page.getByRole('heading',{level:1,name:/مرحبًا/})).toBeVisible();
   const claim=page.getByRole('button',{name:'ابدأ تجربتك المجانية',exact:true});
   if(await claim.count()){
     await claim.click();

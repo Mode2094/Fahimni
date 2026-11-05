@@ -27,15 +27,15 @@ export type TutorInput={question:string;board:BoardState;history:{question:strin
 // the assessment block. One small bounded call judges the student's attempt and
 // returns null when the message is not an attempt at all.
 const assessmentOnlySchema=z.object({assessment:assessmentSchema.nullable()}).strict();
-async function extractAssessment(ai:AIProvider,question:string,narration:string,topic:string,subjectName?:string|null,subjectSlug?:string|null):Promise<Lesson['assessment']>{
- const check=isMathSubject(subjectSlug)?verifyAnswer(`${topic} ${narration}`,question):{verdict:'unknown' as const,reason:''};
+async function extractAssessment(ai:AIProvider,question:string,narration:string,topic:string,subjectName?:string|null,subjectSlug?:string|null,problemText?:string):Promise<Lesson['assessment']>{
+ const check=isMathSubject(subjectSlug)?verifyAnswer(problemText||`${topic} ${narration}`,question):{verdict:'unknown' as const,reason:''};
  const fallbackTopic=topic.trim().slice(0,80)||'مراجعة';
  const subject=(subjectName??'').replace(/\s+/g,' ').trim().slice(0,60);
  let model:Lesson['assessment']=null;
  try{
   const raw=await ai.json(
    `Judge whether the student's last message contains a solution attempt for this ${subject||'school'}-lesson, and evaluate it rigorously against the rules of that subject. Compute or check the verification yourself using the method of the subject before judging; do not rely on the student's confidence. correct must be true ONLY when your own verification succeeds; otherwise it is false or null. Return JSON {"assessment":{...}} with correct, topic (short Arabic topic name), misconception (short Arabic phrase, or null), nextReviewInDays (1 after a mistake, 2-3 after correct). Return {"assessment":null} when the message is not a solution attempt (a question, a greeting, or an unrelated request).`,
-   {studentMessage:question,lessonText:narration.slice(0,1200)},
+   {studentMessage:question,originalProblem:problemText?.slice(0,1600)??null,lessonText:narration.slice(0,1200)},
    toStructuredOutputsSchema(assessmentOnlySchema),
   );
   model=assessmentOnlySchema.parse(raw).assessment;
@@ -70,6 +70,9 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
  stage('retrieve',Date.now()-tRetrieve);
  if(!found.length)throw new ProviderError('no_context',422);
  const initial=followup?input.board:emptyBoard();
+ // Grade against the equation the student actually sees, before any spoken
+ // normalization. Feedback such as "correct by substitution" is not a problem.
+ const verificationContext=initial.objects.filter(o=>o.type==='write_latex').map(o=>o.content).join(' ');
  let visualQuestion=input.question;
  if(followup&&!unitCircleFacts(visualQuestion)){
   const circle=initial.objects.some(o=>o.type==='draw_circle'&&o.points.length===2&&Math.hypot(o.points[0].x,o.points[0].y)<.005&&Math.abs(Math.hypot(o.points[1].x,o.points[1].y)-1)<.005);
@@ -137,10 +140,11 @@ export async function teach(input:TutorInput,signal?:AbortSignal,ai:AIProvider=p
    // second, and never mastery without verification.
    if(hasConversation&&(turn==='evaluate'||mode==='coach')){
     const narration=draft.segments.map(s=>s.narration).join(' ');
-    if(!draft.assessment)draft.assessment=await extractAssessment(ai,input.question,narration,draft.title,input.subjectName,input.subjectSlug);
+    if(!draft.assessment)draft.assessment=await extractAssessment(ai,input.question,narration,draft.title,input.subjectName,input.subjectSlug,verificationContext);
     if(draft.assessment&&isMathSubject(input.subjectSlug)){
-     const check=verifyAnswer(`${draft.title} ${narration}`,input.question);
+     const check=verifyAnswer(verificationContext||`${draft.title} ${narration}`,input.question);
      if(check.verdict==="incorrect"&&draft.assessment.correct)draft.assessment={...draft.assessment,correct:false,misconception:check.reason,nextReviewInDays:1};
+     else if(check.verdict==='correct')draft.assessment={...draft.assessment,correct:true,misconception:null,nextReviewInDays:Math.max(2,draft.assessment.nextReviewInDays)};
      else if(check.verdict==='unknown'&&draft.assessment.correct)draft.assessment=null;
     }
    }

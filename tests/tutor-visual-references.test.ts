@@ -39,3 +39,16 @@ test('initial coaching asks for one student action instead of a multi-step monol
  assert.equal(lesson.segments.length,1);
  assert.equal(attempts,2);
 });
+
+test('quiz grading checks the displayed original equation even when spoken feedback contains no equation',async()=>{
+ for(const [question,correct] of [['محاولتي x=4',true],['محاولتي x=5',false]] as const){
+  const ai:AIProvider={json:async(system,input)=>{
+   if(system.startsWith('Normalize'))return{searchQuery:'المعادلات الخطية',followup:true};
+   const context=input as {retrieved:{id:string}[]};
+   return{title:'تقييم المحاولة',mode:'followup',sufficientContext:true,message:'',assessment:{correct:!correct,topic:'المعادلات الخطية',misconception:null,nextReviewInDays:2},segments:[{id:'feedback',goal:'نراجع المحاولة',narration:'نراجع الحل بالتعويض في المعادلة الأصلية.',sourceChunkIds:[context.retrieved[0].id],actions:[{type:'write_text',id:'feedback',content:'نراجع المحاولة بالتعويض',region:'explanation-area',targets:[],points:[],geometry:null,color:'ink',delayMs:0}]}]};
+  },vision:async()=>null,transcribe:async()=>'',speak:async()=>new ArrayBuffer(0)};
+  const board={objects:[{id:'original',type:'write_latex' as const,content:'3x+6=18',region:'working-area' as const,targets:[],points:[],geometry:null,color:'ink' as const,highlighted:false,focused:false,group:null}]};
+  const lesson=await teach({question,mode:'quiz',subjectSlug:'tawjihi-math',board,history:[{question:'اختبرني في 3x+6=18',title:'المعادلات الخطية'}],currentStep:0,currentLesson:{title:'المعادلات الخطية',goals:[],narrations:[]}},undefined,ai);
+  assert.equal(lesson.assessment?.correct,correct);
+ }
+});

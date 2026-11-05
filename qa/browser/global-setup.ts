@@ -10,7 +10,9 @@ export default async function setup(config:FullConfig){
   const page=await browser.newPage();
   for(const endpoint of ['tutor','speech','vision','transcribe'])await page.route(`**/api/${endpoint}`,r=>r.fulfill({status:503,json:{error:'اختبار محلي فقط'}}));
   await page.goto(`${baseURL}/api/auth/dev-login?target=student`);
-  await expect(page.locator('.trial-card')).toBeVisible();
+  // The disposable account may already have a development semester grant.
+  // Confirm the dashboard loaded; claim a trial only when it is offered.
+  await expect(page.getByRole('heading',{level:1,name:/مرحبًا/})).toBeVisible();
   const claim=page.getByRole('button',{name:'ابدأ تجربتك المجانية',exact:true});
   if(await claim.count()){await claim.click();await expect(page.locator('.trial-card')).toContainText(/تجربتك جاهزة|تجربتك المجانية نشطة/);}
  }finally{await browser.close();}
